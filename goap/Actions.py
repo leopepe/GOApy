@@ -1,4 +1,4 @@
-from collections import deque
+# from collections import deque
 
 
 class Action:
@@ -8,6 +8,14 @@ class Action:
         self.pre_conditions = pre_conditions
         self.post_effects = post_effects
         self.neg_effects = negative_effects
+
+    @property
+    def effects(self):
+        return self.post_effects
+
+    @property
+    def counter_effects(self):
+        return self.neg_effects
 
     def __str__(self):
         return 'Action: {0}, {1}'.format(self.name, self.__dict__)
@@ -20,14 +28,26 @@ class Action:
         pass
 
     def undo(self):
-        """ Undo action [experimental] """
+        """ Undo action (???) """
         pass
 
     def satisfy_preconditions(self, facts: list):
+        """ The actions must satisfy it' preconditions before execute
+
+        :param facts:
+        :return:
+        """
+        # self.pre_conditions must be contained into World.facts
         if self.pre_conditions <= facts:
             return True
         else:
             return False
+
+    def change_facts(self):
+        """ Every action must change the world facts. (STRIPS)
+        :return:
+        """
+        pass
 
 
 class Actions:
