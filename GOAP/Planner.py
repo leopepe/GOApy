@@ -1,5 +1,4 @@
-from World import Actions
-from World import World
+
 
 from collections import deque
 import heapq
@@ -42,9 +41,9 @@ class PriorityQueue:
 
 class Planner:
 
-    def __init__(self, actions: list, world: World, goal: list):
+    def __init__(self, actions: list, states: list, goal: list):
         self.actions = actions
-        self.world = world
+        self.world = states
         self.plan = Plan()
         self.goal = goal
         # self.breadth_first_search()
@@ -109,7 +108,6 @@ if __name__ == '__main__':
     from World import Action
     from World import World
 
-    # facts = {'VPC': False, 'VPN': False, 'NAT': False, 'ASG': False}
     facts = ['no_vpc', 'no_vpn', 'no_nat', 'no_asg']
     world = World(facts=facts)
     goal = ['asg_exist']
