@@ -13,25 +13,34 @@ actions.add_action(
 )
 actions.add_action(
     name='CreateDB',
-    pre_conditions={'vpc': True, 'app': False, 'db': False},
-    effects={'vpc': True, 'app': False, 'db': True}
+    pre_conditions={'vpc': True, 'db': False, 'app': False},
+    effects={'vpc': True, 'db': True, 'app': False}
 )
 actions.add_action(
     name='CreateApp',
-    pre_conditions={'vpc': True, 'app': False, 'db': True},
-    effects={'vpc': True, 'app': True, 'db': True}
+    pre_conditions={'vpc': True, 'db': True, 'app': False},
+    effects={'vpc': True, 'db': True, 'app': True}
 )
 
 # initial STATE
-state = {'vpc': False, 'rds': False, 'db': False}
+initial_state = {'vpc': False, 'db': False, 'app': False}
 
 # GRAPH / World
 G = nx.Graph()
-G.add_node(0, attr_dict={'vpc': False, 'db': False, 'app': False})
-G.add_node(1, attr_dict={'vpc': True, 'db': False, 'app': False})
-G.add_node(2, attr_dict={'vpc': True, 'db': True, 'app': False})
-G.add_node(3, attr_dict={'vpc': True, 'db': True, 'app': True})
+# G.add_node(0, attr_dict={'vpc': False, 'db': False, 'app': False})
+# G.add_node(1, attr_dict={'vpc': True, 'db': False, 'app': False})
+# G.add_node(2, attr_dict={'vpc': True, 'db': True, 'app': False})
+# G.add_node(3, attr_dict={'vpc': True, 'db': True, 'app': True})
 # print(G.nodes(data=True))
+i = 0
+for action in actions:
+    G.add_node(i, attr_dict=action.pre_conditions)
+    if DEBUG:
+        print('AUTO Conditions: {0}, i: {1}'.format(action.pre_conditions, i))
+    i += 1
+
+    if i == len(actions):
+        G.add_node(i, attr_dict=action.effects)
 
 # Test
 for action in actions:
@@ -45,13 +54,13 @@ for action in actions:
         if action.pre_conditions == node[1]:
             src = node[0]
             if DEBUG:
-                print('node data {0} = pre_conditions {2}'.format(node, node[1], action.pre_conditions))
+                print('SRC node data {0} = pre_conditions {2}'.format(node, node[1], action.pre_conditions))
 
         if action.effects == node[1]:
             dst = node[0]
             obj = action
             if DEBUG:
-                print('Match! ', action.name)
+                print('DST node data {0} = effects {2}'.format(node, node[1], action.effects))
 
         if src is not None and dst is not None:
             G.add_edge(src, dst, object=obj)
