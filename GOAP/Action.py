@@ -5,6 +5,9 @@ class Action:
         self.pre_conditions = pre_conditions
         self.effects = effects
 
+    def do(self):
+        pass
+
     def __str__(self):
         return u'{{\'{0}\': {{\'pre_conditions\': {1}, \'effects\': {2}}} }}'.format(self.name, self.pre_conditions, self.effects)
 
