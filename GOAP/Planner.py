@@ -1,33 +1,13 @@
-from collections import deque
 import networkx as nx
-
-
-class Plan:
-
-    def __init__(self):
-        self.steps = deque()
-
-    def put(self, action):
-        self.steps.append(action)
-
-    def get(self, action):
-        self.steps.pop(action)
-
-    def empty(self):
-        return len(self.steps) == 0
-
-    def __str__(self):
-        return '{0}, NSteps: {1}, Steps: {2}'.format(self.__class__, len(self.steps), self.steps)
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class Planner:
 
-    def __init__(self, actions, initial_state):
+    def __init__(self, actions, init_state, goal):
         self.graph = nx.Graph()
         self.actions = actions
+        self.init_state = init_state
+        self.goal = goal
         self.DEBUG = False
         self.set_nodes()
         self.set_edges()
@@ -67,8 +47,19 @@ class Planner:
                     if self.DEBUG:
                         print('Edge created!')
 
-    def search(self, ):
+    def plan(self):
+        # get node index based on the node attr
+        for node in self.graph.nodes(data=True):
+            if node[1] == self.init_state:
+                start = node[0]
 
+        for node in self.graph.nodes(data=True):
+            if node[1] == goal:
+                final = node[0]
+
+        path = nx.astar_path(self.graph, start, final)
+
+        return [self.graph.get_edge_data(src, dst) for src, dst in self.graph.edges(path)]
 
 if __name__ == '__main__':
-    pass
+    planner = Planner()
