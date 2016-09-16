@@ -3,7 +3,56 @@ import networkx as nx
 
 class Planner:
 
-    def __init__(self, actions, init_state, goal):
+    def __init__(self, actions: list, init_state: dict, goal: dict) -> object:
+        """
+        from GOAP.Action import Actions
+
+        actions = Actions()
+        actions.add_action(
+            name='CreateVPC',
+            pre_conditions={'vpc': False, 'app': False, 'db': False},
+            effects={'vpc': True, 'app': False, 'db': False}
+        )
+        actions.add_action(
+            name='CreateDB',
+            pre_conditions={'vpc': True, 'app': False, 'db': False},
+            effects={'vpc': True, 'app': False, 'db': True}
+        )
+        actions.add_action(
+            name='CreateApp',
+            pre_conditions={'vpc': True, 'app': False, 'db': True},
+            effects={'vpc': True, 'app': True, 'db': True}
+        )
+        planner = Planner(actions, {'vpc': False, 'app': False, 'db': False}, {'vpc': True, 'app': True, 'db': True})
+        plan = planner.plan()
+        print(plan)
+        [
+            {
+                'CreateVPC': {
+                    'pre_conditions': {'app': False, 'vpc': False, 'db': False},
+                    'effects': {'app': False, 'vpc': True, 'db': False}
+                }
+             },
+
+            {
+                'CreateDB': {
+                    'pre_conditions': {'app': False, 'vpc': True, 'db': False},
+                    'effects': {'app': False, 'vpc': True, 'db': True}
+                }
+            },
+
+            {
+                'CreateApp': {
+                    'pre_conditions': {'app': False, 'vpc': True, 'db': True},
+                    'effects': {'app': True, 'vpc': True, 'db': True}
+                }
+            }
+        ]
+
+        :param actions: list of actions
+        :param init_state: dict of initial state
+        :param goal: dict of desired state
+        """
         self.graph = nx.Graph()
         self.actions = actions
         self.init_state = init_state
@@ -47,19 +96,43 @@ class Planner:
                     if self.DEBUG:
                         print('Edge created!')
 
-    def plan(self):
+    def plan(self) -> list:
+        """
+
+        :return: List of Action objects needed to be executed to transit from initial state to goal
+        """
         # get node index based on the node attr
         for node in self.graph.nodes(data=True):
             if node[1] == self.init_state:
                 start = node[0]
 
+        # get node index based on the node attr
         for node in self.graph.nodes(data=True):
-            if node[1] == goal:
+            if node[1] == self.goal:
                 final = node[0]
 
         path = nx.astar_path(self.graph, start, final)
 
-        return [self.graph.get_edge_data(src, dst) for src, dst in self.graph.edges(path)]
+        return [self.graph.get_edge_data(src, dst)['object'] for src, dst in self.graph.edges(path)]
 
 if __name__ == '__main__':
-    planner = Planner()
+    from GOAP.Action import Actions
+    actions = Actions()
+    actions.add_action(
+        name='CreateVPC',
+        pre_conditions={'vpc': False, 'app': False, 'db': False},
+        effects={'vpc': True, 'app': False, 'db': False}
+    )
+    actions.add_action(
+        name='CreateDB',
+        pre_conditions={'vpc': True, 'app': False, 'db': False},
+        effects={'vpc': True, 'app': False, 'db': True}
+    )
+    actions.add_action(
+        name='CreateApp',
+        pre_conditions={'vpc': True, 'app': False, 'db': True},
+        effects={'vpc': True, 'app': True, 'db': True}
+    )
+    planner = Planner(actions, {'vpc': False, 'app': False, 'db': False}, {'vpc': True, 'app': True, 'db': True})
+    plan = planner.plan()
+    print(plan)
