@@ -25,6 +25,9 @@ actions.add_action(
 # initial STATE
 initial_state = {'vpc': False, 'db': False, 'app': False}
 
+# goal
+goal = {'vpc': True, 'db': True, 'app': True}
+
 # GRAPH / World
 G = nx.Graph()
 # G.add_node(0, attr_dict={'vpc': False, 'db': False, 'app': False})
@@ -67,6 +70,25 @@ for action in actions:
             if DEBUG:
                 print('Edge created!')
 
+# search
+#
+#
+for node in G.nodes(data=True):
+    if node[1] == initial_state:
+        start = node[0]
+
+# final
+for node in G.nodes(data=True):
+    if node[1] == goal:
+        final = node[0]
+
+# path = nx.astar_path(G, start, goal)
+path = nx.astar_path(G=G, source=start, target=final)
+print(path)
+
+# list actions to achive goal
+print(G.edges(path))
+for src, dst in G.edges(path):
+    print(G.get_edge_data(src,dst))
 
 print('Edges: ', G.edges(data=True))
-
