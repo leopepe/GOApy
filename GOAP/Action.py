@@ -43,10 +43,23 @@ class Actions:
         return len(self.actions)
 
 if __name__ == '__main__':
+    # ACTIONS
     actions = Actions()
-    actions.add_action(name='CreateVPC', pre_conditions={'vpc': False}, effects={'vpc': False})
-    actions.add_action(name='CreateDB', pre_conditions={'db': False}, effects={'db': True})
-    actions.add_action(name='CreateASG', pre_conditions={'asg': False}, effects={'asg': True})
+    actions.add_action(
+        name='CreateVPC',
+        pre_conditions={'vpc': False, 'app': False, 'db': False},
+        effects={'vpc': True, 'app': False, 'db': False}
+    )
+    actions.add_action(
+        name='CreateDB',
+        pre_conditions={'vpc': True, 'app': False, 'db': False},
+        effects={'vpc': True, 'app': False, 'db': True}
+    )
+    actions.add_action(
+        name='CreateApp',
+        pre_conditions={'vpc': True, 'app': False, 'db': True},
+        effects={'vpc': True, 'app': True, 'db': True}
+    )
     print('{0}\n{1}'.format(actions, actions.__len__()))
     actions.remove_action(name='CreateVPC')
     print('{0}\n{1}'.format(actions, actions.__len__()))
