@@ -1,6 +1,6 @@
-from GOAP.Action import Action
-from GOAP.World import World
-from GOAP.Planner import Planner
+from Goap.Action import Action
+from Goap.World import World
+from Goap.Planner import Planner
 
 world = World(facts=['vpc_doesnt_exist'])
 goal = 'win'

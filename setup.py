@@ -1,9 +1,9 @@
 from distutils.core import setup
 
 setup(
-    name='goap',
+    name='Goap',
     version='1.0.0',
-    packages=['goap'],
+    packages=['Goap'],
     url='',
     license='Simplified BSD License',
     author='Leonardo Pepe',

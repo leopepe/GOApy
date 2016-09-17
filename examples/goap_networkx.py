@@ -1,5 +1,5 @@
 import networkx as nx
-from GOAP.Action import Actions
+from Goap.Action import Actions
 
 # settings
 DEBUG = False
