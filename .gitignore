@@ -1,10 +1,10 @@
-<<<<<<< HEAD
+# Leo
 .idea
 .idea*
 *.pyc
 *.zip
 *.swp
-=======
+
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
 # Byte-compiled / optimized / DLL files
@@ -96,5 +96,3 @@ ENV/
 
 # Rope project settings
 .ropeproject
-
->>>>>>> 0389d1610eef532edce474c62d36f7b1ea6ede91
