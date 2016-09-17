@@ -49,6 +49,11 @@ if __name__ == '__main__':
     # ACTIONS
     actions = Actions()
     actions.add_action(
+        name='InspectCloud',
+        pre_conditions={'vpc': True, 'app': False, 'db': False},
+        effects={'vpc': True, 'app': False, 'db': False}
+    )
+    actions.add_action(
         name='CreateVPC',
         pre_conditions={'vpc': False, 'app': False, 'db': False},
         effects={'vpc': True, 'app': False, 'db': False}

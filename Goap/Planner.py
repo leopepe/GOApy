@@ -5,7 +5,7 @@ class Planner:
 
     def __init__(self, actions: list, init_state: dict, goal: dict) -> object:
         """
-        from GOAP.Action import Actions
+        from Goap.Action import Actions
 
         actions = Actions()
         actions.add_action(
@@ -116,7 +116,7 @@ class Planner:
         return [self.graph.get_edge_data(src, dst)['object'] for src, dst in self.graph.edges(path)]
 
 if __name__ == '__main__':
-    from GOAP.Action import Actions
+    from Goap.Action import Actions
     actions = Actions()
     actions.add_action(
         name='CreateVPC',

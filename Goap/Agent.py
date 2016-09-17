@@ -1,12 +1,17 @@
-from GOAP.Planner import Planner
+from Goap.Planner import Planner
 """
-    implements: Action, Planner, FSM
+  DONE
+    - Impl. Action
+    - Impl. Planner
+  TODO
+    - FSM
+
 """
 
 
 class Agent:
     """
-        from GOAP.Action import Actions
+        from Goap.Action import Actions
         import pprint
         actions = Actions()
         actions.add_action(
@@ -26,9 +31,9 @@ class Agent:
         )
         init_state = {'vpc': False, 'app': False, 'db': False}
         init_goal = {'vpc': True, 'db': True, 'app': True}
-        builder = Agent(name='CloudBuilder', state=init_state, goal=init_goal, actions=actions)
-        result = builder.actuate()
-        pprint.pprint(result, indent=2)
+        ai_cloud_builder = Agent(name='CloudBuilder', state=init_state, goal=init_goal, actions=actions)
+        result = ai_cloud_builder.actuate()
+        pprint.pprint(result, indent=2, width=80)
 
         [ ( 'CreateVPC',
         <bound method Action.do of {'CreateVPC': {'pre_conditions': {'app': False, 'db': False, 'vpc': False}, 'effects': {'app': False, 'db': False, 'vpc': True}} }>),
@@ -72,7 +77,7 @@ class Agent:
         return result
 
 if __name__ == '__main__':
-    from GOAP.Action import Actions
+    from Goap.Action import Actions
     import pprint
     actions = Actions()
     actions.add_action(
@@ -92,6 +97,6 @@ if __name__ == '__main__':
     )
     init_state = {'vpc': False, 'app': False, 'db': False}
     init_goal = {'vpc': True, 'db': True, 'app': True}
-    builder = Agent(name='CloudBuilder', state=init_state, goal=init_goal, actions=actions)
-    result = builder.actuate()
+    ai_cloud_builder = Agent(name='CloudBuilder', state=init_state, goal=init_goal, actions=actions)
+    result = ai_cloud_builder.actuate()
     pprint.pprint(result, indent=2, width=80)
