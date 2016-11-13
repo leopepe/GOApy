@@ -72,13 +72,6 @@ class Actions:
 
         return result
 
-    def list_all_states(self):
-        pre_conditions = [action.pre_conditions for action in self.actions]
-        effects = [action.effects for action in self.actions]
-        unique = set(pre_conditions + effects)
-        all_states = unique
-        return all_states
-
 
 if __name__ == '__main__':
     # ACTIONS
