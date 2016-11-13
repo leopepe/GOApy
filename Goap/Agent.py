@@ -12,6 +12,7 @@ from Goap.Planner import Planner
 class Agent:
     """
         from Goap.Action import Actions
+
         import pprint
         actions = Actions()
         actions.add_action(
@@ -66,15 +67,16 @@ class Agent:
 
         :return:
         """
-        return self.planner.plan()
+        return self.planner.plan(self.state, self.goal)
 
     def start(self):
         """
 
         :return: tuple with action.name and result of action execution (action.name, action.do)
         """
-        result = [(action.name, action.do) for action in self.get_plan()]
-        return result
+        response = []
+        [response.append(action[2]['object'].do) for action in self.get_plan()]
+        return response
 
 if __name__ == '__main__':
     from Goap.Action import Actions
