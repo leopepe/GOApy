@@ -23,18 +23,19 @@ actions.add_action(
 )
 
 # initial STATE
-initial_state = {'vpc': False, 'db': False, 'app': False}
+initial_state = ({'vpc': False}, {'db': False}, {'app': False})
 
 # goal
-goal = {'vpc': True, 'db': True, 'app': True}
+goal = ({'vpc': True}, {'db': True}, {'app': True})
 
 # GRAPH / World
-G = nx.Graph()
+G = nx.DiGraph()
 # G.add_node(0, attr_dict={'vpc': False, 'db': False, 'app': False})
 # G.add_node(1, attr_dict={'vpc': True, 'db': False, 'app': False})
 # G.add_node(2, attr_dict={'vpc': True, 'db': True, 'app': False})
 # G.add_node(3, attr_dict={'vpc': True, 'db': True, 'app': True})
 # print(G.nodes(data=True))
+"""
 i = 0
 for action in actions:
     G.add_node(i, attr_dict=action.pre_conditions)
@@ -92,3 +93,80 @@ for src, dst in G.edges(path):
     print(G.get_edge_data(src,dst))
 
 print('Edges: ', G.edges(data=True))
+"""
+from Goap.Action import Actions
+from pprint import pprint
+
+actions = Actions()
+# VPC/Network set
+actions.add_action(
+    name='CreateVPC',
+    pre_conditions={'vpc': False, 'db': False, 'app': False},
+    effects={'vpc': True, 'db': False, 'app': False}
+)
+# DB set
+actions.add_action(
+    name='CreateDB',
+    pre_conditions={'vpc': True, 'db': False, 'app': False},
+    effects={'vpc': True, 'db': True, 'app': False}
+)
+actions.add_action(
+    name='StopDB',
+    pre_conditions={'vpc': True, 'db': 'started', 'app': False},
+    effects={'vpc': True, 'db': 'stopped', 'app': False}
+)
+actions.add_action(
+    name='StartDB',
+    pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
+    effects={'vpc': True, 'db': 'started', 'app': False}
+)
+actions.add_action(
+    name='DestroyDB',
+    pre_conditions={'vpc': True, 'db': 'not_health', 'app': False},
+    effects={'vpc': True, 'db': False, 'app': False}
+)
+# APP set
+actions.add_action(
+    name='CreateApp',
+    pre_conditions={'vpc': True, 'db': True, 'app': False},
+    effects={'vpc': True, 'db': True, 'app': True}
+)
+actions.add_action(
+    name='StartApp',
+    pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
+    effects={'vpc': True, 'db': True, 'app': 'started'}
+)
+actions.add_action(
+    name='StopApp',
+    pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
+    effects={'vpc': True, 'db': True, 'app': 'stopped'}
+)
+actions.add_action(
+    name='DestroyApp',
+    pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
+    effects={'vpc': True, 'db': True, 'app': False}
+)
+# states
+states = actions.all_possible_states()
+# generate states grid
+g = nx.DiGraph()
+# generate graph from all_possible_states() method
+[g.add_node(idx, attr_dict=state) for idx, state in enumerate(states)]
+
+nodes = g.nodes(data=True)
+pprint(g.nodes(data=True), indent=2)
+
+# set edges
+for action in actions:
+    src = None
+    dst = None
+    for node in nodes:
+        obj = action
+        if action.pre_conditions == node[1]:
+            src = node[0]
+        if action.effects == node[1]:
+            dst = node[0]
+        if src is not None and dst is not None:
+            g.add_edge(src, dst, object=obj)
+
+pprint(g.edges(data=True), indent=2)
