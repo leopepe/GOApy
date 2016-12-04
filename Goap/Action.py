@@ -8,18 +8,24 @@ class Action:
         self.pre_conditions = pre_conditions
         self.effects = effects
 
-    def do(self):
-        pass
-
-    def chain(self, obj):
-        if self.pre_conditions == obj.effects:
-            return True
-
     def __str__(self):
         return dumps({'Name': self.name, 'Conditions': self.pre_conditions, 'Effects': self.effects})
 
     def __repr__(self):
         return self.__str__()
+
+    def __cmp__(self, other):
+        return cmp(self, other)
+
+    def __hash__(self):
+        return hash(self)
+
+    def do(self):
+        print(self.name)
+
+    def chain(self, other: object):
+        if self.pre_conditions == other.effects:
+            return True
 
 
 class Actions:
@@ -38,6 +44,13 @@ class Actions:
 
     def __len__(self):
         return len(self.actions)
+
+    def __getitem__(self, key):
+        for a in self.actions:
+            if a.name == key:
+                return a
+            else:
+                return None
 
     def add_action(self, name, pre_conditions, effects):
         # add action to self.actions
