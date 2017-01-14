@@ -99,7 +99,7 @@ class Planner:
 
     """
 
-    def __init__(self, actions: object, init_state: dict, goal: dict) -> object:
+    def __init__(self, actions: object, init_state: dict={}, goal: dict={}) -> object:
         """
         :param actions: list of actions
         :param init_state: dict of initial state
@@ -173,6 +173,9 @@ class Planner:
 
         return self.action_plan
 
+    def blue_print(self):
+        return nx.draw(self.graph)
+
 
 if __name__ == '__main__':
     from Goap.Action import Actions
@@ -180,6 +183,12 @@ if __name__ == '__main__':
 
     # ACTIONS
     actions = Actions()
+    # monitor state
+    actions.add_action(
+        name='CheckModules',
+        pre_conditions={'vpc_checked': False, 'db_check': False, 'app_checked': False},
+        effects={'vpc_checked': True, 'db_check': True, 'app_checked': True}
+    )
     # VPC/Network set
     actions.add_action(
         name='CreateVPC',
@@ -215,12 +224,17 @@ if __name__ == '__main__':
     )
     actions.add_action(
         name='StartApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
+        pre_conditions={'vpc': True, 'db': True, 'app': True},
         effects={'vpc': True, 'db': True, 'app': 'started'}
     )
     actions.add_action(
-        name='StopApp',
+        name='AppMaintenance',
         pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
+        effects={'vpc': True, 'db': True, 'app': 'maintenance'}
+    )
+    actions.add_action(
+        name='StopApp',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'maintenance'},
         effects={'vpc': True, 'db': True, 'app': 'stopped'}
     )
     actions.add_action(
@@ -248,4 +262,14 @@ if __name__ == '__main__':
     print('PATH: ', planner.path)
     print('Action plan: ')
     pprint(plan, indent=2)
+
+    pprint('Monitor')
+    plan = planner.plan(
+        init_state={'vpc_checked': False, 'db_check': False, 'app_checked': False},
+        goal={'vpc_checked': True, 'db_check': True, 'app_checked': True}
+    )
+    print('PATH: ', planner.path)
+    print('Action plan: ')
+    pprint(plan, indent=2)
+    planner
 

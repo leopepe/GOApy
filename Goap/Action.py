@@ -20,8 +20,9 @@ class Action:
     def __hash__(self):
         return hash(self)
 
-    def do(self):
-        print(self.name)
+    def do(self) -> tuple:
+        # print(self.name)
+        return self.name, True
 
     def chain(self, other: object):
         if self.pre_conditions == other.effects:
@@ -61,7 +62,10 @@ class Actions:
         [self.actions.remove(action) for action in self.actions if action.name == name]
 
     def get(self, name):
-        result = [action for action in self.actions if action.name == name]
+        result = None
+        for action in self.actions:
+            if action.name == name:
+                result = action
         return result
 
     def get_action_by_pre_condition(self, pre_conditions):
@@ -141,4 +145,5 @@ if __name__ == '__main__':
     actions.remove_action(name='CreateVPC')
     print('{0}\n{1}'.format(actions, actions.__len__()))
     print(actions.get(name='CreateDB'))
-    print(actions.list_all_states())
+    # action.do() returns a tuple
+    print(type(actions.get(name='CreateDB').do()), actions.get(name='CreateDB').do())

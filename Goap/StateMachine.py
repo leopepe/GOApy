@@ -1,67 +1,77 @@
-from Action import Action
-from Action import Actions
-
-
-class State:
-
-    def __init__(self, action: Action) -> object:
-        self.action = action
-        self.name = action.name
-
-    def run(self):
-        self.action.do()
-
-    def __cmp__(self, other) -> bool:
-        return cmp(self.action, other.action)
-
-    def __hash__(self):
-        return hash(Action)
-
-
-class States:
-
-    def __init__(self) -> object:
-        self.states = []
-
-    def __iter__(self) -> iter:
-        """
-
-        :return: iterator
-        """
-        return iter(self.states)
-
-    def add_state(self, action: Action):
-        """ add state to States collection
-
-        :param action: name
-        :return: None
-        """
-        self.states.append(State(action=action))
-
-    def get_states_list(self):
-        return self.states
+from Goap.Action import Actions
+from Goap.Planner import Planner
 
 
 class StateMachine:
 
-    def __init__(self, states: list):
-        self.states = states
-        self.current_state = None
+    def __init__(self, states: Actions):
+        """
+            Don't need initial and end state since the transition
+            will be a ordered list.
+        :param states:
+        """
+        self._states = states
+        self._planner = Planner(actions=states)
+        self._transitions = []
+        self._current_state = None
+        self.start_state = None
+        self.end_state = None
 
-    def start(self):
-        while self.states:
-            self.current_state = self.states.pop()
+    def set_transitions(self, init_state, end_state):
+        """ Receives an ordered list and set it to self._transitions
+
+        :param planner:
+        :param init_state:
+        :param end_state:
+        :param obj:
+        :param obj: obj capable of order the list
+        :return: None
+        """
+        transitions = []
+        plan = self._planner.plan(init_state, end_state)
+        for src, dst, obj in plan:
+            transitions.append(obj['object'])
+            # transitions.append(self._states.get(obj['object']['Name']))
+
+        self._transitions = transitions
+
+    def get_transitions(self):
+        return self._transitions
+
+    def start(self, printable: bool=False):
+        result = []
+        for state in self._transitions:
+            self._current_state = state
             try:
-                self.current_state.action.do()
+                result.append(self._current_state.do())
             except:
                 raise RuntimeError
 
+        self.stop()
+
+        if printable:
+            print(result)
+
+        return result
+
     def stop(self):
-        pass
+        self._current_state = None
+
 
 if __name__ == '__main__':
+    from Goap import Planner
+    import random
+    # import pprint
+    from time import sleep
+    from datetime import datetime
     # ACTIONS
     actions = Actions()
+    # monitor state
+    actions.add_action(
+        name='CheckModules',
+        pre_conditions={'vpc_checked': False, 'db_check': False, 'app_checked': False},
+        effects={'vpc_checked': True, 'db_check': True, 'app_checked': True}
+    )
     # VPC/Network set
     actions.add_action(
         name='CreateVPC',
@@ -97,20 +107,67 @@ if __name__ == '__main__':
     )
     actions.add_action(
         name='StartApp',
+        pre_conditions={'vpc': True, 'db': True, 'app': True},
+        effects={'vpc': True, 'db': True, 'app': 'started'}
+    )
+    actions.add_action(
+        name='AppMaintenance',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
+        effects={'vpc': True, 'db': True, 'app': 'maintenance'}
+    )
+    actions.add_action(
+        name='StopApp',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'maintenance'},
+        effects={'vpc': True, 'db': True, 'app': 'stopped'}
+    )
+    actions.add_action(
+        name='StartStoppedApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
         effects={'vpc': True, 'db': True, 'app': 'started'}
     )
     actions.add_action(
-        name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
-        effects={'vpc': True, 'db': True, 'app': 'stopped'}
-    )
-    actions.add_action(
-        name='DestroyApp',
+        name='DestroyIllApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
-    states = States()
-    [states.add_state(action=action) for action in actions]
-    fsm = StateMachine(states=states.get_states_list())
-    fsm.start()
+    #
+    # Test cases scenarios
+    case1 = {
+        'init_state': {'vpc': False, 'db': False, 'app': False},
+        'goal': {'vpc': True, 'db': True, 'app': True}
+    }
+    case2 = {
+        'init_state': {'vpc': True, 'db': False, 'app': False},
+        'goal': {'vpc': True, 'db': True, 'app': 'stopped'}
+    }
+    case3 = {
+        'init_state': {'vpc_checked': False, 'db_check': False, 'app_checked': False},
+        'goal': {'vpc_checked': True, 'db_check': True, 'app_checked': True}
+    }
+    case4 = {
+        'init_state': {'vpc': True, 'db': False, 'app': False},
+        'goal': {'vpc': True, 'db': True, 'app': False}
+    }
+    case5 = {
+        'init_state': {'vpc': True, 'db': True, 'app': 'maintenance'},
+        'goal': {'vpc': True, 'db': True, 'app': 'started'}
+    }
+    cases = [case1, case2, case3, case4, case5]
+    #
+    # FSM
+    fsm = StateMachine(states=actions)
+    # pprint.pprint(fsm.get_transitions(), indent=2)
+
+    while True:
+        print('\n\n\n###\n###\n###')
+        print('Starting {}'.format(datetime.now()))
+        case = random.choice(cases)
+        print('Case: {}'.format(case))
+        print('[WARN] Change identified by sensor...')
+        print('[INFO] Planning...')
+        fsm.set_transitions(init_state=case['init_state'], end_state=case['goal'])
+        print('[INFO] Plan: {}'.format(fsm.get_transitions()))
+        fsm.start()
+        print('Sleeping 7 sec from {}'.format(datetime.now()))
+        sleep(7)
+

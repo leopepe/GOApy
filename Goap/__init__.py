@@ -1,5 +1,6 @@
-from . import Action
-from . import Agent
-from . import Planner
+from Goap.Action import Action, Actions
+# from Goap import Agent
+from Goap.Planner import Planner
+from Goap.StateMachine import StateMachine
 
-__all__ = ['Action', 'Agent', 'Planner']
+__all__ = ['Action', 'Planner', 'StateMachine']
