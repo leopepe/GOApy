@@ -1,4 +1,5 @@
 import networkx as nx
+import json
 
 
 class Planner:
@@ -126,9 +127,12 @@ class Planner:
 
         :return: None
         """
+        labels = {}
         # states
         states = self.actions.all_possible_states()
         # generate graph from all_possible_states() method
+        # nodes as
+        # [self.graph.add_node(json.dumps(state), attr_dict=state) for idx, state in enumerate(states)]
         [self.graph.add_node(idx, attr_dict=state) for idx, state in enumerate(states)]
         self.nodes = self.graph.nodes(data=True)
 
@@ -167,14 +171,32 @@ class Planner:
                 start_node = node[0]
             elif self.goal == node[1]:
                 final_node = node[0]
+        # Try to generate plan, if there' no plan return False
+        try:
+            self.path = nx.astar_path(self.graph, start_node, final_node)
+            self.action_plan = self.graph.edges(self.path, data=True)
+            return self.action_plan
+        except KeyError as e:
+            print('[ERROR] There is no node to start planning {}'.format(e))
+            return False
 
-        self.path = nx.astar_path(self.graph, start_node, final_node)
-        self.action_plan = self.graph.edges(self.path, data=True)
+    def plot_graph(self, label_nodes: bool=True, label_edges: bool=True):
+        import matplotlib.pyplot as plt
+        # pos = nx.spring_layout(self.graph)
+        pos = nx.shell_layout(self.graph, dim=1024, scale=0.5)
+        # pos = nx.random_layout(self.graph, dim=1024, scale=0.5)
 
-        return self.action_plan
+        if label_edges:
+            edge_labels = {(edge[0], edge[1]): edge[2]['object'] for edge in self.graph.edges(data=True)}
+            nx.draw_networkx_edge_labels(self.graph, pos, edge_labels, font_size=5)
 
-    def blue_print(self):
-        return nx.draw(self.graph)
+        if label_nodes:
+            labels = {node[0]: node[1] for node in self.graph.nodes(data=True)}
+            nx.draw_networkx_labels(self.graph, pos, labels, font_size=5, alpha=0.8)
+
+        # nx.draw(self.graph, with_labels=True, arrows=True, node_size=80)
+        nx.draw_spectral(self.graph, with_labels=True, arrows=True, node_size=80)
+        plt.savefig("graph.png", dpi=1024)
 
 
 if __name__ == '__main__':
@@ -183,12 +205,6 @@ if __name__ == '__main__':
 
     # ACTIONS
     actions = Actions()
-    # monitor state
-    actions.add_action(
-        name='CheckModules',
-        pre_conditions={'vpc_checked': False, 'db_check': False, 'app_checked': False},
-        effects={'vpc_checked': True, 'db_check': True, 'app_checked': True}
-    )
     # VPC/Network set
     actions.add_action(
         name='CreateVPC',
@@ -224,17 +240,12 @@ if __name__ == '__main__':
     )
     actions.add_action(
         name='StartApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': True},
+        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
         effects={'vpc': True, 'db': True, 'app': 'started'}
     )
     actions.add_action(
-        name='AppMaintenance',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
-        effects={'vpc': True, 'db': True, 'app': 'maintenance'}
-    )
-    actions.add_action(
         name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'maintenance'},
+        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
         effects={'vpc': True, 'db': True, 'app': 'stopped'}
     )
     actions.add_action(
@@ -242,12 +253,13 @@ if __name__ == '__main__':
         pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
-    # Instantiate planner
-    planner = Planner(
-        actions=actions,
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
+    # inconsistent
+    actions.add_action(
+        name='DestroyInconsistentState',
+        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'},
+        effects={'vpc': False, 'db': False, 'app': False}
     )
+    planner = Planner(actions=actions)
     print('Graph.Nodes: ', planner.graph.nodes(data=True))
     print('Graph.Edges: ', planner.graph.edges(data=True))
     print('Action sequence')
@@ -271,5 +283,5 @@ if __name__ == '__main__':
     print('PATH: ', planner.path)
     print('Action plan: ')
     pprint(plan, indent=2)
-    planner
+    print(type(planner.plot_graph()))
 
