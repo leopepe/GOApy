@@ -3,38 +3,113 @@ from Goap.StateMachine import StateMachine
 from random import choice
 from time import sleep
 from datetime import datetime
+import boto3
 
 
 class Sensors:
 
     def __init__(self):
+        """
+        :self.values: it is a shared dictionary where the sensors stores the results of its inspections
+        """
         self.values = {}
+        self.ec2 = boto3.client('ec2')
+        self.rds = boto3.client('rds')
+        self.tag = None
 
-    def check_aws_resource(self):
+    def check_aws_vpc(self, tag: dict):
+        """ check if aws resource exists
+
+        :param tag: {'project': 'project_name'}
+        :return:
+        """
+        key = None
+        value = None
+        if len(tag) == 1:
+            key, value = tag.popitem()
+
+        if key and value:
+            resp = self.ec2.describe_vpcs(Filters=[{'Name': 'tag:' + key, 'Values': [value]}])
+
+            if len(resp['Vpcs']) == 1:
+                return True
+            elif len(resp['Vpcs']) > 1:
+                return 'ERROR'
+            elif len(resp['Vpcs']) == 0:
+                return False
+
+    def check_aws_rds(self, tag: dict):
+        """ check if aws resource exists
+
+        :param tag: {'project': 'project_name'}
+        :return:
+        """
+        key = None
+        value = None
+        if len(tag) == 1:
+            key, value = tag.popitem()
+
+        if key and value:
+            resp = self.ec2.describe_db_instances(Filters=[{'Name': 'tag:' + key, 'Values': [value]}])
+
+            if len(resp['DBInstances']) == 1:
+                return True
+            elif len(resp['DBInstances']) > 1:
+                return 'ERROR'
+            elif len(resp['DBInstances']) == 0:
+                return False
+
+    def check_aws_instances(self, tag: dict):
+        """ check if aws resource exists
+
+        :param tag: {'project': 'project_name'}
+        :return:
+        """
+        key = None
+        value = None
+        if len(tag) == 1:
+            key, value = tag.popitem()
+
+        if key and value:
+            resp = self.ec2.describe_instances(Filters=[{'Name': 'tag:' + key, 'Values': [value]}])
+
+            if len(resp['Instances']) == 1:
+                return True
+            elif len(resp['Instances']) > 1:
+                return 'ERROR'
+            elif len(resp['Instances']) == 0:
+                return False
+
+    def check_local_command_output(self, command: str=None):
+        """ executes a command on the local system and expects status code 0 success.
+
+        :param command
+        :return:
+        """
+        # values = {}
+        # self.values.update(values)
         pass
 
-    def check_terraform_module(self):
-        pass
-
-    def check_module_vpc(self):
+    def check_mock_module_vpc(self):
         val = choice([{'vpc': True}, {'vpc': False}])
         self.values.update(val)
         return True
 
-    def check_module_app(self):
+    def check_mock_module_app(self):
         val = choice([{'app': True}, {'app': False}])
         self.values.update(val)
         return True
 
-    def check_module_db(self) -> bool:
+    def check_mock_module_db(self) -> bool:
         val = choice([{'db': True}, {'db': False}])
+        # self.values with the result of the sensor inspections
         self.values.update(val)
         return True
 
     def run_all(self):
-        self.check_module_vpc()
-        self.check_module_db()
-        self.check_module_app()
+        self.check_mock_module_vpc()
+        self.check_mock_module_db()
+        self.check_mock_module_app()
         return self.values
 
 
@@ -42,6 +117,11 @@ class Agent:
     """ Autonomous Agent Class
 
     """
+    STD_STATES = {
+        'obliterate': {'vpc': False, 'db': False, 'app': False},
+        'new': {'vpc': True, 'db': True, 'app': True},
+        'inconsistent': {'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'}
+    }
 
     def __init__(self, name: str, actions: Actions, init_state: dict={}, goal: dict={}) -> object:
         """
@@ -50,13 +130,18 @@ class Agent:
         :param actions:
         """
         self.name = name
+        self.priorities = enumerate(
+            [
+                {'vpc': True, 'db': True, 'app': True},
+                {'vpc': True, 'db': True, 'app': False}
+            ]
+        )
         # world_facts act as a working memory, default value is {}
         self.world_facts = init_state
         self.sensors = Sensors()
         self.full_scan()
         # planing
         self.actions = actions
-        # self.planner = Planner(actions)
         self.goal = goal
         # self.fsm = StateMachine(states=self.actions, planner=self.planner())
         self.fsm = StateMachine(states=self.actions)
@@ -83,8 +168,6 @@ class Agent:
         :return:
         """
         self.set_goal(goal)
-        prev_state = self.world_facts
-        change_detected = False
         while True:
             # update all sensors
             self.full_scan()
@@ -92,18 +175,15 @@ class Agent:
             print('Starting {}'.format(datetime.now()))
             print('Goal: {}'.format(self.goal))
             print('Current World State: {}'.format(self.world_facts))
-            print('###\n###')
-
-            # Alert for changes on the environment
-            if self.world_facts != prev_state:
-                change_detected = True
-                print('[WARN] Change identified by sensor...')
 
             if self.world_facts != self.goal:
-                print('[INFO] Planning...')
-                self.fsm.set_transitions(init_state=self.world_facts, end_state=self.goal)
-                print('[INFO] Plan: {}'.format(self.fsm.get_transitions()))
-                self.fsm.start()
+                actions_result = self.fsm.start(init_state=self.world_facts, end_state=self.goal)
+                if not actions_result:
+                    print('[ERROR]: Unknown state\n[ERROR]: OBLITERATE\n{}')
+                    self.world_facts = self.STD_STATES['inconsistent']
+                    actions_result = self.fsm.start(init_state=self.world_facts, end_state=self.STD_STATES['obliterate'])
+
+                print('[INFO] Plan executed: {}'.format(actions_result))
 
             print('Sleeping 7 sec from {}'.format(datetime.now()))
             sleep(7)
@@ -111,7 +191,7 @@ class Agent:
 
 if __name__ == '__main__':
     from Goap.Action import Actions
-    import pprint
+    # import pprint
 
     # ACTIONS
     actions = Actions()
@@ -162,6 +242,12 @@ if __name__ == '__main__':
         name='DestroyApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
         effects={'vpc': True, 'db': True, 'app': False}
+    )
+    # inconsistent
+    actions.add_action(
+        name='DestroyInconsistentState',
+        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'},
+        effects={'vpc': False, 'db': False, 'app': False}
     )
     init_state = {'vpc': False, 'app': False, 'db': False}
     init_goal = {'vpc': True, 'db': True, 'app': True}
