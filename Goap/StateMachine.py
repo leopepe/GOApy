@@ -28,34 +28,29 @@ class StateMachine:
         :return: None
         """
         transitions = []
-        plan = self._planner.plan(init_state, end_state)
-        for src, dst, obj in plan:
-            transitions.append(obj['object'])
-            # transitions.append(self._states.get(obj['object']['Name']))
-
+        if init_state in self._planner.actions.all_possible_states():
+            plan = self._planner.plan(init_state, end_state)
+            for src, dst, obj in plan:
+                transitions.append(obj['object'])
+                # transitions.append(self._states.get(obj['object']['Name']))
         self._transitions = transitions
 
     def get_transitions(self):
         return self._transitions
 
-    def start(self, printable: bool=False):
-        result = []
-        for state in self._transitions:
-            self._current_state = state
-            try:
-                result.append(self._current_state.do())
-            except:
-                raise RuntimeError
-
-        self.stop()
-
-        if printable:
-            print(result)
-
-        return result
-
     def stop(self):
         self._current_state = None
+
+    def start(self, init_state: dict, end_state: dict):
+        result = []
+
+        self.set_transitions(init_state=init_state, end_state=end_state)
+        for state in self._transitions:
+            self._current_state = state
+            result.append(self._current_state.do())
+
+        self.stop()
+        return result
 
 
 if __name__ == '__main__':
@@ -96,7 +91,7 @@ if __name__ == '__main__':
     )
     actions.add_action(
         name='DestroyDB',
-        pre_conditions={'vpc': True, 'db': 'not_health', 'app': False},
+        pre_conditions={'vpc': True, 'db': 'unhealthy', 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
     # APP set
@@ -127,7 +122,7 @@ if __name__ == '__main__':
     )
     actions.add_action(
         name='DestroyIllApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
+        pre_conditions={'vpc': True, 'db': True, 'app': 'unhealthy'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
     #
@@ -152,6 +147,10 @@ if __name__ == '__main__':
         'init_state': {'vpc': True, 'db': True, 'app': 'maintenance'},
         'goal': {'vpc': True, 'db': True, 'app': 'started'}
     }
+    case6 = {
+        'init_state': {'vpc': False, 'db': False, 'app': True},
+        'goal': {'vpc': True, 'db': True, 'app': True}
+    }
     cases = [case1, case2, case3, case4, case5]
     #
     # FSM
@@ -161,13 +160,12 @@ if __name__ == '__main__':
     while True:
         print('\n\n\n###\n###\n###')
         print('Starting {}'.format(datetime.now()))
-        case = random.choice(cases)
+        # case = random.choice(cases)
+        case = case6
         print('Case: {}'.format(case))
         print('[WARN] Change identified by sensor...')
         print('[INFO] Planning...')
-        fsm.set_transitions(init_state=case['init_state'], end_state=case['goal'])
-        print('[INFO] Plan: {}'.format(fsm.get_transitions()))
-        fsm.start()
+        fsm.start(init_state=case['init_state'], end_state=case['goal'])
         print('Sleeping 7 sec from {}'.format(datetime.now()))
         sleep(7)
 
