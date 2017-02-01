@@ -243,10 +243,22 @@ if __name__ == '__main__':
         pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
-    # inconsistent
+    # inconsistent app
     actions.add_action(
-        name='DestroyInconsistentState',
+        name='DestroyInconsistentApp',
         pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'},
+        effects={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False}
+    )
+    # inconsistent db
+    actions.add_action(
+        name='DestroyInconsistentDb',
+        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False},
+        effects={'vpc': 'inconsistent', 'db': False, 'app': False}
+    )
+    # inconsistent vpc
+    actions.add_action(
+        name='DestroyInconsistentVpc',
+        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False},
         effects={'vpc': False, 'db': False, 'app': False}
     )
     init_state = {'vpc': False, 'app': False, 'db': False}
