@@ -30,9 +30,9 @@ class StateMachine:
         transitions = []
         if init_state in self._planner.actions.all_possible_states():
             plan = self._planner.plan(init_state, end_state)
+            print(plan)
             for src, dst, obj in plan:
                 transitions.append(obj['object'])
-                # transitions.append(self._states.get(obj['object']['Name']))
         self._transitions = transitions
 
     def get_transitions(self):
@@ -160,8 +160,8 @@ if __name__ == '__main__':
     while True:
         print('\n\n\n###\n###\n###')
         print('Starting {}'.format(datetime.now()))
-        # case = random.choice(cases)
-        case = case6
+        case = random.choice(cases)
+        # case = case6
         print('Case: {}'.format(case))
         print('[WARN] Change identified by sensor...')
         print('[INFO] Planning...')

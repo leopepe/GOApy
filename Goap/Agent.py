@@ -1,9 +1,9 @@
-from Goap.Action import Actions
-from Goap.StateMachine import StateMachine
 from random import choice
 from time import sleep
 from datetime import datetime
 import boto3
+from Goap.Action import Actions
+from Goap.StateMachine import StateMachine
 
 
 class Sensors:
@@ -107,10 +107,22 @@ class Sensors:
         return True
 
     def run_all(self):
-        self.check_mock_module_vpc()
-        self.check_mock_module_db()
-        self.check_mock_module_app()
-        return self.values
+        case1 = {'vpc': False, 'db': False, 'app': False}
+
+        case2 = {'vpc': True, 'db': True, 'app': False}
+
+        case3 = {'vpc': True, 'db': False, 'app': False}
+
+        case4 = {'vpc': True, 'db': False, 'app': True}
+
+        case5 = {'vpc': True, 'db': True, 'app': 'unhealthy'}
+
+        case6 = {'vpc': True, 'db': True, 'app': 'out_of_capacity'}
+
+        cases = [case1, case2, case3, case4, case5, case6]
+        case = choice(cases)
+        self.values.update(case)
+        return case
 
 
 class Agent:
@@ -172,9 +184,9 @@ class Agent:
             # update all sensors
             self.full_scan()
             print('\n\n\n###\n###\n###')
-            print('Starting {}'.format(datetime.now()))
-            print('Goal: {}'.format(self.goal))
-            print('Current World State: {}'.format(self.world_facts))
+            print('[INFO] Starting {}'.format(datetime.now()))
+            print('[INFO] Goal: {}'.format(self.goal))
+            print('[INFO] Current World State: {}'.format(self.world_facts))
 
             if self.world_facts != self.goal:
                 actions_result = self.fsm.start(init_state=self.world_facts, end_state=self.goal)
@@ -201,6 +213,11 @@ if __name__ == '__main__':
         pre_conditions={'vpc': False, 'db': False, 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
+    actions.add_action(
+        name='DestroyVPC',
+        pre_conditions={'vpc': True, 'db': False, 'app': False},
+        effects={'vpc': False, 'db': False, 'app': False}
+    )
     # DB set
     actions.add_action(
         name='CreateDB',
@@ -208,18 +225,8 @@ if __name__ == '__main__':
         effects={'vpc': True, 'db': True, 'app': False}
     )
     actions.add_action(
-        name='StopDB',
-        pre_conditions={'vpc': True, 'db': 'started', 'app': False},
-        effects={'vpc': True, 'db': 'stopped', 'app': False}
-    )
-    actions.add_action(
-        name='StartDB',
-        pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
-        effects={'vpc': True, 'db': 'started', 'app': False}
-    )
-    actions.add_action(
         name='DestroyDB',
-        pre_conditions={'vpc': True, 'db': 'not_health', 'app': False},
+        pre_conditions={'vpc': True, 'db': True, 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
     # APP set
@@ -229,37 +236,31 @@ if __name__ == '__main__':
         effects={'vpc': True, 'db': True, 'app': True}
     )
     actions.add_action(
-        name='StartApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': 'started'}
-    )
-    actions.add_action(
         name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
+        pre_conditions={'vpc': True, 'db': True, 'app': 'unhealthy'},
         effects={'vpc': True, 'db': True, 'app': 'stopped'}
     )
     actions.add_action(
-        name='DestroyApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
+        name='TerminateStoppedApps',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
     # inconsistent app
     actions.add_action(
         name='DestroyInconsistentApp',
-        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'},
-        effects={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False}
+        pre_conditions={'vpc': True, 'db': True, 'app': 'inconsistent'},
+        effects={'vpc': True, 'db': True, 'app': False}
     )
-    # inconsistent db
+    # out of capacity
     actions.add_action(
-        name='DestroyInconsistentDb',
-        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False},
-        effects={'vpc': 'inconsistent', 'db': False, 'app': False}
+        name='IncreaseAppCapacity',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'out_of_capacity'},
+        effects={'vpc': True, 'db': True, 'app': True}
     )
-    # inconsistent vpc
     actions.add_action(
-        name='DestroyInconsistentVpc',
-        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False},
-        effects={'vpc': False, 'db': False, 'app': False}
+        name='TerminateStoppedApps',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
+        effects={'vpc': True, 'db': True, 'app': False}
     )
     init_state = {'vpc': False, 'app': False, 'db': False}
     init_goal = {'vpc': True, 'db': True, 'app': True}

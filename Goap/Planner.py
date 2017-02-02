@@ -151,6 +151,8 @@ class Planner:
                     dst = node[0]
                 if src is not None and dst is not None:
                     self.graph.add_edge(src, dst, object=action)
+                    src = None
+                    dst = None
 
         self.edges = self.graph.edges(data=True)
 
@@ -160,6 +162,7 @@ class Planner:
         :rtype: list
         :return: self.path
         """
+        plan = []
         start_node = None
         final_node = None
         self.init_state = init_state
@@ -174,7 +177,20 @@ class Planner:
         # Try to generate plan, if there' no plan return False
         try:
             self.path = nx.astar_path(self.graph, start_node, final_node)
-            self.action_plan = self.graph.edges(self.path, data=True)
+            for idx, i in enumerate(self.path):
+                if idx == len(self.path) - 1:
+                    break
+                else:
+                    current = i
+                    nxt = self.path[idx+1]
+                    # plan.append(self.graph.in_edges(nbunch=(current, nxt), data=True))
+                    for src, dst, data in self.graph.edges(data=True):
+                        if (current, nxt) == (src, dst):
+                            plan.append((src, dst, data))
+
+            # commented to include the for above
+            # self.action_plan = self.graph.edges(self.path, data=True)
+            self.action_plan = plan
             return self.action_plan
         except KeyError as e:
             print('[ERROR] There is no node to start planning {}'.format(e))
@@ -211,6 +227,11 @@ if __name__ == '__main__':
         pre_conditions={'vpc': False, 'db': False, 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
+    actions.add_action(
+        name='DestroyVPC',
+        pre_conditions={'vpc': True, 'db': False, 'app': False},
+        effects={'vpc': False, 'db': False, 'app': False}
+    )
     # DB set
     actions.add_action(
         name='CreateDB',
@@ -218,18 +239,8 @@ if __name__ == '__main__':
         effects={'vpc': True, 'db': True, 'app': False}
     )
     actions.add_action(
-        name='StopDB',
-        pre_conditions={'vpc': True, 'db': 'started', 'app': False},
-        effects={'vpc': True, 'db': 'stopped', 'app': False}
-    )
-    actions.add_action(
-        name='StartDB',
-        pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
-        effects={'vpc': True, 'db': 'started', 'app': False}
-    )
-    actions.add_action(
         name='DestroyDB',
-        pre_conditions={'vpc': True, 'db': 'not_health', 'app': False},
+        pre_conditions={'vpc': True, 'db': True, 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
     # APP set
@@ -239,37 +250,31 @@ if __name__ == '__main__':
         effects={'vpc': True, 'db': True, 'app': True}
     )
     actions.add_action(
-        name='StartApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': 'started'}
-    )
-    actions.add_action(
         name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
+        pre_conditions={'vpc': True, 'db': True, 'app': 'unhealthy'},
         effects={'vpc': True, 'db': True, 'app': 'stopped'}
     )
     actions.add_action(
-        name='DestroyApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
+        name='TerminateStoppedApps',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
     # inconsistent app
     actions.add_action(
         name='DestroyInconsistentApp',
-        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'},
-        effects={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False}
+        pre_conditions={'vpc': True, 'db': True, 'app': 'inconsistent'},
+        effects={'vpc': True, 'db': True, 'app': False}
     )
-    # inconsistent db
+    # out of capacity
     actions.add_action(
-        name='DestroyInconsistentDb',
-        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False},
-        effects={'vpc': 'inconsistent', 'db': False, 'app': False}
+        name='IncreaseAppCapacity',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'out_of_capacity'},
+        effects={'vpc': True, 'db': True, 'app': True}
     )
-    # inconsistent vpc
     actions.add_action(
-        name='DestroyInconsistentVpc',
-        pre_conditions={'vpc': 'inconsistent', 'db': 'inconsistent', 'app': False},
-        effects={'vpc': False, 'db': False, 'app': False}
+        name='TerminateStoppedApps',
+        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
+        effects={'vpc': True, 'db': True, 'app': False}
     )
     planner = Planner(actions=actions)
     print('Graph.Nodes: ', planner.graph.nodes(data=True))
@@ -282,18 +287,19 @@ if __name__ == '__main__':
         goal={'vpc': True, 'db': True, 'app': True}
     )
     plan = planner.plan(
-        init_state={'vpc': True, 'db': False, 'app': False}, goal={'vpc': True, 'db': True, 'app': True})
+        init_state={'vpc': True, 'db': False, 'app': False},
+        goal={'vpc': True, 'db': True, 'app': True})
     print('PATH: ', planner.path)
     print('Action plan: ')
     pprint(plan, indent=2)
 
     pprint('Monitor')
     plan = planner.plan(
-        init_state={'vpc_checked': False, 'db_check': False, 'app_checked': False},
-        goal={'vpc_checked': True, 'db_check': True, 'app_checked': True}
+        init_state={'vpc': False, 'db': False, 'app': False},
+        goal={'vpc': True, 'db': True, 'app': True}
     )
     print('PATH: ', planner.path)
     print('Action plan: ')
     pprint(plan, indent=2)
-    print(type(planner.plot_graph()))
+    # print(type(planner.plot_graph()))
 
