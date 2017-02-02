@@ -113,7 +113,7 @@ class Sensors:
 
         case3 = {'vpc': True, 'db': False, 'app': False}
 
-        case4 = {'vpc': True, 'db': False, 'app': True}
+        case4 = {'vpc': True, 'db': 'inconsistent', 'app': True}
 
         case5 = {'vpc': True, 'db': True, 'app': 'unhealthy'}
 
@@ -191,7 +191,7 @@ class Agent:
             if self.world_facts != self.goal:
                 actions_result = self.fsm.start(init_state=self.world_facts, end_state=self.goal)
                 if not actions_result:
-                    print('[ERROR]: Unknown state\n[ERROR]: OBLITERATE\n{}')
+                    print('[ERROR]: Unknown state\n[ERROR]: Nothing to be done, need manual interaction\n{}')
                     self.world_facts = self.STD_STATES['inconsistent']
                     actions_result = self.fsm.start(init_state=self.world_facts, end_state=self.STD_STATES['obliterate'])
 
@@ -250,6 +250,11 @@ if __name__ == '__main__':
         name='DestroyInconsistentApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'inconsistent'},
         effects={'vpc': True, 'db': True, 'app': False}
+    )
+    actions.add_action(
+        name='RecreateInconsistentDb',
+        pre_conditions={'vpc': True, 'db': 'inconsistent', 'app': True},
+        effects={'vpc': True, 'db': True, 'app': 'stopped'}
     )
     # out of capacity
     actions.add_action(
