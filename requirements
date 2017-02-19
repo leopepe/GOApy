@@ -1,5 +1,0 @@
-networkx==1.11
-matplotlib
-PyDotPlus
-pygraphviz
-boto3
