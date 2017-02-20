@@ -80,3 +80,11 @@ pprint.pprint(result, indent=2, width=80)
 ```
 
 ## Version
+
+# TODO
+
+* Agent.py to impl. FSM.py
+* Dockerize (Makefile)
+* Unit Tests
+* Docs (PyDocs, Sphinx, Model, Diagrams)
+* Pants
