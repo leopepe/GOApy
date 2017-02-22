@@ -21,9 +21,7 @@ build: pre-build docker-build post-build
 
 pre-build:
 
-
 post-build:
-
 
 post-push:
 
