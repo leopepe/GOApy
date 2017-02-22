@@ -12,7 +12,7 @@ SHELL=/bin/bash
 
 .PHONY: all
 
-all: docker-build
+all: docker-build container-run
 
 docker-all: pre-build docker-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
 	push do-push post-push
@@ -27,7 +27,7 @@ post-build:
 
 post-push:
 
-run:
+container-run:
 	@echo "Go Go Go..."
 	docker run --rm $(IMAGE):$(VERSION)
 
