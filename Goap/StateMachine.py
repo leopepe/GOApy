@@ -1,9 +1,6 @@
 from Goap.Action import Actions
-from Goap.Planner import Planner
-
 
 class StateMachine:
-
     def __init__(self, states: Actions):
         """
             Don't need initial and end state since the transition
@@ -59,6 +56,7 @@ if __name__ == '__main__':
     # import pprint
     from time import sleep
     from datetime import datetime
+
     # ACTIONS
     actions = Actions()
     # monitor state
@@ -168,4 +166,3 @@ if __name__ == '__main__':
         fsm.start(init_state=case['init_state'], end_state=case['goal'])
         print('Sleeping 7 sec from {}'.format(datetime.now()))
         sleep(7)
-

@@ -7,3 +7,4 @@ networkx==1.11
 python-dateutil==2.6.0
 s3transfer==0.1.10
 six==1.10.0
+matplotlib=2.0.0
