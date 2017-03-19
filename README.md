@@ -38,14 +38,14 @@ actions.add_action(
     effects={'vpc': True, 'db': True, 'app': False}
 )
 actions.add_action(
-    name='StopDB',
-    pre_conditions={'vpc': True, 'db': 'started', 'app': False},
-    effects={'vpc': True, 'db': 'stopped', 'app': False}
-)
-actions.add_action(
     name='StartDB',
     pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
     effects={'vpc': True, 'db': 'started', 'app': False}
+)
+actions.add_action(
+    name='StopDB',
+    pre_conditions={'vpc': True, 'db': 'started', 'app': False},
+    effects={'vpc': True, 'db': 'stopped', 'app': False}
 )
 actions.add_action(
     name='DestroyDB',
@@ -78,7 +78,7 @@ init_state = {'vpc': False, 'app': False, 'db': False}
 init_goal = {'vpc': True, 'db': True, 'app': True}
 
 ai_cloud_builder = Agent(name='CloudBuilder', actions=actions, init_state=init_state, goal=init_goal)
-result = ai_cloud_builder.start()
+result = ai_cloud_builder.run()
 
 pprint.pprint(result, indent=2, width=80)
 ```

@@ -1,4 +1,5 @@
 from Goap.Action import Actions
+from Goap.Planner import Planner
 
 class StateMachine:
     def __init__(self, states: Actions):
