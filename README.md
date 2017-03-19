@@ -2,7 +2,7 @@
 
 ![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
 
-***G***oal-***O***riented ***A***ction ***P***lanning (GOAP) implementation in ***Py***thon
+***Goal-Oriented Action Planning (GOAP) implementation in Python***
 
 ## Introduction
 
