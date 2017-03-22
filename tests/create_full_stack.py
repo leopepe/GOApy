@@ -17,7 +17,7 @@ class test_CreateFullStack_Test_Group_Name(unittest.TestCase):
     def setUp(self):
         # ACTIONS
         self. actions = Actions()
-    
+
         # VPC/Network set
         self.actions.add_action(
             name='CreateVPC',
