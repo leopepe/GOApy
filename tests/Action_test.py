@@ -34,7 +34,6 @@ class ActionTest(unittest.TestCase):
             effects={'vpc': True, 'db': True, 'app': False}
         )
         self.actions.remove_action(name='CreateVPC')
-        assert 'None' == str(self.actions.get(name='CreateVPC'))
         assert '{"Name": "CreateDB"}' == str(self.actions.get(name='CreateDB'))
 
     def test_remove_action_error(self):
@@ -49,6 +48,4 @@ class ActionTest(unittest.TestCase):
             effects={'vpc': True, 'db': True, 'app': False}
         )
         self.actions.remove_action(name='CreateAPP')
-        assert '{"Name": "CreateVPC"}' == str(self.actions.get(name='CreateVPC'))
-        assert '{"Name": "CreateDB"}' == str(self.actions.get(name='CreateDB'))
         assert 'None' == str(self.actions.get(name='CreateAPP'))
