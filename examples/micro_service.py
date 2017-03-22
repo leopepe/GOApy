@@ -4,7 +4,7 @@ import pprint
 # Credentials & Region
 access_key = ""
 secret_key = ""
-region = "us-west-2c"
+region = "us-west-2"
 
 # ECS Details
 cluster_name = "BotoCluster"
@@ -172,5 +172,5 @@ def terminate_ecs_example():
     pprint.pprint(response)
 
 
-# launch_ecs_example()
+launch_ecs_example()
 terminate_ecs_example()

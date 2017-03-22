@@ -13,10 +13,11 @@ from Goap import Actions
 
 class test_CreateFullStack_Test_Group_Name(unittest.TestCase):
 
-    # ACTIONS
-    actions = Actions()
 
     def setUp(self):
+        # ACTIONS
+        self. actions = Actions()
+    
         # VPC/Network set
         self.actions.add_action(
             name='CreateVPC',
