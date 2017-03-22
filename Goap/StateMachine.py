@@ -1,5 +1,6 @@
 from Goap.Action import Actions
-from Goap.Planner import Planner
+from Goap.Planner import Planner as Plan
+
 
 class StateMachine:
     def __init__(self, states: Actions):
@@ -9,7 +10,7 @@ class StateMachine:
         :param states:
         """
         self._states = states
-        self._planner = Planner(actions=states)
+        self._planner = Plan(actions=states)
         self._transitions = []
         self._current_state = None
         self.start_state = None
@@ -47,6 +48,7 @@ class StateMachine:
             self._current_state = state
             result.append(self._current_state.do())
 
+        # ???
         self.stop()
         return result
 
