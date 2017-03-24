@@ -1,24 +1,3 @@
-# GOAPy
-
-![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
-
-***Goal-Oriented Action Planning (GOAP) implementation in Python***
-
-## Introduction
-
-GOAP is a real-time planning algorithm for autonomous agents (AA).
-AA are able to create an action plan based on a set of actions available to the AA. 
-
-The Planner class searches for the correct set of actions from an initial state to it' goal. 
-To perform the search the planner sets a graph using the possible world states as nodes and the available actions as edges of the graph. To search  for the shortest path it uses the A* algorithm.  
-
-## Usage
-
-### Using the Agent class
-
-From the Agent.py class perspective the usage and interaction should be:
-
-```python
 from Goap.Action import Actions
 from Goap.Agent import Agent
 import pprint
@@ -81,14 +60,3 @@ ai_cloud_builder = Agent(name='CloudBuilder', actions=actions, init_state=init_s
 result = ai_cloud_builder.run()
 
 pprint.pprint(result, indent=2, width=80)
-```
-
-## Version
-
-# TODO
-
-* Agent.py to impl. FSM.py
-* Dockerize (Makefile)
-* Unit Tests
-* Docs (PyDocs, Sphinx, Model, Diagrams)
-* Pants

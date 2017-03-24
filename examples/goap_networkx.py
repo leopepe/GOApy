@@ -111,14 +111,14 @@ actions.add_action(
     effects={'vpc': True, 'db': True, 'app': False}
 )
 actions.add_action(
-    name='StopDB',
-    pre_conditions={'vpc': True, 'db': 'started', 'app': False},
-    effects={'vpc': True, 'db': 'stopped', 'app': False}
-)
-actions.add_action(
     name='StartDB',
     pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
     effects={'vpc': True, 'db': 'started', 'app': False}
+)
+actions.add_action(
+    name='StopDB',
+    pre_conditions={'vpc': True, 'db': 'started', 'app': False},
+    effects={'vpc': True, 'db': 'stopped', 'app': False}
 )
 actions.add_action(
     name='DestroyDB',
