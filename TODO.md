@@ -1,7 +1,10 @@
 # TODO
 
 * Agent.py to impl. FSM.py
-* Dockerize (Makefile)
-* Unit Tests
-* Docs (PyDocs, Sphinx, Model, Diagrams)
+* Docs (PyDocs, Model, Diagrams)
 * Pants
+
+# DONE
+* Unit Tests
+* Dockerize (Makefile)
+* Docs: Sphinx
