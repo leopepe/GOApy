@@ -1,10 +1,15 @@
 import boto3
 import pprint
 
+with open('.env', 'r') as f:
+    content = f.readlines()
+
+env = dict([line.strip().split("=") for line in content if '=' in line])
+
 # Credentials & Region
-access_key = ""
-secret_key = ""
-region = "us-west-2"
+access_key = env.get('access_key')
+secret_key = env.get('secret_key')
+region = env.get('region')
 
 # ECS Details
 cluster_name = "BotoCluster"
