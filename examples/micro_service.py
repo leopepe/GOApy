@@ -1,6 +1,20 @@
 import boto3
 import pprint
 
+"""
+Create .env file 
+
+$ vim .env 
+------------------ 
+access_key=xxxxxx
+secret_key=xxxxxx
+region=us-west-2
+~
+~
+~
+".env" [New File]
+"""
+
 with open('.env', 'r') as f:
     content = f.readlines()
 
