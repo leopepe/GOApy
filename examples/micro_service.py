@@ -69,8 +69,9 @@ def launch_ecs_example():
         MinCount=1,
         MaxCount=1,
         InstanceType="t2.micro",
+        KeyName='caputo.marcos',
         IamInstanceProfile={
-            "Name": "ecsInstanceRole"
+            "Name": "caputo"
         },
         UserData="#!/bin/bash \n echo ECS_CLUSTER=" + cluster_name + " >> /etc/ecs/ecs.config"
     )
