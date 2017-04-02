@@ -170,3 +170,4 @@ for action in actions:
             g.add_edge(src, dst, object=obj)
 
 pprint(g.edges(data=True), indent=2)
+pprint(g.get_edge_data(0, 1), indent=2)
