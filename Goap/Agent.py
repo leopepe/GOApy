@@ -13,8 +13,8 @@ class Sensors:
         :self.values: it is a shared dictionary where the sensors stores the results of its inspections
         """
         self.values = {}
-        self.ec2 = boto3.client('ec2')
-        self.rds = boto3.client('rds')
+        self.ec2 = boto3.client('ec2', region_name='us-west-2')
+        self.rds = boto3.client('rds', region_name='us-west-2')
         self.tag = None
 
     def check_aws_vpc(self, tag: dict):
