@@ -1,8 +1,7 @@
 # TODO
 
-* Agent.py to impl. FSM.py
-* Docs (PyDocs, Model, Diagrams)
-* Pants
+* The Sensor.py module needs add a class formatted sensor
+* Pants: use pex to package the project
 
 # DONE
 * Unit Tests

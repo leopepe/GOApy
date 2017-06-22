@@ -13,7 +13,6 @@ from Goap import Actions
 
 class test_CreateFullStack_Test_Group_Name(unittest.TestCase):
 
-
     def setUp(self):
         # ACTIONS
         self. actions = Actions()
@@ -68,7 +67,6 @@ class test_CreateFullStack_Test_Group_Name(unittest.TestCase):
             pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
             effects={'vpc': True, 'db': True, 'app': False}
         )
-
 
     def tearDown(self):
         # VPC/Network unset
