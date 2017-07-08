@@ -16,14 +16,11 @@ class StateMachine:
         self.start_state = None
         self.end_state = None
 
-    def set_transitions(self, init_state, end_state):
+    def set_transitions(self, init_state: dict, end_state: dict):
         """ Receives an ordered list and set it to self._transitions
 
-        :param planner:
-        :param init_state:
-        :param end_state:
-        :param obj:
-        :param obj: obj capable of order the list
+        :param init_state: A dict representing the initial state of the StateMachine
+        :param end_state: A dict representing the final state of the StateMachine
         :return: None
         """
         transitions = []
@@ -39,22 +36,20 @@ class StateMachine:
 
     def stop(self):
         self._current_state = None
+        # sys.exit(1)
 
     def start(self, init_state: dict, end_state: dict):
         result = []
-
         self.set_transitions(init_state=init_state, end_state=end_state)
         for state in self._transitions:
             self._current_state = state
             result.append(self._current_state.do())
 
-        # ???
         self.stop()
         return result
 
 
 if __name__ == '__main__':
-    from Goap import Planner
     import random
     # import pprint
     from time import sleep
