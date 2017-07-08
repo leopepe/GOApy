@@ -149,6 +149,7 @@ class Planner:
                     src = node[0]
                 if action.effects == node[1]:
                     dst = node[0]
+
                 if src is not None and dst is not None:
                     self.graph.add_edge(src, dst, object=action)
                     src = None
