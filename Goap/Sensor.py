@@ -28,6 +28,12 @@ class Sensor:
     """
 
     def __init__(self, name: str, shell: str=None, obj: classmethod=None):
+        """ Sensor object
+
+        :param name: Sensor's name
+        :param shell: A string containing a shell command and its args
+        :param obj: An class method that returns returncode, stdout and stderr
+        """
         self.name = name
         self.shell = shell
         self.obj = obj
@@ -39,10 +45,11 @@ class Sensor:
         if self.obj:
             # response = lambda: None
             response.return_code, response.stdout, response.stderr = self.obj()
-
-        if self.shell:
+        elif self.shell:
             cmd = self.shell.split()
             response = subprocess.run(cmd, shell=True, check=True)
+        else:
+            raise SensorError
 
         return SensorResponse(return_code=response.returncode, stdout=response.stdout, stderr=response.stderr)
 
@@ -54,6 +61,10 @@ class Sensor:
 class Sensors:
 
     def __init__(self, sensors: list=[]):
+        """ Collection of sensors, adds only unique sensors
+
+        :param sensors: List containing the sensor objects
+        """
         self.sensors = sensors
 
     def __iter__(self):
@@ -66,13 +77,19 @@ class Sensors:
             raise SensorError
 
     def __delete__(self, sensor):
-        self.sensors.remove(sensor)
+        if isinstance(sensor, self):
+            self.sensors.remove(sensor)
+        else:
+            raise SensorError
 
     def __repr__(self):
         return self.sensors
 
+    def __call__(self, *args, **kwargs):
+        sensors = kwargs.get('sensors')
+
     def run_all(self):
-        responses = [s.run() for s in self.sensors]
+        responses = [s() for s in self.sensors]
         return responses
 
 
