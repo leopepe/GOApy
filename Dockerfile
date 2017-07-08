@@ -1,5 +1,8 @@
 FROM ubuntu:latest
 
+# app structure
+RUN mkdir /app
+
 # Install python3
 # usefull extensions
 RUN apt-get update \
@@ -25,8 +28,7 @@ RUN pip3 install \
     six==1.10.0 \
     git+https://github.com/leopepe/GOApy.git
 
+WORKDIR /app
+COPY examples/*.py /app
 
-
-COPY examples/goap_networkx.py /
-
-CMD ["python3", "goap_networkx.py"]
+CMD ["python3", "cloud_builder.py"]
