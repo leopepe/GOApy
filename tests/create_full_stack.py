@@ -11,7 +11,7 @@ import unittest
 from Goap import Actions
 
 
-class test_CreateFullStack_Test_Group_Name(unittest.TestCase):
+class TestCreateFullStackTestGroupName(unittest.TestCase):
 
     def setUp(self):
         # ACTIONS
