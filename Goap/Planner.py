@@ -204,7 +204,9 @@ class Planner:
         # pos = nx.random_layout(self.graph, dim=1024, scale=0.5)
 
         if label_edges:
-            edge_labels = {(edge[0], edge[1]): edge[2]['object'] for edge in self.graph.edges(data=True)}
+            edge_labels = {
+                (edge[0], edge[1]): edge[2]['object'] for edge in self.graph.edges(data=True)
+            }
             nx.draw_networkx_edge_labels(self.graph, pos, edge_labels, font_size=5)
 
         if label_nodes:
