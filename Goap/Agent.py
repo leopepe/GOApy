@@ -1,9 +1,10 @@
 from random import choice
 from time import sleep
 from datetime import datetime
+
 import boto3
-from Goap.Action import Actions
 from Goap.StateMachine import StateMachine
+from Goap.Action import Actions
 
 
 class Sensors:
@@ -135,7 +136,7 @@ class Agent:
         'inconsistent': {'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'}
     }
 
-    def __init__(self, name: str, actions: Actions, init_state: dict={}, goal: dict={}) -> object:
+    def __init__(self, name: str, actions: Actions, initial_state: dict={}, goal: dict={}):
         """
 
         :param name:
@@ -148,8 +149,9 @@ class Agent:
                 {'vpc': True, 'db': True, 'app': False}
             ]
         )
-        # world_facts act as a working memory, default value is {}
-        self.world_facts = init_state
+        # world_facts act as a working memory, default value is []
+        self.world_facts = list()
+        self.world_state = initial_state
         self.sensors = Sensors()
         self.full_scan()
         # planing
@@ -158,13 +160,14 @@ class Agent:
         # self.fsm = StateMachine(states=self.actions, planner=self.planner())
         self.fsm = StateMachine(states=self.actions)
 
-    def full_scan(self):
+    def full_scan(self) -> dict:
         """ run all sensors and update the word_facts
 
-        :return:
+        :rtype: dict
+        :return: A dict containing the world facts known by the agent
         """
-        self.world_facts = self.sensors.run_all()
-        return self.world_facts
+        self.world_state.update(self.sensors.run_all())
+        return self.world_state
 
     def set_goal(self, goal: dict):
         """ set goal of the AA
@@ -186,14 +189,14 @@ class Agent:
             print('\n\n\n###\n###\n###')
             print('[INFO] Starting {}'.format(datetime.now()))
             print('[INFO] Goal: {}'.format(self.goal))
-            print('[INFO] Current World State: {}'.format(self.world_facts))
+            print('[INFO] Current World State: {}'.format(self.world_state))
 
-            if self.world_facts != self.goal:
-                actions_result = self.fsm.start(init_state=self.world_facts, end_state=self.goal)
+            if self.world_state != self.goal:
+                actions_result = self.fsm.start(init_state=self.world_state, end_state=self.goal)
                 if not actions_result:
                     print('[ERROR]: Unknown state\n[ERROR]: Nothing to be done, need manual interaction\n{}')
-                    self.world_facts = self.STD_STATES['inconsistent']
-                    actions_result = self.fsm.start(init_state=self.world_facts, end_state=self.STD_STATES['obliterate'])
+                    self.world_state = self.STD_STATES['inconsistent']
+                    actions_result = self.fsm.start(init_state=self.world_state, end_state=self.STD_STATES['obliterate'])
 
                 print('[INFO] Plan executed: {}'.format(actions_result))
 
