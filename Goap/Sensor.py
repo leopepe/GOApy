@@ -112,7 +112,9 @@ class Sensors:
         name = kwargs.get('name')
         shell = kwargs.get('shell', None)
         obj = kwargs.get('obj', None)
-        if shell:
+        if shell and obj:
+            raise 'The sensor cannot have two types.\n{}'.format(SensorError)
+        elif shell:
             self.add_shell_sensor(name, shell)
         elif obj:
             self.add_obj_sensor(name, obj)
