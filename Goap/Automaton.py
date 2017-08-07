@@ -5,6 +5,9 @@ from Goap.Planner import Planner
 
 
 class Automaton:
+    """ A 3 State Machine Automaton: observe (aka monitor or patrol), plan and act
+
+    """
 
     machine = MethodicalMachine()
 
@@ -15,22 +18,25 @@ class Automaton:
         self.planner = Planner(actions=actions)
         self.action_plan = []
         self.action_plan_response = None
+        self.sensors_responses = {}
+        self.actions_response = []
+        self.goal = {}
 
     @machine.state(initial=True)
     def observe(self):
-        self.sensors.run_all()
+        self.sensors_responses.update(self.sensors.run_all())
 
     @machine.state()
-    def plan(self):
-        self.planning.plan()
+    def plan(self, initial_state: dict, final_state: dict):
+        self.action_plan = self.planner.plan(initial_state, final_state)
 
     @machine.state()
     def act(self):
-        self.action_plan_response = [action() for action in self.actions]
+        self.actions_response = [action() for action in self.action_plan]
 
     @machine.input()
     def change_goal(self, goal: dict):
-        pass
+        self.goal = goal
 
     @machine.input()
     def enter_observing_state(self):
@@ -52,7 +58,7 @@ class Automaton:
     def output_actions_results(self):
         return self.action_plan_response
 
-    enter_observing_state.upon()
+
 
 if __name__ == '__main__':
     pass
