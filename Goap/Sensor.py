@@ -19,7 +19,6 @@ class SensorResponse:
         """
         self.return_code = None
         self.output = None
-        self.error = None
         self.sensor_response = kwargs.get('response', None)
         self.popen_communicate_timeout = 10
         self.popen_parsed_response = None
@@ -35,7 +34,7 @@ class SensorResponse:
         if self.return_code == '200':
             self.output = self.json_parsed_response
         else:
-            self.error = self.json_parsed_response
+            self.output = self.json_parsed_response
 
     def __parse_shell_response(self):
         stdout, stderr = self.sensor_response.communicate(timeout=self.popen_communicate_timeout)
@@ -43,7 +42,7 @@ class SensorResponse:
         if self.return_code == 0:
             self.output = stdout
         else:
-            self.error = stderr
+            self.output = stderr
 
     def __repr__(self):
         # ???
@@ -86,7 +85,7 @@ class Sensor:
             self.response = self.obj()
         elif self.shell:
             cmd = self.shell
-            self.response = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            self.response = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             raise SensorError
 
@@ -199,14 +198,18 @@ if __name__ == '__main__':
     sensors = Sensors()
     # VPC/Network set
     sensors.add_shell_sensor(
-        name='CreateVPC',
-        shell='ls -ltr /tmp/'
+        name='ListFilesOnTMP',
+        shell='ls -1 /tmp/'
     )
     sensors.add_shell_sensor(
-        name='CreateDB',
-        shell='ls -ltr'
+        name='ListFilesOnPWD',
+        shell='ls -1'
+    )
+    sensors.add_shell_sensor(
+        name='ExecutesShell',
+        shell='command_not_found.sh'
     )
     response = sensors.run_all()
-    print(response)
+    print('responses: ', response)
     for r in response:
-        print(r)
+        print('response: ', r)
