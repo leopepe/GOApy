@@ -19,6 +19,7 @@ class SensorResponse:
         """
         self.return_code = None
         self.output = None
+        self.error = None
         self.sensor_response = kwargs.get('response', None)
         self.popen_communicate_timeout = 10
         self.popen_parsed_response = None
@@ -34,7 +35,7 @@ class SensorResponse:
         if self.return_code == '200':
             self.output = self.json_parsed_response
         else:
-            self.output = self.json_parsed_response
+            self.error = self.json_parsed_response
 
     def __parse_shell_response(self):
         stdout, stderr = self.sensor_response.communicate(timeout=self.popen_communicate_timeout)
@@ -42,12 +43,15 @@ class SensorResponse:
         if self.return_code == 0:
             self.output = stdout
         else:
-            self.output = stderr
+            self.error = stderr
 
     def __repr__(self):
-        # ???
-        # args = [i for i in (self.output, self.error) if i]
-        return 'return code: {}, output: {}'.format(self.return_code, self.output)
+        json_data = {}
+        if self.output:
+            json_data = {'return_code': self.return_code, 'error': str(self.output)}
+        elif self.error:
+            json_data = {'return_code': self.return_code, 'error': str(self.error)}
+        return json.dumps(json_data, skipkeys=True)
 
     def __str__(self):
         return self.__repr__()
