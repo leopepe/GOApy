@@ -1,5 +1,7 @@
-import networkx as nx
 import json
+
+# import matplotlib
+import networkx as nx
 
 
 class Planner:
@@ -195,7 +197,7 @@ class Planner:
             return self.action_plan
         except KeyError as e:
             print('[ERROR] There is no node to start planning {}'.format(e))
-            return False
+            return []
 
     def plot_graph(self, label_nodes: bool=True, label_edges: bool=True):
         import matplotlib.pyplot as plt
