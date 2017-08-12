@@ -3,10 +3,7 @@ import inspect
 import json
 import boto3
 
-
-class SensorError(Exception):
-    """ Sensor's Error base class """
-    pass
+from Goap.Errors import *
 
 
 class SensorResponse:
@@ -20,25 +17,26 @@ class SensorResponse:
         self.return_code = None
         self.output = None
         self.error = None
+        self.name = kwargs.get('name', None)
         self.sensor_response = kwargs.get('response', None)
-        self.popen_communicate_timeout = 10
-        self.popen_parsed_response = None
-        self.json_parsed_response = None
+        self._popen_communicate_timeout = 10
+        self._popen_parsed_response = None
+        self._json_parsed_response = None
         if type(self.sensor_response) == dict:
             self.__parse_aws_api_http_response()
         elif type(self.sensor_response) == subprocess.Popen:
             self.__parse_shell_response()
 
     def __parse_aws_api_http_response(self):
-        self.json_parsed_response = json.loads(self.sensor_response)
-        self.return_code = self.json_parsed_response['ResponseMetadata']['HTTPStatusCode']
+        self._json_parsed_response = json.loads(self.sensor_response)
+        self.return_code = self._json_parsed_response['ResponseMetadata']['HTTPStatusCode']
         if self.return_code == '200':
-            self.output = self.json_parsed_response
+            self.output = self._json_parsed_response
         else:
-            self.error = self.json_parsed_response
+            self.error = self._json_parsed_response
 
     def __parse_shell_response(self):
-        stdout, stderr = self.sensor_response.communicate(timeout=self.popen_communicate_timeout)
+        stdout, stderr = self.sensor_response.communicate(timeout=self._popen_communicate_timeout)
         self.return_code = self.sensor_response.returncode
         if self.return_code == 0:
             self.output = stdout
@@ -70,7 +68,7 @@ class Sensor:
         :param obj: An class method that returns returncode, stdout and stderr
         """
         if shell and obj:
-            raise SensorError
+            raise SensorMultipleTypeError
 
         self.name = name
         self.shell = shell
@@ -93,7 +91,7 @@ class Sensor:
         else:
             raise SensorError
 
-        return SensorResponse(response=self.response)
+        return SensorResponse(name=self.name, response=self.response)
 
     def __call__(self):
         return self.__runner()
@@ -111,37 +109,43 @@ class Sensors:
     def __iter__(self):
         return iter(self.sensors)
 
-    def add_sensor(self, **kwargs):
-        name = kwargs.get('name')
-        shell = kwargs.get('shell', None)
-        obj = kwargs.get('obj', None)
-        if shell and obj:
-            raise 'The sensor cannot have two types.\n{}'.format(SensorError)
-        elif shell:
-            self.add_shell_sensor(name, shell)
-        elif obj:
-            self.add_obj_sensor(name, obj)
-
     def __delete__(self, sensor):
-        if isinstance(sensor, self):
+        if sensor in self.sensors:
             self.sensors.remove(sensor)
         else:
-            raise SensorError
+            raise SensorDoesNotExistError
 
     def __repr__(self):
         return self.sensors
+
+    def add_sensor(self, **kwargs):
+        """
+
+        :param kwargs:
+        :return:
+        """
+        if kwargs.get('shell') and kwargs.get('obj'):
+            raise SensorMultipleTypeError
+
+        name = kwargs.get('name')
+        shell = kwargs.get('shell', None)
+        obj = kwargs.get('obj', None)
+        if shell:
+            self.add_shell_sensor(name, shell)
+        elif obj:
+            self.add_obj_sensor(name, obj)
 
     def add_shell_sensor(self, name, shell):
         if not Sensor(name=name, shell=shell) in self.sensors:
             self.sensors.append(Sensor(name=name, shell=shell))
         else:
-            raise SensorError
+            raise SensorAlreadyInCollectionError
 
     def add_obj_sensor(self, name, obj):
         if not Sensor(name=name, obj=obj) in self.sensors:
             self.sensors.append(Sensor(name=name, obj=obj))
         else:
-            raise SensorError
+            raise SensorAlreadyInCollectionError
 
     def run_all(self):
         responses = [s() for s in self.sensors]
@@ -199,6 +203,7 @@ class AWSSensors:
 
 if __name__ == '__main__':
     # ACTIONS
+    sensor_ec2_describe_by_tag = boto3.client('ec2')
     sensors = Sensors()
     # VPC/Network set
     sensors.add_shell_sensor(
