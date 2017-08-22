@@ -149,7 +149,7 @@ class Agent:
                 {'vpc': True, 'db': True, 'app': False}
             ]
         )
-        # world_facts act as a working memory, default value is []
+        # world_facts acting as a working memory, default value is []
         self.world_facts = list()
         self.world_state = initial_state
         self.sensors = Sensors()
