@@ -69,15 +69,15 @@ class Planner:
     print('Action sequence')
     pprint(planner.action_plan)
     # Plan again
-    plan = planner.plan(
+    planning = planner.planning(
         init_state={'vpc': False, 'db': False, 'app': False},
         goal={'vpc': True, 'db': True, 'app': True}
     )
-    plan = planner.plan(
+    planning = planner.planning(
         init_state={'vpc': True, 'db': False, 'app': False}, goal={'vpc': True, 'db': True, 'app': True})
     print('PATH: ', planner.path)
     print('Action sequence: ')
-    pprint(plan, indent=2)
+    pprint(planning, indent=2)
 
     Graph.Nodes:  [(0, {'db': False, 'app': False, 'vpc': False}), (1, {'db': False, 'app': False, 'vpc': True}), (2, {'db': True, 'app': False, 'vpc': True}), (3, {'db': 'started', 'app': False, 'vpc': True}), (4, {'db': 'stopped', 'app': False, 'vpc': True}), (5, {'db': 'not_health', 'app': False, 'vpc': True}), (6, {'db': True, 'app': True, 'vpc': True}), (7, {'db': True, 'app': 'stopped', 'vpc': True}), (8, {'db': True, 'app': 'started', 'vpc': True}), (9, {'db': True, 'app': 'not_health', 'vpc': True})]
     Graph.Edges:  [(0, 1, {'object': {"Conditions": {"db": false, "app": false, "vpc": false}, "Name": "CreateVPC", "Effects": {"db": false, "app": false, "vpc": true}}}), (1, 2, {'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}), (2, 6, {'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}}), (3, 4, {'object': {"Conditions": {"db": "started", "app": false, "vpc": true}, "Name": "StopDB", "Effects": {"db": "stopped", "app": false, "vpc": true}}}), (4, 3, {'object': {"Conditions": {"db": "stopped", "app": false, "vpc": true}, "Name": "StartDB", "Effects": {"db": "started", "app": false, "vpc": true}}}), (5, 1, {'object': {"Conditions": {"db": "not_health", "app": false, "vpc": true}, "Name": "DestroyDB", "Effects": {"db": false, "app": false, "vpc": true}}}), (7, 8, {'object': {"Conditions": {"db": true, "app": "stopped", "vpc": true}, "Name": "StartApp", "Effects": {"db": true, "app": "started", "vpc": true}}}), (8, 7, {'object': {"Conditions": {"db": true, "app": "started", "vpc": true}, "Name": "StopApp", "Effects": {"db": true, "app": "stopped", "vpc": true}}}), (9, 2, {'object': {"Conditions": {"db": true, "app": "not_health", "vpc": true}, "Name": "DestroyApp", "Effects": {"db": true, "app": false, "vpc": true}}})]
@@ -92,7 +92,7 @@ class Planner:
       6,
       {'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}})]
     PATH:  [1, 2, 6]
-    Action plan:
+    Action planning:
     [ ( 1,
         2,
         { 'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}),
@@ -119,7 +119,7 @@ class Planner:
         self.graph = nx.DiGraph()
         self.init_state = init_state
         self.goal = goal
-        # set nodes and edges and formulate plan
+        # set nodes and edges and formulate planning
         self.set_nodes()
         self.set_edges()
         self.plan(init_state=init_state, goal=goal)
@@ -177,7 +177,7 @@ class Planner:
                 start_node = node[0]
             elif self.goal == node[1]:
                 final_node = node[0]
-        # Try to generate plan, if there' no plan return False
+        # Try to generate planning, if there' no planning return False
         try:
             self.path = nx.astar_path(self.graph, start_node, final_node)
             for idx, i in enumerate(self.path):
@@ -186,7 +186,7 @@ class Planner:
                 else:
                     current = i
                     nxt = self.path[idx+1]
-                    # plan.append(self.graph.in_edges(nbunch=(current, nxt), data=True))
+                    # planning.append(self.graph.in_edges(nbunch=(current, nxt), data=True))
                     for src, dst, data in self.graph.edges(data=True):
                         if (current, nxt) == (src, dst):
                             plan.append((src, dst, data))
@@ -295,7 +295,7 @@ if __name__ == '__main__':
         init_state={'vpc': True, 'db': False, 'app': False},
         goal={'vpc': True, 'db': True, 'app': True})
     print('PATH: ', planner.path)
-    print('Action plan: ')
+    print('Action planning: ')
     pprint(plan, indent=2)
 
     pprint('Monitor')
@@ -304,7 +304,7 @@ if __name__ == '__main__':
         goal={'vpc': True, 'db': True, 'app': True}
     )
     print('PATH: ', planner.path)
-    print('Action plan: ')
+    print('Action planning: ')
     pprint(plan, indent=2)
     # print(type(planner.plot_graph()))
 
