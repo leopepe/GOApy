@@ -1,5 +1,5 @@
 boto3==1.4.4
 docutils==0.13.1
 networkx==1.11
-matplotlib=2.0.0
+matplotlib==2.0.0
 Automat==0.6.0

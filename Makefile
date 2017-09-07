@@ -10,6 +10,8 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 
 SHELL=/bin/bash
 
+PYTHON_VERSION=3.6
+
 .PHONY: all
 
 all: docker-build container-run
@@ -96,3 +98,10 @@ check-status:
 check-release: .release
 	@. $(RELEASE_SUPPORT) ; tagExists $(TAG) || (echo "ERROR: version not yet tagged in git. make [minor,major,patch]-release." >&2 && exit 1) ;
 	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
+
+venv:
+	virtualenv -p python${PYTHON_VERSION} venv/
+	venv/bin/pip3 install -r requirements.txt
+
+clean-venv:
+	rm -rf venv/
