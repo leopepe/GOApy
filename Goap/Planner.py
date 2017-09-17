@@ -1,6 +1,7 @@
 import json
 
 from Action import Actions
+import Errors
 import networkx as nx
 # import matplotlib
 
@@ -114,7 +115,7 @@ class Planner:
         self.nodes = None
         self.edges = None
         self.path = None
-        self.action_plan = None
+        self.action_plan = []
         # setup graph
         self.actions = actions
         self.graph = nx.DiGraph()
@@ -196,11 +197,11 @@ class Planner:
             # commented to include the for above
             # self.action_plan = self.graph.edges(self.path, data=True)
             return self.action_plan
-        except KeyError as e:
+        except Errors.PlanFailed as e:
             print('[ERROR] There is no node to start planning {}'.format(e))
             return []
 
-    def plot_graph(self, label_nodes: bool=True, label_edges: bool=True):
+    def plot_graph(self, file_name: str='graph.png', label_nodes: bool=True, label_edges: bool=True):
         import matplotlib.pyplot as plt
         # pos = nx.spring_layout(self.graph)
         pos = nx.shell_layout(self.graph, dim=1024, scale=0.5)
@@ -218,7 +219,7 @@ class Planner:
 
         # nx.draw(self.graph, with_labels=True, arrows=True, node_size=80)
         nx.draw_spectral(self.graph, with_labels=True, arrows=True, node_size=80)
-        plt.savefig("graph.png", dpi=1024)
+        plt.savefig(file_name, dpi=1024)
 
 
 if __name__ == '__main__':
@@ -308,4 +309,5 @@ if __name__ == '__main__':
     print('Action planning: ')
     pprint(plan, indent=2)
     # print(type(planner.plot_graph()))
+    # planner.plot_graph()
 
