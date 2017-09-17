@@ -1,7 +1,8 @@
 import json
 
-# import matplotlib
+from Action import Actions
 import networkx as nx
+# import matplotlib
 
 
 class Planner:
@@ -102,7 +103,7 @@ class Planner:
 
     """
 
-    def __init__(self, actions: object, init_state: dict={}, goal: dict={}) -> object:
+    def __init__(self, actions: Actions, init_state: dict={}, goal: dict={}):
         """
         :param actions: list of actions
         :param init_state: dict of initial state
@@ -124,17 +125,20 @@ class Planner:
         self.set_edges()
         self.plan(init_state=init_state, goal=goal)
 
+    @staticmethod
+    def __idx_is_end_node(i: int, l: list) -> bool:
+        if i == len(l) - 1:
+            return True
+        else:
+            return False
+
     def set_nodes(self):
         """
 
         :return: None
         """
-        labels = {}
-        # states
         states = self.actions.all_possible_states()
-        # generate graph from all_possible_states() method
-        # nodes as
-        # [self.graph.add_node(json.dumps(state), attr_dict=state) for idx, state in enumerate(states)]
+        # add nodes (idx: int, state: dict)
         [self.graph.add_node(idx, attr_dict=state) for idx, state in enumerate(states)]
         self.nodes = self.graph.nodes(data=True)
 
@@ -165,7 +169,6 @@ class Planner:
         :rtype: list
         :return: self.path
         """
-        plan = []
         start_node = None
         final_node = None
         self.init_state = init_state
@@ -177,11 +180,11 @@ class Planner:
                 start_node = node[0]
             elif self.goal == node[1]:
                 final_node = node[0]
-        # Try to generate planning, if there' no planning return False
+        # Try to generate the plan, return False if fails
         try:
             self.path = nx.astar_path(self.graph, start_node, final_node)
             for idx, i in enumerate(self.path):
-                if idx == len(self.path) - 1:
+                if self.__idx_is_end_node(idx, self.path):
                     break
                 else:
                     current = i
@@ -189,11 +192,9 @@ class Planner:
                     # planning.append(self.graph.in_edges(nbunch=(current, nxt), data=True))
                     for src, dst, data in self.graph.edges(data=True):
                         if (current, nxt) == (src, dst):
-                            plan.append((src, dst, data))
-
+                            self.action_plan.append((src, dst, data))
             # commented to include the for above
             # self.action_plan = self.graph.edges(self.path, data=True)
-            self.action_plan = plan
             return self.action_plan
         except KeyError as e:
             print('[ERROR] There is no node to start planning {}'.format(e))
