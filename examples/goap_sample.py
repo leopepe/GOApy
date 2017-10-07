@@ -56,7 +56,7 @@ actions.add_action(
 init_state = {'vpc': False, 'app': False, 'db': False}
 init_goal = {'vpc': True, 'db': True, 'app': True}
 
-ai_cloud_builder = Agent(name='CloudBuilder', actions=actions, init_state=init_state, goal=init_goal)
+ai_cloud_builder = Agent(name='CloudBuilder', actions=actions, initial_state=init_state, goal=init_goal)
 result = ai_cloud_builder.run()
 
 pprint.pprint(result, indent=2, width=80)

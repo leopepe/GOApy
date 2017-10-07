@@ -11,6 +11,11 @@ class AWSClient:
 
     @staticmethod
     def __dict_into_filter(tag: dict):
+        """
+
+        :param tag: Key / Value pair dict type
+        :return: An AWS Filter format [{'Name': filter-name, 'Values': [val1, val2, ...]]
+        """
         key = 'tag:{key}'.format(key=[*tag.keys()].pop())
         val = [*tag.values()].pop()
         return [{'Name': key, 'Values': [val]}]
@@ -48,6 +53,11 @@ class VPCClient(AWSClient):
         super().__init__(client='ec2')
 
     def __desc(self):
+        """ describe vpcs
+
+        :return: AWS API Response
+        :rtype: json
+        """
         try:
             response = self.client.describe_vpcs(Filters=self.filters)
             return response
@@ -94,5 +104,32 @@ class AWSCheckVPCIsDefault(VPCClient):
 
 
 class AWSCheckInstancesCapacity(EC2Client):
-    pass
 
+    def __instances_cpu_utilization(self, instance_id: str):
+        pass
+
+    def exec(self):
+        pass
+
+
+class AWSCheckLatestProjectAMI(EC2Client):
+
+    def __last_project_ami(self, version):
+        pass
+
+    def exec(self):
+        pass
+
+
+class AWSCheckInstancesWithOldAMI(EC2Client):
+
+    def __instances_with_old_ami(self):
+        """
+
+        :return: list of instances ids with AMI with an old version
+        """
+        pass
+
+
+class AWSCheckOrphanEBS(EC2Client):
+    pass
