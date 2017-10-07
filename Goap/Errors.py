@@ -26,8 +26,10 @@ class SensorAlreadyInCollectionError(SensorError):
     """ Sensor do not exist """
     pass
 
+
 class PlanError(Exception):
     pass
+
 
 class PlanFailed(PlanError):
     pass

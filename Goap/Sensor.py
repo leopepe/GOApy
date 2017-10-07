@@ -51,20 +51,19 @@ class ShellSensorResponse:
 
         :param kwargs: return_code, output and error
         """
+        self.name = kwargs.get('name', None)
         self.return_code = kwargs.get('return_code', None)
         self.output = kwargs.get('output', None)
         self.error = kwargs.get('error', None)
-        self.name = kwargs.get('name', None)
 
     def __return_message(self):
         if self.return_code == 0:
-            return {'return_code': self.return_code, 'output': str(self.output)}
+            return {'return_code': self.return_code, 'output': self.output}
         else:
-            return {'return_code': self.return_code, 'error': str(self.error)}
+            return {'return_code': self.return_code, 'error': self.error}
 
     def __repr__(self):
-        json_data = self.__return_message()
-        return json.dumps(json_data, skipkeys=True)
+        return str(self.__return_message())
 
     def __str__(self):
         return self.__repr__()
@@ -119,10 +118,15 @@ class ShellSensor:
         :return SensorResponse:
         """
         cmd = self.shell
-        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = proc.communicate(timeout=30)
-        returncode = proc.returncode
-        self.response = ShellSensorResponse(name=self.name, output=stdout, error=stderr, return_code=returncode)
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        try:
+            stdout, stderr = proc.communicate(timeout=30)
+            returncode = proc.returncode
+            self.response = ShellSensorResponse(name=self.name, output=stdout, error=stderr, return_code=returncode)
+        except TimeoutError as e:
+            proc.kill()
+            raise('{}'.format(e))
+
         return self.response
 
     def __call__(self):
@@ -310,7 +314,14 @@ if __name__ == '__main__':
         print('response: ', r)
     """
     aws_sensors = Sensors()
-    aws_sensors.add(name='test', shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].{VpcId:VpcId,State:State,Tags:Tags[*]}" --output json')
+    aws_sensors.add(
+        name='VpcState',
+        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text'
+    )
+    aws_sensors.add(
+        name='VpcId',
+        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].VpcId" --output text'
+    )
     resp_aws = aws_sensors.exec_all()
     print('responses: ', resp_aws)
 

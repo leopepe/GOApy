@@ -1,18 +1,30 @@
+from datetime import datetime
 from automat import MethodicalMachine
 from Goap.Sensor import Sensors, SensorResponse
 from Goap.Action import Actions
 from Goap.Planner import Planner
 
 
+class Fact:
+    def __init__(self, name, ftype, data):
+        self.name = name
+        self.type = ftype
+        self.data = data
+        self.time_stamp = datetime.now()
+
+
 class AutomatonPriorities:
-    def __init__(self, items):
+    def __init__(self, items: list):
         self._items = items
 
     def __iter__(self):
         return self._items
 
-    def __call__(self):
-        return next(self._items.read())
+    def __repr__(self):
+        return str(self.__dict__)
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class Automaton:
@@ -25,7 +37,7 @@ class Automaton:
     def __init__(self, name: str='Automaton', sensors: Sensors=[], actions: Actions=[]):
         self.name = name
         # known facts about the environment/world
-        self.knowledge = {}
+        self.working_memory = []
         # recognized env/world state
         self.env_state = {}
         self.sensors = sensors
@@ -38,25 +50,31 @@ class Automaton:
         self.goal = {}
 
     def __execute_sensors(self):
-        """ Invoke __convert_responses_into_knowledge to parse acknowledge the world state """
+        """ Invoke __response_into_memory_fact to parse acknowledge the world state """
         # execute the sensors
         try:
-            return self.sensors.exec_all()
+            self.sensors_responses = self.sensors.exec_all()
         except IOError as err:
             raise 'Error executing sensors: {}'.format(err)
+        # convert responses into memory fact
+        try:
+            self.__response_into_memory_fact(self.sensors_responses)
+        except IOError as err:
+            raise 'Error importing facts into memory'.format(err)
 
-    def __convert_responses_into_knowledge(self, responses: list):
+    def __response_into_memory_fact(self, responses: list):
         for r in responses:
-            self.sensors_responses.update({r.name: r.output})
-        return 'The environment goal: {}'.format(self.sensors_responses)
+            # self.sensors_responses.update({r.name: r.output})
+            self.working_memory.append(Fact(name=r.name, ftype='aws', data=r.output))
+        return 'Facts: {}'.format(self.working_memory)
 
     @machine.state(initial=True)
     def idle(self):
-        """ Machine is on but waiting orders"""
+        """ Machine is ON and waiting for orders/goal """
 
     @machine.input()
     def input_goal(self, goal):
-        """ """
+        """ Input goal """
 
     @machine.output()
     def __set_goal(self, goal):
@@ -69,7 +87,7 @@ class Automaton:
         # execute sensors and collect data
         responses = self.sensors.exec_all()
         try:
-            self.__convert_responses_into_knowledge(responses=responses)
+            self.__response_into_memory_fact(responses=responses)
         except IOError as err:
             raise 'Error converting JSON data into Automatons knowledge {}'.format(err)
 
@@ -141,8 +159,33 @@ class Automaton:
 
 
 if __name__ == '__main__':
+    """ Proposed env_state:
+    
+        {
+            "Vpc": {
+                "state": "available|doesnt_exist"
+            },
+            "Network": {
+                "private_subnet": false|true,
+                "public_subnet": false|true,
+                "internet_access": false|true,
+                "access_to_vpn": "yes|no",
+                "route_to_vpcs": ["vpn_2_office", "vpn_2_customer", ...]
+            },
+            "DB": {
+                "state": "available|doesnt_exist|"
+            }
+            "App": {
+                "type": "asg|instance",
+                "state": "available|doesnt_exist",
+                "node_count": 0
+            }
+        }
+
+    
+    """
     from pprint import PrettyPrinter
-    from json import loads
+    # from json import loads
     # Instantiate
     pp = PrettyPrinter(indent=4)
     priorities = AutomatonPriorities([
@@ -161,14 +204,14 @@ if __name__ == '__main__':
         effects={'vpc': True, 'db': True, 'app': False}
     )
     aws_sensors = Sensors()
-    aws_sensors.add(name='FindProjectVPC', shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].{VpcId:VpcId,State:State,Tags:Tags[*]}" --output json')
-    aws_sensors.add(name='FindProjectDB', shell='aws rds describe-db-instances --query "DBInstances[].{Name:DBInstanceIdentifier,Engine:Engine,Status:DBInstanceStatus}" --output json')
-    aws_sensors.add(name='FindProjectInstances', shell='aws ec2 describe-instances --filters "Name=tag-key,Values=project","Name=tag-value,Values=mesos-master" --query "Reservations[].Instances[].{Name:KeyName,Status:State,InstanceId:InstanceId,InstanceType:InstanceType,ImageId:ImageId}"')
+    aws_sensors.add(name='FindProjectVPC', shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].{Id:VpcId,Status:State,Tags:Tags[*]}" --output json')
+    aws_sensors.add(name='FindProjectDB', shell='aws rds describe-db-instances --query "DBInstances[].{Id:DBInstanceIdentifier,Engine:Engine,Status:DBInstanceStatus}" --output json')
+    aws_sensors.add(name='FindProjectInstances', shell='aws ec2 describe-instances --filters "Name=tag-key,Values=project","Name=tag-value,Values=mesos-master" --query "Reservations[].Instances[].{Id:InstanceId,Name:KeyName,Status:State,InstanceType:InstanceType,AMI:ImageId}"')
     ai = Automaton(name='infra_builder', actions=aws_actions, sensors=aws_sensors)
     # Control
     # what is the environment status? what does the sensors return? ai has a goal?
     # goal = priorities # object not working returning object rather then dict
-    goal = {'vpc': {'State':'available'}, 'db': {'DBInstanceStatus': 'available'}, 'app': {'Status': {'Code': 16, 'Name': 'running'}}}
+    goal = {'vpc': {'Status':'available'}, 'db': {'Status': 'available'}, 'app': {'Status': {'Code': 16, 'Name': 'running'}}}
     recon_world = ai.input_goal(goal)
     action_plan = ai.plan()
     result = ai.execute_plan()
