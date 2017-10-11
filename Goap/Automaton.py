@@ -3,17 +3,71 @@ from automat import MethodicalMachine
 from Goap.Sensor import Sensors, SensorResponse
 from Goap.Action import Actions
 from Goap.Planner import Planner
+from rx import Observable, Observer
 
 
-class Fact:
-    def __init__(self, name, ftype, data):
-        self.name = name
-        self.type = ftype
+class Fact(object):
+    def __init__(self, sensor, data, binding):
+        self.binding = binding
         self.data = data
         self.time_stamp = datetime.now()
+        self.parent_sensor = sensor
+
+    def __str__(self):
+        return '{}: {}'.format(self.binding, self.data)
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class WorldState(dict):
+    """
+    Example:
+    m = Map({'first_name': 'Eduardo'}, last_name='Pool', age=24, sports=['Soccer'])
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(WorldState, self).__init__(*args, **kwargs)
+        for arg in args:
+            if isinstance(arg, dict):
+                for k, v in arg.items():
+                    self[k] = v
+
+        if kwargs:
+            for k, v in kwargs.items():
+                self[k] = v
+
+    def __getattr__(self, attr):
+        return self.get(attr)
+
+    def __setattr__(self, key, value):
+        self.__setitem__(key, value)
+
+    def __setitem__(self, key, value):
+        super(WorldState, self).__setitem__(key, value)
+        self.__dict__.update({key: value})
+
+    def __delattr__(self, item):
+        self.__delitem__(item)
+
+    def __delitem__(self, key):
+        super(WorldState, self).__delitem__(key)
+        del self.__dict__[key]
+
+
+WORLD_STATE = WorldState({
+    'vpc_state': 'Unknown',
+    'pub_subnet': 'Unknown',
+    'prv_subnet': 'Unknown',    # True || False
+    'db_state': 'Unknown',      # True || False
+    'instances_state': 'Unknown',     # True || False
+})
+
+WORKING_MEMORY = []
 
 
 class AutomatonPriorities:
+
     def __init__(self, items: list):
         self._items = items
 
@@ -27,19 +81,50 @@ class AutomatonPriorities:
         return self.__repr__()
 
 
+class SensorResponseToFact(Observer):
+
+    def on_next(self, sensor):
+        WORKING_MEMORY.append(Fact(sensor=sensor.name, data=sensor.exec(), binding=sensor.binding))
+
+    def on_error(self, error):
+        return 'Error: {}'.format(error)
+
+    def on_completed(self):
+        return 'Done!'
+
+
+class AssimilateFact(Observer):
+
+    def on_next(self, fact):
+        setattr(WORLD_STATE, fact.binding, fact.data.output)
+
+    def on_error(self, error):
+        return 'Error: {}'.format(error)
+
+    def on_completed(self):
+        return 'Done!'
+
+
 class Automaton:
     """ A 3 State Machine Automaton: observing (aka monitor or patrol), planning and acting
 
-    """
+    # debug
+    Observable.from_(sensors).subscribe(lambda sensor: print('Sensor: {}'.format(sensor)))
+    # Process Sensors and Transform it into fact on the  WORKING_MEMORY
+    Observable.from_(sensors).subscribe(SensorResponseToFact())
+    # debug
+    Observable.from_(WORKING_MEMORY).subscribe(lambda response: print('Fact: {}, Binding: {}'.format(response, response.binding)))
+    # update world state vpc_state
+    Observable.from_(WORKING_MEMORY).subscribe(AssimilateFact())
 
+    print(WORKING_MEMORY)
+    print(WORLD_STATE)
+
+    """
     machine = MethodicalMachine()
 
     def __init__(self, name: str='Automaton', sensors: Sensors=[], actions: Actions=[]):
         self.name = name
-        # known facts about the environment/world
-        self.working_memory = []
-        # recognized env/world state
-        self.env_state = {}
         self.sensors = sensors
         self.actions = actions
         self.planner = Planner(actions=actions)
@@ -49,24 +134,13 @@ class Automaton:
         self.actions_response = []
         self.goal = {}
 
-    def __execute_sensors(self):
-        """ Invoke __response_into_memory_fact to parse acknowledge the world state """
-        # execute the sensors
-        try:
-            self.sensors_responses = self.sensors.exec_all()
-        except IOError as err:
-            raise 'Error executing sensors: {}'.format(err)
-        # convert responses into memory fact
-        try:
-            self.__response_into_memory_fact(self.sensors_responses)
-        except IOError as err:
-            raise 'Error importing facts into memory'.format(err)
+    def __sense_environment(self):
+        Observable.from_(self.sensors).subscribe(SensorResponseToFact())
+        Observable.from_(WORKING_MEMORY).subscribe(AssimilateFact())
 
-    def __response_into_memory_fact(self, responses: list):
-        for r in responses:
-            # self.sensors_responses.update({r.name: r.output})
-            self.working_memory.append(Fact(name=r.name, ftype='aws', data=r.output))
-        return 'Facts: {}'.format(self.working_memory)
+    @staticmethod
+    def get_world_state():
+        return WORLD_STATE
 
     @machine.state(initial=True)
     def idle(self):
@@ -79,15 +153,9 @@ class Automaton:
     @machine.output()
     def __set_goal(self, goal):
         """ Set Automaton's goal """
+        self.goal = goal
         try:
-            self.goal = goal
-        except IOError as err:
-            raise 'Error setting the goal {}'.format(err)
-
-        # execute sensors and collect data
-        responses = self.sensors.exec_all()
-        try:
-            self.__response_into_memory_fact(responses=responses)
+            self.__sense_environment()
         except IOError as err:
             raise 'Error converting JSON data into Automatons knowledge {}'.format(err)
 
@@ -97,12 +165,12 @@ class Automaton:
 
     @machine.output()
     def __report_all(self):
-        if self.env_state != self.goal:
+        if WORLD_STATE != self.goal:
             status = False
         else:
             status = True
         return {
-            'env_state': self.env_state,
+            'env_state': WORLD_STATE,
             'goal': self.goal,
             'status': status,
             'last_plan': self.action_plan,
@@ -119,7 +187,7 @@ class Automaton:
 
     @machine.output()
     def __formulate_action_plan(self):
-        self.action_plan = self.planner.plan(self.env_state, self.goal)
+        self.action_plan = self.planner.plan(WORLD_STATE, self.goal)
         return self.action_plan
 
     @machine.state()
@@ -189,34 +257,43 @@ if __name__ == '__main__':
     # Instantiate
     pp = PrettyPrinter(indent=4)
     priorities = AutomatonPriorities([
-        {'vpc': {'State':'available'}, 'db': {'DBInstanceStatus': 'available'}, 'app': {'Status': {'Code': 16, 'Name': 'running'}}},
-        {'vpc': 'monitored', 'db': 'monitored', 'app': 'monitored'}
+        {'vpc_state': 'available', 'db_state': 'available', 'instances_state': 'running'}
     ])
     aws_actions = Actions()
     aws_actions.add_action(
         name='CreateVPC',
-        pre_conditions={'vpc': False, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
+        pre_conditions={'vpc_state': False, 'db_state': False, 'instances_state': False},
+        effects={'vpc_state': True, 'db_state': False, 'instances_state': False}
     )
     aws_actions.add_action(
         name='CreateDB',
-        pre_conditions={'vpc': True, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': False}
+        pre_conditions={'vpc_state': 'available', 'db_state': False, 'instances_state': False},
+        effects={'vpc_state': 'available', 'db_state': 'available', 'instances_state': False}
     )
     aws_sensors = Sensors()
-    aws_sensors.add(name='FindProjectVPC', shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].{Id:VpcId,Status:State,Tags:Tags[*]}" --output json')
-    aws_sensors.add(name='FindProjectDB', shell='aws rds describe-db-instances --query "DBInstances[].{Id:DBInstanceIdentifier,Engine:Engine,Status:DBInstanceStatus}" --output json')
-    aws_sensors.add(name='FindProjectInstances', shell='aws ec2 describe-instances --filters "Name=tag-key,Values=project","Name=tag-value,Values=mesos-master" --query "Reservations[].Instances[].{Id:InstanceId,Name:KeyName,Status:State,InstanceType:InstanceType,AMI:ImageId}"')
+    aws_sensors.add(
+        name='FindProjectVPC',
+        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text',
+        binding='vpc_state'
+    )
+    aws_sensors.add(
+        name='FindProjectDB',
+        shell='aws rds describe-db-instances --filters "Name=db-instance-id,Values=rds-oraculo" --query "DBInstances[].DBInstanceStatus" --output text',
+        binding='db_state'
+    )
+    aws_sensors.add(
+        name='FindProjectInstances',
+        shell='aws ec2 describe-instances --filters "Name=tag-key,Values=project","Name=tag-value,Values=mesos-master" --query "Reservations[].Instances[].State" --output text|awk \'{print $2}\'',
+        binding='instances_state'
+    )
     ai = Automaton(name='infra_builder', actions=aws_actions, sensors=aws_sensors)
     # Control
     # what is the environment status? what does the sensors return? ai has a goal?
     # goal = priorities # object not working returning object rather then dict
-    goal = {'vpc': {'Status':'available'}, 'db': {'Status': 'available'}, 'app': {'Status': {'Code': 16, 'Name': 'running'}}}
+    goal = {'vpc_state': 'available', 'db_state': 'available', 'instances_state': 'running'}
     recon_world = ai.input_goal(goal)
     action_plan = ai.plan()
     result = ai.execute_plan()
-    pp.pprint('{}, {}, {}'.format(recon_world, action_plan, result))
+    pp.pprint('Acknowledge world: {}, Action Plan: {}, Result: {}'.format(recon_world, action_plan, result))
     pp.pprint(ai.report())
-
-
 
