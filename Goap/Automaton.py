@@ -106,21 +106,8 @@ class AssimilateFact(Observer):
 
 
 class Automaton:
-    """ A 3 State Machine Automaton: observing (aka monitor or patrol), planning and acting
+    """ A 3 State Machine Automaton: observing (aka monitor or patrol), planning and acting """
 
-    # debug
-    Observable.from_(sensors).subscribe(lambda sensor: print('Sensor: {}'.format(sensor)))
-    # Process Sensors and Transform it into fact on the  WORKING_MEMORY
-    Observable.from_(sensors).subscribe(SensorResponseToFact())
-    # debug
-    Observable.from_(WORKING_MEMORY).subscribe(lambda response: print('Fact: {}, Binding: {}'.format(response, response.binding)))
-    # update world state vpc_state
-    Observable.from_(WORKING_MEMORY).subscribe(AssimilateFact())
-
-    print(WORKING_MEMORY)
-    print(WORLD_STATE)
-
-    """
     machine = MethodicalMachine()
 
     def __init__(self, name: str='Automaton', sensors: Sensors=[], actions: Actions=[]):
