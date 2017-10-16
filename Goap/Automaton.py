@@ -247,11 +247,6 @@ if __name__ == '__main__':
         shell='aws rds describe-db-instances --filters "Name=db-instance-id,Values=rds-oraculo" --query "DBInstances[].DBInstanceStatus" --output text',
         binding='db_state'
     )
-    # aws_sensors.add(
-    #     name='FindProjectInstances',
-    #     shell='aws ec2 describe-instances --filters "Name=tag-key,Values=project","Name=tag-value,Values=mesos-master" --query "Reservations[].Instances[].State" --output text|awk \'{print $2}\'',
-    #     binding='app_state'
-    # )
     aws_sensors.add(
         name='CheckAppState',
         shell='echo "unavailable"',
