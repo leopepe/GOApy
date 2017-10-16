@@ -147,8 +147,14 @@ class Planner:
         """
 
         :return: None
+        TODO:
+            test:
+              superset = node[1]
+              subnet = preconditions, effects
+              if all(item in superset.items() for item in subset.items())
         """
-        for action in self.actions.__iter__():
+        # for action in self.actions.__iter__():
+        for action in self.actions:
             src = None
             dst = None
             for node in self.nodes:
@@ -229,56 +235,56 @@ if __name__ == '__main__':
     # ACTIONS
     actions = Actions()
     # VPC/Network set
-    actions.add_action(
+    actions.add(
         name='CreateVPC',
         pre_conditions={'vpc': False, 'db': False, 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
-    actions.add_action(
+    actions.add(
         name='DestroyVPC',
         pre_conditions={'vpc': True, 'db': False, 'app': False},
         effects={'vpc': False, 'db': False, 'app': False}
     )
     # DB set
-    actions.add_action(
+    actions.add(
         name='CreateDB',
         pre_conditions={'vpc': True, 'db': False, 'app': False},
         effects={'vpc': True, 'db': True, 'app': False}
     )
-    actions.add_action(
+    actions.add(
         name='DestroyDB',
         pre_conditions={'vpc': True, 'db': True, 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
     # APP set
-    actions.add_action(
+    actions.add(
         name='CreateApp',
         pre_conditions={'vpc': True, 'db': True, 'app': False},
         effects={'vpc': True, 'db': True, 'app': True}
     )
-    actions.add_action(
+    actions.add(
         name='StopApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'unhealthy'},
         effects={'vpc': True, 'db': True, 'app': 'stopped'}
     )
-    actions.add_action(
+    actions.add(
         name='TerminateStoppedApps',
         pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
     # inconsistent app
-    actions.add_action(
+    actions.add(
         name='DestroyInconsistentApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'inconsistent'},
         effects={'vpc': True, 'db': True, 'app': False}
     )
     # out of capacity
-    actions.add_action(
+    actions.add(
         name='IncreaseAppCapacity',
         pre_conditions={'vpc': True, 'db': True, 'app': 'out_of_capacity'},
         effects={'vpc': True, 'db': True, 'app': True}
     )
-    actions.add_action(
+    actions.add(
         name='TerminateStoppedApps',
         pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
         effects={'vpc': True, 'db': True, 'app': False}
