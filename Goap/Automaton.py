@@ -1,9 +1,9 @@
 from datetime import datetime
 from automat import MethodicalMachine
-from Goap.Sensor import Sensors, SensorResponse
+from Goap.Sensor import Sensors
 from Goap.Action import Actions
 from Goap.Planner import Planner
-from rx import Observable, Observer
+from rx import Observable
 
 DEFAULT_WORLD_STATE = {
     'vpc_state': 'Unknown',
