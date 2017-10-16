@@ -33,3 +33,14 @@ class PlanError(Exception):
 
 class PlanFailed(PlanError):
     pass
+
+
+class ActionError(Exception):
+    """ Action's Error base class """
+    pass
+
+
+class ActionMultipleTypeError(ActionError):
+    """ Action cannot be two types at once """
+    pass
+
