@@ -58,10 +58,18 @@ class ShellSensorResponse:
         self.error = kwargs.get('error', None).replace('\n', '').replace('\t', '')
 
     def __return_message(self):
-        if self.return_code == 0:
+        if self.return_code == 0 and self.__check_response():
             return {'return_code': self.return_code, 'output': str(self.output).replace('\n', '').replace('\t', '')}
+        elif self.return_code == 0 and not self.__check_response():
+            return {'return_code': self.return_code, 'error': str('False')}
         else:
             return {'return_code': self.return_code, 'error': str(self.error).replace('\n', '').replace('\t', '')}
+
+    def __check_response(self):
+        if self.output == '' or self.output == '\n':
+            return False
+        else:
+            return True
 
     def __repr__(self):
         return str(self.__return_message())
@@ -71,7 +79,6 @@ class ShellSensorResponse:
 
 
 class SensorResponse:
-
     def __init__(self, **kwargs):
         self.sensor_type = kwargs.get('type', None)
         self.sensor_response = self.__adapt_response(**kwargs)
@@ -235,13 +242,13 @@ class Sensors:
             raise SensorAlreadyInCollectionError
 
     def add_obj_sensor(self, name, obj, binding):
-        if not AWSRequestSensor(name=name, obj=obj, bindin=binding) in self.sensors:
+        if not AWSRequestSensor(name=name, obj=obj, binding=binding) in self.sensors:
             self.sensors.append(AWSRequestSensor(name=name, obj=obj, binding=binding))
         else:
             raise SensorAlreadyInCollectionError
 
     def exec_all(self) -> list:
-        responses = [s() for s in self.sensors]
+        responses = [s.exec() for s in self.sensors]
         return responses
 
 
