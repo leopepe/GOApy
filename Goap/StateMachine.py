@@ -58,65 +58,65 @@ if __name__ == '__main__':
     # ACTIONS
     actions = Actions()
     # monitor state
-    actions.add_action(
+    actions.add(
         name='CheckModules',
         pre_conditions={'vpc_checked': False, 'db_check': False, 'app_checked': False},
         effects={'vpc_checked': True, 'db_check': True, 'app_checked': True}
     )
     # VPC/Network set
-    actions.add_action(
+    actions.add(
         name='CreateVPC',
         pre_conditions={'vpc': False, 'db': False, 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
     # DB set
-    actions.add_action(
+    actions.add(
         name='CreateDB',
         pre_conditions={'vpc': True, 'db': False, 'app': False},
         effects={'vpc': True, 'db': True, 'app': False}
     )
-    actions.add_action(
+    actions.add(
         name='StopDB',
         pre_conditions={'vpc': True, 'db': 'started', 'app': False},
         effects={'vpc': True, 'db': 'stopped', 'app': False}
     )
-    actions.add_action(
+    actions.add(
         name='StartDB',
         pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
         effects={'vpc': True, 'db': 'started', 'app': False}
     )
-    actions.add_action(
+    actions.add(
         name='DestroyDB',
         pre_conditions={'vpc': True, 'db': 'unhealthy', 'app': False},
         effects={'vpc': True, 'db': False, 'app': False}
     )
     # APP set
-    actions.add_action(
+    actions.add(
         name='CreateApp',
         pre_conditions={'vpc': True, 'db': True, 'app': False},
         effects={'vpc': True, 'db': True, 'app': True}
     )
-    actions.add_action(
+    actions.add(
         name='StartApp',
         pre_conditions={'vpc': True, 'db': True, 'app': True},
         effects={'vpc': True, 'db': True, 'app': 'started'}
     )
-    actions.add_action(
+    actions.add(
         name='AppMaintenance',
         pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
         effects={'vpc': True, 'db': True, 'app': 'maintenance'}
     )
-    actions.add_action(
+    actions.add(
         name='StopApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'maintenance'},
         effects={'vpc': True, 'db': True, 'app': 'stopped'}
     )
-    actions.add_action(
+    actions.add(
         name='StartStoppedApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
         effects={'vpc': True, 'db': True, 'app': 'started'}
     )
-    actions.add_action(
+    actions.add(
         name='DestroyIllApp',
         pre_conditions={'vpc': True, 'db': True, 'app': 'unhealthy'},
         effects={'vpc': True, 'db': True, 'app': False}
