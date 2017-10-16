@@ -117,7 +117,8 @@ class Automaton:
         return self.action_plan
 
     def __execute_action_plan(self):
-        self.actions_response = [action() for action in self.action_plan]
+        # [print(action[2]['object']) for action in self.action_plan]
+        self.actions_response = [self.actions.get(action[2]['object'].exec()) for action in self.action_plan]
         return 'Action planning execution results: {}'.format(self.action_plan_response)
 
     @machine.state(initial=True)
@@ -220,17 +221,20 @@ if __name__ == '__main__':
     aws_actions.add(
         name='CreateVPC',
         pre_conditions={'vpc_state': 'unavailable', 'db_state': 'unavailable', 'app_state': 'unavailable'},
-        effects={'vpc_state': 'available', 'db_state': 'unavailable', 'app_state': 'unavailable'}
+        effects={'vpc_state': 'available', 'db_state': 'unavailable', 'app_state': 'unavailable'},
+        shell='echo "vpc created"'
     )
     aws_actions.add(
         name='CreateDB',
         pre_conditions={'vpc_state': 'available', 'db_state': 'unavailable', 'app_state': 'unavailable'},
-        effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'unavailable'}
+        effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'unavailable'},
+        shell='echo "db created"'
     )
     aws_actions.add(
         name='CreateApp',
         pre_conditions={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'unavailable'},
-        effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'running'}
+        effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'running'},
+        shell='echo "app created" > /tmp/CreateApp.out'
     )
     aws_sensors = Sensors()
     aws_sensors.add(
@@ -258,10 +262,9 @@ if __name__ == '__main__':
     # what is the environment status? what does the sensors return? ai has a goal?
     # goal = priorities # object not working returning object rather then dict
     ai.input_goal(goal)
-    print(ai.world_state)
     ai.sense()
-    print(ai.world_state)
     ai.plan()
+    ai.act()
     pp.pprint(
         'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan, ai.actions_response)
     )

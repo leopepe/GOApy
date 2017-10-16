@@ -1,3 +1,4 @@
+import subprocess
 from filecmp import cmp
 from json import dumps
 
@@ -153,7 +154,7 @@ class Action:
         return hash(self)
 
     def __call__(self):
-        pass
+        self.exec()
 
     def exec(self) -> tuple:
         # print(self.name)
