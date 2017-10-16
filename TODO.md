@@ -1,6 +1,7 @@
 # TODO
 
 * Logging
+* Create real examples with real world scenarios/test cases. Now it is possible to use the lib in experimental tests using real actions and sensors.
 * Testing
 * Pants: use pex to package the project
 
