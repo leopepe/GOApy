@@ -101,7 +101,10 @@ check-release: .release
 
 venv:
 	virtualenv -p python${PYTHON_VERSION} venv/
-	venv/bin/pip3 install -r requirements.txt
+	venv/bin/pip3 install -r requirements
+
+install-in-venv: venv
+	venv/bin/python setup.py install
 
 clean-venv:
 	rm -rf venv/
