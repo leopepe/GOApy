@@ -10,7 +10,7 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 
 SHELL=/bin/bash
 
-PYTHON_VERSION=3.6
+PYTHON_VERSION=3.7
 
 .PHONY: all
 

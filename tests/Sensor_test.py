@@ -4,6 +4,7 @@ from Goap.Sensor import Sensors
 
 
 class SensorsTest(unittest.TestCase):
+
     def setUp(self):
         # ACTIONS
         self.sensors = Sensors()

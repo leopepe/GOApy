@@ -2,3 +2,4 @@ boto3==1.4.6
 docutils==0.13.1
 networkx==1.11
 Automat==0.6.0
+rx=1.6.0
