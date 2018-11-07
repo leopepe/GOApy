@@ -10,45 +10,22 @@ class SensorsTest(unittest.TestCase):
         self.sensors = Sensors()
 
     def test_add_success(self):
+        self.sensors = Sensors()
         self.sensors.add(
-            name='CreateVPC',
-            pre_conditions={'vpc': False, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': False, 'app': False},
-            shell='awscli vpc create'
+            name='FindOldFilesOnTmp',
+            shell='find /tmp/log_tests -mtime +1|wc -l|xargs test -f && echo "Exists" || echo "None"',
+            binding='old_files'
         )
         self.sensors.add(
-            name='CreateDB',
-            pre_conditions={'vpc': True, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': True, 'app': False},
-            shell='awscli rds create'
+            name='LogFilesToCompact',
+            shell='test $(find /tmp/log_tests -name "*.log" -type f -size +900M| wc -l) -gt 0 && echo "Exists" || echo "None"',
+            binding='old_files'
         )
-        assert 'Name: CreateVPC' == str(self.sensors.get(name='CreateVPC'))
-        assert 'Name: CreateDB' == str(self.sensors.get(name='CreateDB'))
+        assert 'Name: LogFilesToCompact' == str(self.sensors.get(name='LogFilesToCompact'))
+        assert 'Name: FindOldFilesOnTmp' == str(self.sensors.get(name='FindOldFilesOnTmp'))
 
     def test_remove_sensor_success(self):
-        self.sensors.add(
-            name='CreateVPC',
-            pre_conditions={'vpc': False, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': False, 'app': False}
-        )
-        self.sensors.add(
-            name='CreateDB',
-            pre_conditions={'vpc': True, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': True, 'app': False}
-        )
-        self.sensors.remove(name='CreateVPC')
-        assert 'Name: CreateDB' == str(self.sensors.get(name='CreateDB'))
+        assert self.sensors.remove(name='LogFilesToCompact') is True
 
     def test_remove_sensor_error(self):
-        self.sensors.add(
-            name='CreateVPC',
-            pre_conditions={'vpc': False, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': False, 'app': False}
-        )
-        self.sensors.add(
-            name='CreateDB',
-            pre_conditions={'vpc': True, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': True, 'app': False}
-        )
-        self.sensors.remove(name='CreateAPP')
-        assert 'None' == str(self.sensors.get(name='CreateAPP'))
+        assert self.sensors.remove(name='CreateAPP') is False

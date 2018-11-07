@@ -1,184 +1,100 @@
 import subprocess
-import inspect
-import json
 import boto3
 
 from Goap.Errors import *
 
 
-class AWSSensorResponse:
-    """ SensorReturn is a class for represent the agent's sensor's return """
+class Sensor:
+    """ Sensor object factory """
 
-    def __init__(self, **kwargs):
+    def __init__(self, binding: str, name: str):
+        """ Sensor object model
+
+        :param binding: string containing the key name which the sensor will right to
+        :param name: string containing the name of the sensor
         """
-
-        :param kwargs: expects respose as dict argument and parse aws http response or shell Popen.response
-        """
-        self.return_code = None
-        self.output = None
-        self.error = None
-        self.name = kwargs.get('name', None)
-        self.sensor_response = kwargs.get('response', None)
-        self._json_parsed_response = None
-
-        self.__parse_aws_api_http_response()
-
-    def __parse_aws_api_http_response(self):
-        self._json_parsed_response = json.loads(self.sensor_response)
-        self.return_code = self._json_parsed_response['ResponseMetadata']['HTTPStatusCode']
-        if self.return_code == '200':
-            self.output = self._json_parsed_response
-        else:
-            self.error = self._json_parsed_response
+        self.binding = binding
+        self.name = name
+        self.response = {}
 
     def __repr__(self):
-        json_data = {}
-        if self.output:
-            json_data = {'return_code': self.return_code, 'output': str(self.output)}
-        elif self.error:
-            json_data = {'return_code': self.return_code, 'error': str(self.error)}
-        return json.dumps(json_data, skipkeys=True)
+        return 'Name: {}'.format(self.name)
 
     def __str__(self):
         return self.__repr__()
 
+    def __call__(self, **kwargs):
+        self.__init__(kwargs.get('binding'), kwargs.get('name'))
+        self.exec()
 
-class ShellSensorResponse:
-    """ SensorReturn is a class for represent the agent's sensor's return """
-
-    def __init__(self, **kwargs):
-        """
-
-        :rtype: object
-        :param kwargs: return_code, output and error
-        """
-        self.name = kwargs.get('name', None)
-        self.return_code = kwargs.get('return_code', None)
-        self.output = str(kwargs.get('output', None)).replace('\n', '').replace('\t', '')
-        self.error = kwargs.get('error', None).replace('\n', '').replace('\t', '')
-
-    def __return_message(self):
-        if self.return_code == 0 and self.__check_response():
-            return {'return_code': self.return_code, 'output': str(self.output).replace('\n', '').replace('\t', '')}
-        elif self.return_code == 0 and not self.__check_response():
-            return {'return_code': self.return_code, 'error': str('False')}
-        else:
-            return {'return_code': self.return_code, 'error': str(self.error).replace('\n', '').replace('\t', '')}
-
-    def __check_response(self):
-        if self.output == '' or self.output == '\n':
-            return False
-        else:
-            return True
-
-    def __repr__(self):
-        return str(self.__return_message())
-
-    def __str__(self):
-        return self.__repr__()
+    def exec(self):
+        """ Interface method to the sensors execution """
+        pass
 
 
 class SensorResponse:
-    def __init__(self, **kwargs):
-        self.sensor_type = kwargs.get('type', None)
-        self.sensor_response = self.__adapt_response(**kwargs)
 
-    def __adapt_response(self, **kwargs):
-        if self.sensor_type == 'shell':
-            response = ShellSensorResponse(**kwargs)
-        elif self.sensor_type == 'awsapi':
-            response = AWSSensorResponse(**kwargs)
-        else:
-            raise '{} Need to specify the sensor\'s type'.format(SensorError)
+    def __init__(self, name: str, sensor_type: str, return_code: str, stdout: str='', stderr: str=''):
+        """
 
-        return response
+        :param name:
+        :param sensor_type:
+        """
+        self.name = name
+        self.sensor_type = sensor_type
+        self.return_code = return_code
+        self.stdout = stdout
+        self.stderr = stderr
+        self.__response_parser()
+
+    def __str__(self):
+        return 'Name: {}, Response: {}, ReturnCode: {}'.format(self.name, self.response, self.return_code)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __response_parser(self):
+        if not self.stdout == '':
+            self.response = self.stdout
+        elif not self.stderr == '':
+            self.response = self.stderr
 
 
-class ShellSensor:
-    """ Shell Sensor object factory
-
-    """
+class ShellSensor(Sensor):
+    """ Shell Sensor object factory """
 
     def __init__(self, binding: str, name: str, shell: str=None):
-        """ Sensor object
-
-        :param name: Sensor's name
-        :param shell: A string containing a shell command and its args
-        :param obj: An class method that returns returncode, stdout and stderr
-        """
-        self.name = name
-        self.binding = binding
+        self.response = None
         self.type = 'shell'
         self.shell = shell
-        self.return_code = None
-        self.stdout = None
-        self.stderr = None
-        self.response = {}
+        Sensor.__init__(self, binding=binding, name=name)
 
-    def __repr__(self):
-        return 'Name: {}'.format(self.name)
-
-    def __str__(self):
-        return self.__repr__()
-
-    def exec(self):
-        """ Executes the sensor. Sensor's can be objects or a cli command
-
-        :return SensorResponse:
-        """
+    def exec(self) -> SensorResponse:
         cmd = self.shell
-        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        process = subprocess.Popen(
+            cmd,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
         try:
-            stdout, stderr = proc.communicate(timeout=30)
-            returncode = proc.returncode
-            self.response = ShellSensorResponse(name=self.name, output=stdout, error=stderr, return_code=returncode)
+            stdout, stderr = process.communicate(timeout=30)
+            return_code = process.returncode
+            self.response = SensorResponse(
+                name=self.name,
+                sensor_type='shell',
+                stdout=stdout,
+                stderr=stderr,
+                return_code=return_code
+            )
         except TimeoutError as e:
-            proc.kill()
+            process.kill()
             raise('{}'.format(e))
+        finally:
+            process.kill()
 
         return self.response
-
-    def __call__(self):
-        return self.exec()
-
-
-class AWSRequestSensor:
-    """ Sensor object factory
-
-    """
-
-    def __init__(self, binding: str, name: str, obj: classmethod=None):
-        """ Sensor object
-
-        :param name: Sensor's name
-        :param shell: A string containing a shell command and its args
-        :param obj: An class method that returns returncode, stdout and stderr
-        """
-        self.binding = binding
-        self.name = name
-        self.obj = obj
-        self.return_code = None
-        self.stdout = None
-        self.stderr = None
-        self.response = {}
-
-    def __repr__(self):
-        return 'Name: {}'.format(self.name)
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __call_obj(self):
-        """ Executes the sensor. Sensor's can be objects or a cli command
-
-        :return SensorResponse:
-        """
-        if self.obj:
-            self.response = self.obj()
-        return AWSSensorResponse(name=self.name, response=self.response)
-
-    def __call__(self):
-        return self.__call_obj()
 
 
 class Sensors:
@@ -217,12 +133,26 @@ class Sensors:
             output.append(s.__repr__())
         return str(output)
 
-    def add(self, **kwargs):
-        """
+    def get(self, name):
+        result = None
+        for sensor in self.sensors:
+            if sensor.name == name:
+                result = sensor
+        return result
 
-        :param kwargs:
-        :return:
-        """
+    def __add_shell_sensor(self, name, shell, binding):
+        if not ShellSensor(name=name, shell=shell, binding=binding) in self.sensors:
+            self.sensors.append(ShellSensor(name=name, shell=shell, binding=binding))
+        else:
+            raise SensorAlreadyInCollectionError
+
+    def __add_obj_sensor(self, name, obj, binding):
+        if not AWSRequestSensor(name=name, obj=obj, binding=binding) in self.sensors:
+            self.sensors.append(AWSRequestSensor(name=name, obj=obj, binding=binding))
+        else:
+            raise SensorAlreadyInCollectionError
+
+    def add(self, **kwargs):
         if kwargs.get('shell') and kwargs.get('obj'):
             raise SensorMultipleTypeError
 
@@ -231,21 +161,17 @@ class Sensors:
         obj = kwargs.get('obj', None)
         binding = kwargs.get('binding', None)
         if shell:
-            self.add_shell_sensor(name, shell, binding)
+            self.__add_shell_sensor(name, shell, binding)
         elif obj:
-            self.add_obj_sensor(name, obj, binding)
+            self.__add_obj_sensor(name, obj, binding)
 
-    def add_shell_sensor(self, name, shell, binding):
-        if not ShellSensor(name=name, shell=shell, binding=binding) in self.sensors:
-            self.sensors.append(ShellSensor(name=name, shell=shell, binding=binding))
-        else:
-            raise SensorAlreadyInCollectionError
-
-    def add_obj_sensor(self, name, obj, binding):
-        if not AWSRequestSensor(name=name, obj=obj, binding=binding) in self.sensors:
-            self.sensors.append(AWSRequestSensor(name=name, obj=obj, binding=binding))
-        else:
-            raise SensorAlreadyInCollectionError
+    def remove(self, name: str):
+        result = False
+        for sensor in self.sensors:
+            if sensor.name == name:
+                self.sensors.remove(sensor)
+                result = True
+        return result
 
     def exec_all(self) -> list:
         responses = [s.exec() for s in self.sensors]
@@ -254,27 +180,7 @@ class Sensors:
 
 if __name__ == '__main__':
     # ACTIONS
-    sensor_ec2_describe_by_tag = boto3.client('ec2')
-    """
-    sensors = Sensors()
-    # VPC/Network set
-    sensors.add_shell_sensor(
-        name='ListFilesOnTMP',
-        shell='ls -1 /tmp/'
-    )
-    sensors.add_shell_sensor(
-        name='ListFilesOnPWD',
-        shell='ls -1'
-    )
-    sensors.add_shell_sensor(
-        name='ExecutesShell',
-        shell='command_not_found.sh'
-    )
-    response = sensors.exec_all()
-    print('responses: ', response)
-    for r in response:
-        print('response: ', r)
-    """
+    '''
     aws_sensors = Sensors()
     aws_sensors.add(
         name='VpcState',
@@ -284,7 +190,21 @@ if __name__ == '__main__':
         name='VpcId',
         shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].VpcId" --output text'
     )
-    resp_aws = aws_sensors.exec_all()
-    print('responses: ', resp_aws)
-
+    # resp_aws = aws_sensors.exec_all()
+    # print('responses: ', resp_aws)
+    #
+    '''
+    fs_sensors = Sensors()
+    fs_sensors.add(
+        name='FindOldFilesOnTmp',
+        shell='find /tmp/log_tests -mtime +1|wc -l|xargs test -f && echo "Exists" || echo "None"',
+        binding='old_files'
+    )
+    fs_sensors.add(
+        name='LogFilesToCompact',
+        shell='test $(find /tmp/log_tests -name "*.log" -type f -size +900M| wc -l) -gt 0 && echo "Exists" || echo "None"',
+        binding='old_files'
+    )
+    resp = fs_sensors.exec_all()
+    print('responses for fs sensors: {}', resp)
 
