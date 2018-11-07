@@ -83,10 +83,7 @@ class Automaton:
 
     machine = MethodicalMachine()
 
-    def __init__(self,
-                 name: str='Automaton',
-                 sensors: Sensors=[],
-                 actions: Actions=[],
+    def __init__(self, name: str='Automaton', sensors: Sensors=[], actions: Actions=[],
                  world_state: dict=DEFAULT_WORLD_STATE):
         # setup
         self.world_state = WorldState(world_state)
@@ -109,7 +106,7 @@ class Automaton:
         )
         Observable.from_(self.working_memory). \
             subscribe(
-            lambda fact: setattr(self.world_state, fact.binding, fact.data.output)
+            lambda fact: setattr(self.world_state, fact.binding, fact.data.response)
         )
 
     def __set_action_plan(self):
@@ -239,17 +236,19 @@ if __name__ == '__main__':
     aws_sensors = Sensors()
     aws_sensors.add(
         name='FindProjectVPC',
-        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text',
+        # shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text',
+        shell='echo -n "unavailable"',
         binding='vpc_state'
     )
     aws_sensors.add(
         name='FindProjectDB',
-        shell='aws rds describe-db-instances --filters "Name=db-instance-id,Values=rds-oraculo" --query "DBInstances[].DBInstanceStatus" --output text',
+        # shell='aws rds describe-db-instances --filters "Name=db-instance-id,Values=rds-oraculo" --query "DBInstances[].DBInstanceStatus" --output text',
+        shell='echo -n "unavailable"',
         binding='db_state'
     )
     aws_sensors.add(
         name='CheckAppState',
-        shell='echo "unavailable"',
+        shell='echo -n "unavailable"',
         binding='app_state'
     )
     ai = Automaton(name='infra_builder', actions=aws_actions, sensors=aws_sensors, world_state=world_state_matrix)
@@ -258,6 +257,9 @@ if __name__ == '__main__':
     # goal = priorities # object not working returning object rather then dict
     ai.input_goal(goal)
     ai.sense()
+    pp.pprint(
+        'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan, ai.actions_response)
+    )
     ai.plan()
     ai.act()
     pp.pprint(
