@@ -1,5 +1,4 @@
 import subprocess
-import boto3
 
 from Goap.Errors import *
 
@@ -147,10 +146,7 @@ class Sensors:
             raise SensorAlreadyInCollectionError
 
     def __add_obj_sensor(self, name, obj, binding):
-        if not AWSRequestSensor(name=name, obj=obj, binding=binding) in self.sensors:
-            self.sensors.append(AWSRequestSensor(name=name, obj=obj, binding=binding))
-        else:
-            raise SensorAlreadyInCollectionError
+        raise NotImplementedError
 
     def add(self, **kwargs):
         if kwargs.get('shell') and kwargs.get('obj'):
