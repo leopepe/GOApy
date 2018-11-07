@@ -90,7 +90,7 @@ class ShellAction(Action):
         try:
             stdout, stderr = process.communicate(timeout=30)
             return_code = process.returncode
-            self.response = actionResponse(
+            self.response = ActionResponse(
                 name=self.name,
                 action_type='shell',
                 stdout=stdout,
