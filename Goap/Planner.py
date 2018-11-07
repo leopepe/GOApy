@@ -1,13 +1,10 @@
-import json
-
-from Action import Actions
-import Errors
+from Goap.Action import Actions
+from Goap.Errors import PlanFailed
 import networkx as nx
-# import matplotlib
 
 
 class Planner:
-    """
+    """ Usage:
     from Goap.Action import Actions
 
     # ACTIONS
@@ -203,7 +200,7 @@ class Planner:
             # commented to include the for above
             # self.action_plan = self.graph.edges(self.path, data=True)
             return self.action_plan
-        except Errors.PlanFailed as e:
+        except PlanFailed as e:
             print('[ERROR] There is no node to start planning {}'.format(e))
             return []
 
@@ -233,87 +230,28 @@ if __name__ == '__main__':
     from pprint import pprint
 
     # ACTIONS
-    actions = Actions()
-    # VPC/Network set
-    actions.add(
-        name='CreateVPC',
-        pre_conditions={'vpc': False, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
+    fs_actions = Actions()
+    fs_actions.add(
+        name='CompactBigLogFiles',
+        pre_conditions={'files_to_compact': 'Exists'},
+        effects={'files_to_compact': 'None'},
+        shell='find /tmp -name "*.log" -type f -size +900M| xargs tar -zcvf logfile-$(date "+%d%m%y-%H%M%S").tar.gz {}'
     )
-    actions.add(
-        name='DestroyVPC',
-        pre_conditions={'vpc': True, 'db': False, 'app': False},
-        effects={'vpc': False, 'db': False, 'app': False}
-    )
-    # DB set
-    actions.add(
-        name='CreateDB',
-        pre_conditions={'vpc': True, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    actions.add(
-        name='DestroyDB',
-        pre_conditions={'vpc': True, 'db': True, 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
-    )
-    # APP set
-    actions.add(
-        name='CreateApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': True}
-    )
-    actions.add(
-        name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'unhealthy'},
-        effects={'vpc': True, 'db': True, 'app': 'stopped'}
-    )
-    actions.add(
-        name='TerminateStoppedApps',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    # inconsistent app
-    actions.add(
-        name='DestroyInconsistentApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'inconsistent'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    # out of capacity
-    actions.add(
-        name='IncreaseAppCapacity',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'out_of_capacity'},
-        effects={'vpc': True, 'db': True, 'app': True}
-    )
-    actions.add(
-        name='TerminateStoppedApps',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    planner = Planner(actions=actions)
+    print(fs_actions)
+    print('Actions: ', fs_actions)
+    planner = Planner(actions=fs_actions)
+    print('Planner: ', planner)
     print('Graph.Nodes: ', planner.graph.nodes(data=True))
     print('Graph.Edges: ', planner.graph.edges(data=True))
     print('Action sequence')
     pprint(planner.action_plan)
     # Plan again
     plan = planner.plan(
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
+        init_state={'files_to_compact': 'Exists'},
+        goal={'files_to_compact': 'None'}
     )
-    plan = planner.plan(
-        init_state={'vpc': True, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True})
     print('PATH: ', planner.path)
     print('Action planning: ')
     pprint(plan, indent=2)
 
-    pprint('Monitor')
-    plan = planner.plan(
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
-    )
-    print('PATH: ', planner.path)
-    print('Action planning: ')
-    pprint(plan, indent=2)
-    # print(type(planner.plot_graph()))
-    # planner.plot_graph()
 
