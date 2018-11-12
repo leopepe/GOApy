@@ -11,6 +11,7 @@
   - Cleanup tasks (docker, filesystem temp files cleanup)
   - AWS Cloud formation
 * Functional tests using docker
+* Add costs to the actions to guarantee a better performance on long action chains.
 
 # DONE: v0.1.0
 * Action.py must implement exec() method. It will be used by the Planner to actually execute the action itself and change the environment.
