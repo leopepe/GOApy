@@ -244,12 +244,12 @@ if __name__ == '__main__':
     print('Graph.Nodes: ', planner.graph.nodes(data=True))
     print('Graph.Edges: ', planner.graph.edges(data=True))
     print('Action sequence')
-    pprint(planner.action_plan)
     # Plan again
     plan = planner.plan(
         init_state={'files_to_compact': 'Exists'},
         goal={'files_to_compact': 'None'}
     )
+    pprint('Action Plan: {}'.format(planner.action_plan))
     print('PATH: ', planner.path)
     print('Action planning: ')
     pprint(plan, indent=2)
