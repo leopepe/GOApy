@@ -1,5 +1,6 @@
 from os import listdir
 from os.path import isdir, isfile, exists
+from lvm2py import *
 
 from Goap.Sensor import *
 
@@ -90,13 +91,22 @@ class FileHasExtension(OSFilePath):
 
 class LVM(Sensor):
 
-    def __init__(self, binding: str, name: str, lv_name: str, vg_name: str):
-        self.lv_name = lv_name
-        self.vg_name = vg_name
-        super(Sensor).__init__(binding=binding, name=name)
+    def __init__(self, **kwargs):
+        self.lvm = LVM()
+        self.binding = kwargs.get('binding', None)
+        self.binding = kwargs.get('name', None)
+        self.vg_name = kwargs.get('vg_name', None)
+        self.lv_name = kwargs.get('lv_name', None)
+        super(Sensor).__init__(binding=self.binding, name=self.name)
 
     def vg_exists(self):
-        pass
+        try:
+            if self.lvm.get_vg(self.vg_name):
+                return 'exist'
+            else:
+                return 'not_exist'
+        except LookupError as e:
+            raise '{}'.format(e)
 
     def vg_size(self):
         pass
@@ -109,6 +119,15 @@ class LVM(Sensor):
 
     def lv_size(self):
         pass
+
+
+class VGExists(LVM):
+
+    def __init__(self, binding: str, vg_name: str):
+        super(Sensor).__init__(binding=binding, vg_name=vg_name)
+
+    def exec(self):
+        return self.vg_exists()
 
 
 if __name__ == '__main__':
