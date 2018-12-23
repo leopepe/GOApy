@@ -1,3 +1,5 @@
+.PHONY: all
+
 REGISTRY_HOST=docker.io
 USERNAME=$(USER)
 NAME=$(shell basename $(PWD))
@@ -11,10 +13,11 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 SHELL=/bin/bash
 
 PYTHON_VERSION=3.7
+PYTHON=./venv/bin/python${PYTHON_VERSION}
 
-.PHONY: all
+all: venv install-in-venv
 
-all: docker-build container-run
+test: venv install-in-venv unittest
 
 docker-all: pre-build docker-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
 	push do-push post-push
@@ -43,15 +46,13 @@ docker-build: .release
 		docker tag $(IMAGE):$(VERSION) $(IMAGE):latest ; \
 	fi
 
-.release:
+.release: test
 	@echo "release=0.0.0" > .release
 	@echo "tag=$(NAME)-0.0.0" >> .release
 	@echo INFO: .release created
 	@cat .release
 
-
 release: check-status check-release build push
-
 
 push: do-push post-push 
 
@@ -108,3 +109,13 @@ install-in-venv: venv
 
 clean-venv:
 	rm -rf venv/
+
+unittest:
+	echo "Action Class Unittests"
+	$(PYTHON) -m unittest tests/Action_test.py
+	echo "Sensor Class Unittests"
+	$(PYTHON) -m unittest tests/Sensor_test.py
+	echo "Automaton Class Unittests"
+	$(PYTHON) -m unittest tests/Automaton_test.py
+	echo "Fullstack Unittests"
+	$(PYTHON) -m unittest tests/create_full_stack.py
