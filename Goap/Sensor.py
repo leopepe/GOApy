@@ -33,7 +33,7 @@ class Sensor:
 
 class SensorResponse:
 
-    def __init__(self, name: str, sensor_type: str, return_code: str, stdout: str='', stderr: str=''):
+    def __init__(self, name: str, sensor_type: str, return_code: str, stdout: str = '', stderr: str = ''):
         """
 
         :param name:
@@ -62,7 +62,7 @@ class SensorResponse:
 class ShellSensor(Sensor):
     """ Shell Sensor object factory """
 
-    def __init__(self, binding: str, name: str, shell: str=None):
+    def __init__(self, binding: str, name: str, shell: str = None):
         self.response = None
         self.type = 'shell'
         self.shell = shell
@@ -89,7 +89,7 @@ class ShellSensor(Sensor):
             )
         except TimeoutError as e:
             process.kill()
-            raise('{}'.format(e))
+            raise ('{}'.format(e))
         finally:
             process.kill()
 
@@ -98,7 +98,7 @@ class ShellSensor(Sensor):
 
 class Sensors:
 
-    def __init__(self, sensors: list=[]):
+    def __init__(self, sensors: list = []):
         """ Collection of sensors, adds only unique sensors
 
         :param sensors: List containing the sensor objects
@@ -203,4 +203,3 @@ if __name__ == '__main__':
     )
     resp = fs_sensors.exec_all()
     print('responses for fs sensors: {}', resp)
-
