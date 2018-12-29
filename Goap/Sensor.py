@@ -1,6 +1,6 @@
 import subprocess
 
-from Goap.Errors import *
+from Goap.Errors import SensorMultipleTypeError, SensorAlreadyInCollectionError, SensorDoesNotExistError
 
 
 class Sensor:
