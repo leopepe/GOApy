@@ -1,6 +1,7 @@
 import subprocess
 
-from Goap.Errors import SensorMultipleTypeError, SensorAlreadyInCollectionError, SensorDoesNotExistError
+from Goap.Errors import SensorMultipleTypeError, \
+    SensorAlreadyInCollectionError, SensorDoesNotExistError
 
 
 class Sensor:
@@ -9,7 +10,8 @@ class Sensor:
     def __init__(self, binding: str, name: str):
         """ Sensor object model
 
-        :param binding: string containing the key name which the sensor will right to
+        :param binding: string containing the key name
+        which the sensor will right to
         :param name: string containing the name of the sensor
         """
         self.binding = binding
@@ -33,7 +35,8 @@ class Sensor:
 
 class SensorResponse:
 
-    def __init__(self, name: str, sensor_type: str, return_code: str, stdout: str = '', stderr: str = ''):
+    def __init__(self, name: str, sensor_type: str, return_code: str,
+                 stdout: str = '', stderr: str = ''):
         """
 
         :param name:
@@ -47,7 +50,10 @@ class SensorResponse:
         self.__response_parser()
 
     def __str__(self):
-        return 'Name: {}, Response: {}, ReturnCode: {}'.format(self.name, self.response, self.return_code)
+        result = f'Name: {self.name}, ' \
+            f'Response: {self.response}, ' \
+            f'ReturnCode: {self.return_code}'
+        return result
 
     def __repr__(self):
         return self.__str__()
@@ -140,8 +146,12 @@ class Sensors:
         return result
 
     def __add_shell_sensor(self, name, shell, binding):
-        if not ShellSensor(name=name, shell=shell, binding=binding) in self.sensors:
-            self.sensors.append(ShellSensor(name=name, shell=shell, binding=binding))
+        if not ShellSensor(name=name,
+                           shell=shell,
+                           binding=binding) in self.sensors:
+            self.sensors.append(ShellSensor(name=name,
+                                            shell=shell,
+                                            binding=binding))
         else:
             raise SensorAlreadyInCollectionError
 
@@ -180,11 +190,15 @@ if __name__ == '__main__':
     aws_sensors = Sensors()
     aws_sensors.add(
         name='VpcState',
-        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text'
+        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name",
+        "Name=tag-value,Values=vpc_plataformas_stg" 
+        --query "Vpcs[].State" --output text'
     )
     aws_sensors.add(
         name='VpcId',
-        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].VpcId" --output text'
+        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name",
+        "Name=tag-value,Values=vpc_plataformas_stg" 
+        --query "Vpcs[].VpcId" --output text'
     )
     # resp_aws = aws_sensors.exec_all()
     # print('responses: ', resp_aws)
@@ -193,12 +207,15 @@ if __name__ == '__main__':
     fs_sensors = Sensors()
     fs_sensors.add(
         name='FindOldFilesOnTmp',
-        shell='find /tmp/log_tests -mtime +1|wc -l|xargs test -f && echo "Exists" || echo "None"',
+        shell='find /tmp/log_tests -mtime +1|wc -l|xargs test -f && '
+              'echo "Exists" || echo "None"',
         binding='old_files'
     )
     fs_sensors.add(
         name='LogFilesToCompact',
-        shell='test $(find /tmp/log_tests -name "*.log" -type f -size +900M| wc -l) -gt 0 && echo "Exists" || echo "None"',
+        shell='test $(find /tmp/log_tests -name "*.log" '
+              '-type f -size +900M| wc -l) -gt 0 && echo "Exists" '
+              '|| echo "None"',
         binding='old_files'
     )
     resp = fs_sensors.exec_all()
