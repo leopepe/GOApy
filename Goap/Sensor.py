@@ -191,13 +191,13 @@ if __name__ == '__main__':
     aws_sensors.add(
         name='VpcState',
         shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name",
-        "Name=tag-value,Values=vpc_plataformas_stg" 
+        "Name=tag-value,Values=vpc_plataformas_stg"
         --query "Vpcs[].State" --output text'
     )
     aws_sensors.add(
         name='VpcId',
         shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name",
-        "Name=tag-value,Values=vpc_plataformas_stg" 
+        "Name=tag-value,Values=vpc_plataformas_stg"
         --query "Vpcs[].VpcId" --output text'
     )
     # resp_aws = aws_sensors.exec_all()
