@@ -1,6 +1,6 @@
 import unittest
 
-from goap.Sensor import Sensors
+from goap.sensor import Sensors
 
 
 class SensorsTest(unittest.TestCase):

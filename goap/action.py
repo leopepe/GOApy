@@ -35,7 +35,7 @@ class Action:
 
 class ActionResponse:
 
-    def __init__(self, name: str, action_type: str, return_code: str, stdout: str='', stderr: str=''):
+    def __init__(self, name: str, action_type: str, return_code: str, stdout: str = '', stderr: str = ''):
         """
         
         :param name: 
@@ -97,9 +97,9 @@ class ShellAction(Action):
                 stderr=stderr,
                 return_code=return_code
             )
-        except TimeoutError as e:
+        except TimeoutError as timeout_error_exception:
             process.kill()
-            raise('{}'.format(e))
+            raise ('{}'.format(timeout_error_exception))
         finally:
             process.kill()
 
@@ -124,9 +124,9 @@ class Actions:
         return len(self.actions)
 
     def __getitem__(self, key):
-        for a in self.actions:
-            if a.name == key:
-                return a
+        for action in self.actions:
+            if action.name == key:
+                return action
             else:
                 return None
 
@@ -143,11 +143,11 @@ class Actions:
 
     def all_possible_states(self):
         state_grid = []
-        for a in self.actions:
-            if a.pre_conditions not in state_grid:
-                state_grid.append(a.pre_conditions)
-            if a.effects not in state_grid:
-                state_grid.append(a.effects)
+        for action in self.actions:
+            if action.pre_conditions not in state_grid:
+                state_grid.append(action.pre_conditions)
+            if action.effects not in state_grid:
+                state_grid.append(action.effects)
         return state_grid
 
     def __add_shell_action(self, name, shell, pre_conditions, effects):
@@ -268,4 +268,3 @@ if __name__ == '__main__':
         shell='find /tmp -name "*.log" -type f -size +900M| xargs tar -zcvf logfile-$(date "+%d%m%y-%H%M%S").tar.gz {}'
     )
     print(fs_actions)
-

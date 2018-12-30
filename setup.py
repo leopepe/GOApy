@@ -27,6 +27,11 @@ except ImportError:
 
 
 def read(filename, parent=None):
+    """
+    Args:
+        filename:
+        parent:
+    """
     parent = (parent or __file__)
 
     try:
@@ -37,6 +42,11 @@ def read(filename, parent=None):
 
 
 def parse_requirements(filename, parent=None):
+    """
+    Args:
+        filename:
+        parent:
+    """
     parent = (parent or __file__)
     filepath = p.join(p.dirname(parent), filename)
     content = read(filename, parent)
@@ -87,7 +97,11 @@ class UploadCommand(Command):
 
     @staticmethod
     def status(s):
-        """Prints things in bold."""
+        """Prints things in bold.
+
+        Args:
+            s:
+        """
         print('\033[1m{0}\033[0m'.format(s))
 
     def initialize_options(self):

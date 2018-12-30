@@ -5,9 +5,11 @@ from goap.planner import Planner as Plan
 class StateMachine:
     def __init__(self, states: Actions):
         """
-            Don't need initial and end state since the transition
-            will be a ordered list.
-        :param states:
+            Don't need initial and end state since the transition will be a
+            ordered list.
+
+        Args:
+            states (Actions):
         """
         self._states = states
         self._planner = Plan(actions=states)
@@ -17,11 +19,16 @@ class StateMachine:
         self.end_state = None
 
     def set_transitions(self, init_state: dict, end_state: dict):
-        """ Receives an ordered list and set it to self._transitions
+        """Receives an ordered list and set it to self._transitions
 
-        :param init_state: A dict representing the initial state of the StateMachine
-        :param end_state: A dict representing the final state of the StateMachine
-        :return: None
+        Args:
+            init_state (dict): A dict representing the initial state of the
+                StateMachine
+            end_state (dict): A dict representing the final state of the
+                StateMachine
+
+        Returns:
+            None
         """
         transitions = []
         if init_state in self._planner.actions.all_possible_states():
@@ -39,6 +46,11 @@ class StateMachine:
         # sys.exit(1)
 
     def start(self, init_state: dict, end_state: dict):
+        """
+        Args:
+            init_state (dict):
+            end_state (dict):
+        """
         result = []
         self.set_transitions(init_state=init_state, end_state=end_state)
         for state in self._transitions:

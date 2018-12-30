@@ -1,5 +1,5 @@
 from goap.action import Actions
-from goap.Agent import Agent
+from goap.agent import Agent
 
 
 class PerformanceTracker:

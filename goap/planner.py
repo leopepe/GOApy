@@ -4,111 +4,137 @@ import networkx as nx
 
 
 class Planner:
-    """ Usage:
-    from goap.Action import Actions
+    """Usage: from goap.Action import Actions
 
-    # ACTIONS
-    actions = Actions()
-    # VPC/Network set
-    actions.add_action(
-        name='CreateVPC',
-        pre_conditions={'vpc': False, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
-    )
-    # DB set
-    actions.add_action(
-        name='CreateDB',
-        pre_conditions={'vpc': True, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    actions.add_action(
-        name='StopDB',
-        pre_conditions={'vpc': True, 'db': 'started', 'app': False},
-        effects={'vpc': True, 'db': 'stopped', 'app': False}
-    )
-    actions.add_action(
-        name='StartDB',
-        pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
-        effects={'vpc': True, 'db': 'started', 'app': False}
-    )
-    actions.add_action(
-        name='DestroyDB',
-        pre_conditions={'vpc': True, 'db': 'not_health', 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
-    )
-    # APP set
-    actions.add_action(
-        name='CreateApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': True}
-    )
-    actions.add_action(
-        name='StartApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': 'started'}
-    )
-    actions.add_action(
-        name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
-        effects={'vpc': True, 'db': True, 'app': 'stopped'}
-    )
-    actions.add_action(
-        name='DestroyApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    # Instantiate planner
-    planner = Planner(
-        actions=actions,
-        init_state={'vpc': False, 'db': False, 'app': False},
+    # ACTIONS actions = Actions() # VPC/Network set actions.add_action(
+
+        name='CreateVPC', pre_conditions={'vpc': False, 'db': False, 'app':
+        False}, effects={'vpc': True, 'db': False, 'app': False}
+
+    ) # DB set actions.add_action(
+
+        name='CreateDB', pre_conditions={'vpc': True, 'db': False, 'app':
+        False}, effects={'vpc': True, 'db': True, 'app': False}
+
+    ) actions.add_action(
+
+        name='StopDB', pre_conditions={'vpc': True, 'db': 'started', 'app':
+        False}, effects={'vpc': True, 'db': 'stopped', 'app': False}
+
+    ) actions.add_action(
+
+        name='StartDB', pre_conditions={'vpc': True, 'db': 'stopped', 'app':
+        False}, effects={'vpc': True, 'db': 'started', 'app': False}
+
+    ) actions.add_action(
+
+        name='DestroyDB', pre_conditions={'vpc': True, 'db': 'not_health',
+        'app': False}, effects={'vpc': True, 'db': False, 'app': False}
+
+    ) # APP set actions.add_action(
+
+        name='CreateApp', pre_conditions={'vpc': True, 'db': True, 'app':
+        False}, effects={'vpc': True, 'db': True, 'app': True}
+
+    ) actions.add_action(
+
+        name='StartApp', pre_conditions={'vpc': True, 'db': True, 'app':
+        'stopped'}, effects={'vpc': True, 'db': True, 'app': 'started'}
+
+    ) actions.add_action(
+
+        name='StopApp', pre_conditions={'vpc': True, 'db': True, 'app':
+        'started'}, effects={'vpc': True, 'db': True, 'app': 'stopped'}
+
+    ) actions.add_action(
+
+        name='DestroyApp', pre_conditions={'vpc': True, 'db': True, 'app':
+        'not_health'}, effects={'vpc': True, 'db': True, 'app': False}
+
+    ) # Instantiate planner planner = Planner(
+
+        actions=actions, init_state={'vpc': False, 'db': False, 'app': False},
         goal={'vpc': True, 'db': True, 'app': True}
-    )
-    print('Graph.Nodes: ', planner.graph.nodes(data=True))
-    print('Graph.Edges: ', planner.graph.edges(data=True))
-    print('Action sequence')
-    pprint(planner.action_plan)
-    # Plan again
-    planning = planner.planning(
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
-    )
-    planning = planner.planning(
-        init_state={'vpc': True, 'db': False, 'app': False}, goal={'vpc': True, 'db': True, 'app': True})
-    print('PATH: ', planner.path)
-    print('Action sequence: ')
-    pprint(planning, indent=2)
 
-    Graph.Nodes:  [(0, {'db': False, 'app': False, 'vpc': False}), (1, {'db': False, 'app': False, 'vpc': True}), (2, {'db': True, 'app': False, 'vpc': True}), (3, {'db': 'started', 'app': False, 'vpc': True}), (4, {'db': 'stopped', 'app': False, 'vpc': True}), (5, {'db': 'not_health', 'app': False, 'vpc': True}), (6, {'db': True, 'app': True, 'vpc': True}), (7, {'db': True, 'app': 'stopped', 'vpc': True}), (8, {'db': True, 'app': 'started', 'vpc': True}), (9, {'db': True, 'app': 'not_health', 'vpc': True})]
-    Graph.Edges:  [(0, 1, {'object': {"Conditions": {"db": false, "app": false, "vpc": false}, "Name": "CreateVPC", "Effects": {"db": false, "app": false, "vpc": true}}}), (1, 2, {'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}), (2, 6, {'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}}), (3, 4, {'object': {"Conditions": {"db": "started", "app": false, "vpc": true}, "Name": "StopDB", "Effects": {"db": "stopped", "app": false, "vpc": true}}}), (4, 3, {'object': {"Conditions": {"db": "stopped", "app": false, "vpc": true}, "Name": "StartDB", "Effects": {"db": "started", "app": false, "vpc": true}}}), (5, 1, {'object': {"Conditions": {"db": "not_health", "app": false, "vpc": true}, "Name": "DestroyDB", "Effects": {"db": false, "app": false, "vpc": true}}}), (7, 8, {'object': {"Conditions": {"db": true, "app": "stopped", "vpc": true}, "Name": "StartApp", "Effects": {"db": true, "app": "started", "vpc": true}}}), (8, 7, {'object': {"Conditions": {"db": true, "app": "started", "vpc": true}, "Name": "StopApp", "Effects": {"db": true, "app": "stopped", "vpc": true}}}), (9, 2, {'object': {"Conditions": {"db": true, "app": "not_health", "vpc": true}, "Name": "DestroyApp", "Effects": {"db": true, "app": false, "vpc": true}}})]
-    Action sequence
-    [(0,
-      1,
-      {'object': {"Conditions": {"db": false, "app": false, "vpc": false}, "Name": "CreateVPC", "Effects": {"db": false, "app": false, "vpc": true}}}),
-     (1,
-      2,
-      {'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}),
-     (2,
-      6,
-      {'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}})]
-    PATH:  [1, 2, 6]
-    Action planning:
-    [ ( 1,
-        2,
-        { 'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}),
-      ( 2,
-        6,
-        { 'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}})]
+    ) print('Graph.Nodes: ', planner.graph.nodes(data=True))
+    print('Graph.Edges: ', planner.graph.edges(data=True)) print('Action
+    sequence') pprint(planner.action_plan) # Plan again planning =
+    planner.planning(
 
+        init_state={'vpc': False, 'db': False, 'app': False}, goal={'vpc': True,
+        'db': True, 'app': True}
+
+    ) planning = planner.planning(
+
+        init_state={'vpc': True, 'db': False, 'app': False}, goal={'vpc': True,
+        'db': True, 'app': True})
+
+    print('PATH: ', planner.path) print('Action sequence: ') pprint(planning,
+    indent=2)
+
+    Graph.Nodes: [(0, {'db': False, 'app': False, 'vpc': False}), (1, {'db':
+    False, 'app': False, 'vpc': True}), (2, {'db': True, 'app': False, 'vpc':
+    True}), (3, {'db': 'started', 'app': False, 'vpc': True}), (4, {'db':
+    'stopped', 'app': False, 'vpc': True}), (5, {'db': 'not_health', 'app':
+    False, 'vpc': True}), (6, {'db': True, 'app': True, 'vpc': True}), (7,
+    {'db': True, 'app': 'stopped', 'vpc': True}), (8, {'db': True, 'app':
+    'started', 'vpc': True}), (9, {'db': True, 'app': 'not_health', 'vpc':
+    True})] Graph.Edges: [(0, 1, {'object': {"Conditions": {"db": false, "app":
+    false, "vpc": false}, "Name": "CreateVPC", "Effects": {"db": false, "app":
+    false, "vpc": true}}}), (1, 2, {'object': {"Conditions": {"db": false,
+    "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true,
+    "app": false, "vpc": true}}}), (2, 6, {'object': {"Conditions": {"db": true,
+    "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true,
+    "app": true, "vpc": true}}}), (3, 4, {'object': {"Conditions": {"db":
+    "started", "app": false, "vpc": true}, "Name": "StopDB", "Effects": {"db":
+    "stopped", "app": false, "vpc": true}}}), (4, 3, {'object': {"Conditions":
+    {"db": "stopped", "app": false, "vpc": true}, "Name": "StartDB", "Effects":
+    {"db": "started", "app": false, "vpc": true}}}), (5, 1, {'object':
+    {"Conditions": {"db": "not_health", "app": false, "vpc": true}, "Name":
+    "DestroyDB", "Effects": {"db": false, "app": false, "vpc": true}}}), (7, 8,
+    {'object': {"Conditions": {"db": true, "app": "stopped", "vpc": true},
+    "Name": "StartApp", "Effects": {"db": true, "app": "started", "vpc":
+    true}}}), (8, 7, {'object': {"Conditions": {"db": true, "app": "started",
+    "vpc": true}, "Name": "StopApp", "Effects": {"db": true, "app": "stopped",
+    "vpc": true}}}), (9, 2, {'object': {"Conditions": {"db": true, "app":
+    "not_health", "vpc": true}, "Name": "DestroyApp", "Effects": {"db": true,
+    "app": false, "vpc": true}}})] Action sequence [(0,
+
+            1, {'object': {"Conditions": {"db": false, "app": false, "vpc":
+            false}, "Name": "CreateVPC", "Effects": {"db": false, "app": false,
+            "vpc": true}}}),
+
+        (1,
+            2, {'object': {"Conditions": {"db": false, "app": false, "vpc":
+            true}, "Name": "CreateDB", "Effects": {"db": true, "app": false,
+            "vpc": true}}}),
+
+        (2,
+            6, {'object': {"Conditions": {"db": true, "app": false, "vpc":
+            true}, "Name": "CreateApp", "Effects": {"db": true, "app": true,
+            "vpc": true}}})]
+
+    PATH: [1, 2, 6] Action planning: [ ( 1,
+
+            2, { 'object': {"Conditions": {"db": false, "app": false, "vpc":
+            true}, "Name": "CreateDB", "Effects": {"db": true, "app": false,
+            "vpc": true}}}),
+
+        ( 2,
+            6, { 'object': {"Conditions": {"db": true, "app": false, "vpc":
+            true}, "Name": "CreateApp", "Effects": {"db": true, "app": true,
+            "vpc": true}}})]
     """
 
     def __init__(self, actions: Actions, init_state: dict={}, goal: dict={}):
         """
-        :param actions: list of actions
-        :param init_state: dict of initial state
-        :param goal: dict of desired state
+        Args:
+            actions (Actions): list of actions
+            init_state (dict): dict of initial state
+            goal (dict): dict of desired state
         """
         # init vars
-        self.DEBUG = False
+        self.debug = False
         self.nodes = None
         self.edges = None
         self.path = None
@@ -124,16 +150,21 @@ class Planner:
         self.plan(init_state=init_state, goal=goal)
 
     @staticmethod
-    def __idx_is_end_node(i: int, l: list) -> bool:
-        if i == len(l) - 1:
+    def __idx_is_end_node(i: int, _l: list) -> bool:
+        """
+        Args:
+            i (int):
+            l (list):
+        """
+        if i == len(_l) - 1:
             return True
         else:
             return False
 
     def set_nodes(self):
         """
-
-        :return: None
+        Returns:
+            None
         """
         states = self.actions.all_possible_states()
         # add nodes (idx: int, state: dict)
@@ -141,14 +172,13 @@ class Planner:
         self.nodes = self.graph.nodes(data=True)
 
     def set_edges(self):
-        """
-
-        :return: None
-        TODO:
+        """Todo:
             test:
-              superset = node[1]
-              subnet = preconditions, effects
-              if all(item in superset.items() for item in subset.items())
+                superset = node[1] subnet = preconditions, effects if all(item
+                in superset.items() for item in subset.items())
+
+        Returns:
+            None
         """
         # for action in self.actions.__iter__():
         for action in self.actions:
@@ -169,9 +199,14 @@ class Planner:
 
     def plan(self, init_state: dict, goal: dict) -> list:
         """
+        Args:
+            init_state (dict):
+            goal (dict):
 
-        :rtype: list
-        :return: self.path
+        Returns:
+            list:
+
+            self.path
         """
         start_node = None
         final_node = None
@@ -200,11 +235,17 @@ class Planner:
             # commented to include the for above
             # self.action_plan = self.graph.edges(self.path, data=True)
             return self.action_plan
-        except PlanFailed as e:
-            print('[ERROR] There is no node to start planning {}'.format(e))
+        except PlanFailed as plan_failed_exception:
+            print('[ERROR] There is no node to start planning {}'.format(plan_failed_exception))
             return []
 
     def plot_graph(self, file_name: str='graph.png', label_nodes: bool=True, label_edges: bool=True):
+        """
+        Args:
+            file_name (str):
+            label_nodes (bool):
+            label_edges (bool):
+        """
         import matplotlib.pyplot as plt
         # pos = nx.spring_layout(self.graph)
         pos = nx.shell_layout(self.graph, dim=1024, scale=0.5)

@@ -1,6 +1,6 @@
 from datetime import datetime
 from automat import MethodicalMachine
-from goap.Sensor import Sensors
+from goap.sensor import Sensors
 from goap.action import Actions
 from goap.planner import Planner
 from rx import Observable
@@ -38,12 +38,12 @@ class WorldState(dict):
         super(WorldState, self).__init__(*args, **kwargs)
         for arg in args:
             if isinstance(arg, dict):
-                for k, v in arg.items():
-                    self[k] = v
+                for key, value in arg.items():
+                    self[key] = value
 
         if kwargs:
-            for k, v in kwargs.items():
-                self[k] = v
+            for key, value in kwargs.items():
+                self[key] = value
 
     def __getattr__(self, attr):
         return self.get(attr)

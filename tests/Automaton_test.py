@@ -1,7 +1,7 @@
 import unittest
 from goap.action import Actions
-from goap.Sensor import Sensors
-from goap.Automaton import Automaton
+from goap.sensor import Sensors
+from goap.automaton import Automaton
 
 
 class AutomatonTest(unittest.TestCase):

@@ -2,7 +2,7 @@ import boto3
 
 
 class AWSClient:
-    def __init__(self, client: str, filters: list=[], tag: dict={}):
+    def __init__(self, client: str, filters: list = [], tag: dict = {}):
         self.filters = filters
         self.tag = tag
         self.client = boto3.client(client)
@@ -36,8 +36,8 @@ class EC2Client(AWSClient):
         try:
             response = self.client.describe_instances(Filters=self.filters)
             return response
-        except IOError as e:
-            raise('{}'.format(e))
+        except IOError as io_error_exception:
+            raise ('{}'.format(io_error_exception))
 
     def __get_item(self, key):
         vpcs = self.__desc()
@@ -61,8 +61,8 @@ class VPCClient(AWSClient):
         try:
             response = self.client.describe_vpcs(Filters=self.filters)
             return response
-        except IOError as e:
-            raise('{}'.format(e))
+        except IOError as io_error_exception:
+            raise ('{}'.format(io_error_exception))
 
     def __get_item(self, key):
         vpcs = self.__desc()

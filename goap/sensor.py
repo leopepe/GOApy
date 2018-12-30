@@ -93,9 +93,9 @@ class ShellSensor(Sensor):
                 stderr=stderr,
                 return_code=return_code
             )
-        except TimeoutError as e:
+        except TimeoutError as timeout_error_exception:
             process.kill()
-            raise ('{}'.format(e))
+            raise ('{}'.format(timeout_error_exception))
         finally:
             process.kill()
 
@@ -126,16 +126,16 @@ class Sensors:
         :param name: sensor's name
         :return: Sensor
         """
-        sens = None
-        for s in self.sensors:
-            if s.name == name:
-                sens = s
-        return sens
+        sensor = None
+        for _sensor in self.sensors:
+            if _sensor.name == name:
+                sensor = _sensor
+        return sensor
 
     def __repr__(self):
         output = []
-        for s in self.sensors:
-            output.append(s.__repr__())
+        for sensor in self.sensors:
+            output.append(sensor.__repr__())
         return str(output)
 
     def get(self, name):

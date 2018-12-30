@@ -1,9 +1,9 @@
 from os import listdir
 from os.path import isdir, isfile, exists
+
 from lvm2py import *
 
-from goap.Sensor import *
-
+from goap.sensor import *
 
 """ TODO:
 detect files older than X days
@@ -105,8 +105,8 @@ class LVM(Sensor):
                 return 'exist'
             else:
                 return 'not_exist'
-        except LookupError as e:
-            raise '{}'.format(e)
+        except LookupError as lookup_error_exception:
+            raise '{}'.format(lookup_error_exception)
 
     def vg_size(self):
         pass
@@ -132,4 +132,3 @@ class VGExists(LVM):
 
 if __name__ == '__main__':
     pass
-
