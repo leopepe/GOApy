@@ -134,13 +134,10 @@ class Automaton:
         self.goal = {}
 
     def __sense_environment(self):
-        Observable.from_(self.sensors). \
-            subscribe(
+        Observable.from_(self.sensors).subscribe(
             lambda sensor: self.working_memory.append(
-                Fact(sensor=sensor.name, data=sensor.exec(), binding=sensor.binding))
-        )
-        Observable.from_(self.working_memory). \
-            subscribe(
+                Fact(sensor=sensor.name, data=sensor.exec(), binding=sensor.binding)))
+        Observable.from_(self.working_memory).subscribe(
             lambda fact: setattr(self.world_state, fact.binding, fact.data.response)
         )
 
