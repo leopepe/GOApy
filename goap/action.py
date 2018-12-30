@@ -2,7 +2,7 @@ import subprocess
 from filecmp import cmp
 from json import dumps
 
-from Goap.Errors import *
+from goap.errors import *
 
 
 class Action:

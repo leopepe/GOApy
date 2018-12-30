@@ -11,7 +11,7 @@ from os import path as p
 from shutil import rmtree
 
 # Package meta-data.
-NAME = 'Goap'
+NAME = 'goap'
 DESCRIPTION = 'Goal-Oriented Action Planning implementation in Python. Inspired by Jeff Orkin <>'
 URL = 'https://github.com/leopepe/GOApy'
 EMAIL = 'lpepefreitas@gmail.com'

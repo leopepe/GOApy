@@ -2,7 +2,7 @@ from os import listdir
 from os.path import isdir, isfile, exists
 from lvm2py import *
 
-from Goap.Sensor import *
+from goap.Sensor import *
 
 
 """ TODO:

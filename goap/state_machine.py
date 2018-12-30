@@ -1,5 +1,5 @@
-from Goap.Action import Actions
-from Goap.Planner import Planner as Plan
+from goap.action import Actions
+from goap.planner import Planner as Plan
 
 
 class StateMachine:

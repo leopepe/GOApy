@@ -1,6 +1,6 @@
 import unittest
 
-from Goap.Action import Actions
+from goap.action import Actions
 
 
 class ActionTest(unittest.TestCase):

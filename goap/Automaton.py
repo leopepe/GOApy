@@ -1,8 +1,8 @@
 from datetime import datetime
 from automat import MethodicalMachine
-from Goap.Sensor import Sensors
-from Goap.Action import Actions
-from Goap.Planner import Planner
+from goap.Sensor import Sensors
+from goap.action import Actions
+from goap.planner import Planner
 from rx import Observable
 
 DEFAULT_WORLD_STATE = {

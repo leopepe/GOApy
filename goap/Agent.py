@@ -3,8 +3,8 @@ from time import sleep
 from datetime import datetime
 
 import boto3
-from Goap.StateMachine import StateMachine
-from Goap.Action import Actions
+from goap.state_machine import StateMachine
+from goap.action import Actions
 
 
 class Sensors:
@@ -205,7 +205,7 @@ class Agent:
 
 
 if __name__ == '__main__':
-    from Goap.Action import Actions
+    from goap.action import Actions
     # import pprint
 
     # ACTIONS

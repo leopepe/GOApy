@@ -1,11 +1,11 @@
-from Goap.Action import Actions
-from Goap.Errors import PlanFailed
+from goap.action import Actions
+from goap.errors import PlanFailed
 import networkx as nx
 
 
 class Planner:
     """ Usage:
-    from Goap.Action import Actions
+    from goap.Action import Actions
 
     # ACTIONS
     actions = Actions()
@@ -226,7 +226,7 @@ class Planner:
 
 
 if __name__ == '__main__':
-    from Goap.Action import Actions
+    from goap.action import Actions
     from pprint import pprint
 
     # ACTIONS

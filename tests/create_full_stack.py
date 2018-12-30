@@ -8,7 +8,7 @@
 #     https://github.com/linsomniac/python-unittest-skeleton
 
 import unittest
-from Goap import Actions
+from goap import Actions
 
 
 class TestCreateFullStackTestGroupName(unittest.TestCase):

@@ -1,5 +1,5 @@
 import networkx as nx
-from Goap.Action import Actions
+from goap.action import Actions
 
 # settings
 DEBUG = False
@@ -94,7 +94,7 @@ for src, dst in G.edges(path):
 
 print('Edges: ', G.edges(data=True))
 """
-from Goap.Action import Actions
+from goap.action import Actions
 from pprint import pprint
 
 actions = Actions()

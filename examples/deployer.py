@@ -1,5 +1,5 @@
-from Goap.Action import Actions
-from Goap.Agent import Agent
+from goap.action import Actions
+from goap.Agent import Agent
 
 
 class DeploymentAgent:
