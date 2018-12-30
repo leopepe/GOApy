@@ -218,7 +218,7 @@ class Automaton:
 
 if __name__ == '__main__':
     """ proposed world_state:
-    
+
         world_state_matrix = {
             "vpc_state": 'Unknown',
             "private_subnet": 'Unknown',
@@ -231,7 +231,7 @@ if __name__ == '__main__':
             "app_type": 'Unknown',
             "node_count": 0
     }
-    
+
     """
 
     from pprint import PrettyPrinter

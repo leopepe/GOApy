@@ -51,12 +51,12 @@ class ActionResponse:
 
     def __init__(self, name: str, action_type: str, return_code: str, stdout: str = '', stderr: str = ''):
         """
-        
-        :param name: 
-        :param action_type: 
-        :param return_code: 
-        :param stdout: 
-        :param stderr: 
+
+        :param name:
+        :param action_type:
+        :param return_code:
+        :param stdout:
+        :param stderr:
         """
         self.name = name
         self.action_type = action_type
