@@ -147,8 +147,7 @@ class Actions:
         for action in self.actions:
             if action.name == key:
                 return action
-            else:
-                return None
+        return None
 
     def get(self, name):
         """

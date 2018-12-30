@@ -162,10 +162,7 @@ class Planner:
             i (int):
             _l (list):
         """
-        if i == len(_l) - 1:
-            return True
-        else:
-            return False
+        return i == len(_l) - 1
 
     def set_nodes(self):
         """

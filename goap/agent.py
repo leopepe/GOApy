@@ -41,12 +41,13 @@ class Sensors:
         if key and value:
             resp = self.ec2.describe_vpcs(Filters=[{'Name': 'tag:' + key, 'Values': [value]}])
 
-            if len(resp['Vpcs']) == 1:
-                return True
-            elif len(resp['Vpcs']) > 1:
-                return 'ERROR'
-            elif len(resp['Vpcs']) == 0:
-                return False
+            # if len(resp['Vpcs']) == 1:
+            #     return True
+            # elif len(resp['Vpcs']) > 1:
+            #     return 'ERROR'
+            # elif len(resp['Vpcs']) == 0:
+            #     return False
+            return len(resp['Vpcs']) == 1
 
     def check_aws_rds(self, tag: dict):
         """ check if aws resource exists
@@ -62,12 +63,13 @@ class Sensors:
         if key and value:
             resp = self.ec2.describe_db_instances(Filters=[{'Name': 'tag:' + key, 'Values': [value]}])
 
-            if len(resp['DBInstances']) == 1:
-                return True
-            elif len(resp['DBInstances']) > 1:
-                return 'ERROR'
-            elif len(resp['DBInstances']) == 0:
-                return False
+            # if len(resp['DBInstances']) == 1:
+            #     return True
+            # elif len(resp['DBInstances']) > 1:
+            #     return 'ERROR'
+            # elif len(resp['DBInstances']) == 0:
+            #     return False
+            return len(resp['DBInstances']) == 1
 
     def check_aws_instances(self, tag: dict):
         """ check if aws resource exists
@@ -83,12 +85,13 @@ class Sensors:
         if key and value:
             resp = self.ec2.describe_instances(Filters=[{'Name': 'tag:' + key, 'Values': [value]}])
 
-            if len(resp['Instances']) == 1:
-                return True
-            elif len(resp['Instances']) > 1:
-                return 'ERROR'
-            elif len(resp['Instances']) == 0:
-                return False
+            # if len(resp['Instances']) == 1:
+            #     return True
+            # elif len(resp['Instances']) > 1:
+            #     return 'ERROR'
+            # elif len(resp['Instances']) == 0:
+            #     return False
+            return len(resp['Vpcs']) == 1
 
     def check_local_command_output(self, command: str = None):
         """ executes a command on the local system and expects status code 0 success.

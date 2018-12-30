@@ -138,10 +138,11 @@ class AWSCheckVPCUnique(VPCClient):
         :return:
         """
         vpcs = self.__desc()
-        if len(vpcs) >= 2:
-            return False
-        else:
-            return True
+        # if len(vpcs) >= 2:
+        #     return False
+        # else:
+        #     return True
+        return len(vpcs) <= 1
 
     def exec(self):
         """

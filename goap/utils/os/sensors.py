@@ -48,30 +48,24 @@ class OSFilePath(Sensor):
 
         :return:
         """
-        if self.exists():
-            return isdir(self.path)
-        else:
-            return False
+        return self.exists() and isdir(self.path)
 
     def is_file(self):
         """
 
         :return:
         """
-        if self.exists():
-            return isfile(self.path)
-        else:
-            return False
+        return self.exists() and isfile(self.path)
 
     def content(self):
         """
 
         :return:
         """
+        result = 'not_exist'
         if self.exists():
             return ''.join(str(i + '\n') for i in listdir(self.path))
-        else:
-            return 'not_exist'
+        return result
 
 
 class DirectoryExist(OSFilePath):
@@ -205,13 +199,13 @@ class LVM(Sensor):
 
         :return:
         """
+        result = 'not_exist'
         try:
             if self.lvm.get_vg(self.vg_name):
-                return 'exist'
-            else:
-                return 'not_exist'
+                result = 'exist'
         except LookupError as lookup_error_exception:
             raise '{}'.format(lookup_error_exception)
+        return result
 
     def vg_size(self):
         """
