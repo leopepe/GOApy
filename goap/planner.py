@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+ planner.py
+
+"""
+import networkx as nx
+
 from goap.action import Actions
 from goap.errors import PlanFailed
-import networkx as nx
 
 
 class Planner:
@@ -126,7 +132,7 @@ class Planner:
             "vpc": true}}})]
     """
 
-    def __init__(self, actions: Actions, init_state: dict={}, goal: dict={}):
+    def __init__(self, actions: Actions, init_state: dict = {}, goal: dict = {}):
         """
         Args:
             actions (Actions): list of actions
@@ -154,7 +160,7 @@ class Planner:
         """
         Args:
             i (int):
-            l (list):
+            _l (list):
         """
         if i == len(_l) - 1:
             return True
@@ -172,7 +178,8 @@ class Planner:
         self.nodes = self.graph.nodes(data=True)
 
     def set_edges(self):
-        """Todo:
+        """
+        Todo:
             test:
                 superset = node[1] subnet = preconditions, effects if all(item
                 in superset.items() for item in subset.items())
@@ -204,9 +211,7 @@ class Planner:
             goal (dict):
 
         Returns:
-            list:
-
-            self.path
+            list: self.path
         """
         start_node = None
         final_node = None
@@ -227,7 +232,7 @@ class Planner:
                     break
                 else:
                     current = i
-                    nxt = self.path[idx+1]
+                    nxt = self.path[idx + 1]
                     # planning.append(self.graph.in_edges(nbunch=(current, nxt), data=True))
                     for src, dst, data in self.graph.edges(data=True):
                         if (current, nxt) == (src, dst):
@@ -239,7 +244,7 @@ class Planner:
             print('[ERROR] There is no node to start planning {}'.format(plan_failed_exception))
             return []
 
-    def plot_graph(self, file_name: str='graph.png', label_nodes: bool=True, label_edges: bool=True):
+    def plot_graph(self, file_name: str = 'graph.png', label_nodes: bool = True, label_edges: bool = True):
         """
         Args:
             file_name (str):
@@ -294,5 +299,3 @@ if __name__ == '__main__':
     print('PATH: ', planner.path)
     print('Action planning: ')
     pprint(plan, indent=2)
-
-

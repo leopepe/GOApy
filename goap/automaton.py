@@ -1,30 +1,56 @@
+# -*- coding: utf-8 -*-
+"""
+ automaton.py
+
+"""
 from datetime import datetime
+
 from automat import MethodicalMachine
-from goap.sensor import Sensors
+from rx import Observable
+
 from goap.action import Actions
 from goap.planner import Planner
-from rx import Observable
+from goap.sensor import Sensors
 
 DEFAULT_WORLD_STATE = {
     'vpc_state': 'Unknown',
     'pub_subnet': 'Unknown',
-    'prv_subnet': 'Unknown',    # True || False
-    'db_state': 'Unknown',      # True || False
-    'app_state': 'Unknown',     # True || False
+    'prv_subnet': 'Unknown',  # True || False
+    'db_state': 'Unknown',  # True || False
+    'app_state': 'Unknown',  # True || False
 }
 
 
 class Fact(object):
+    """
+    Fact
+    """
+
     def __init__(self, sensor, data, binding):
+        """
+        __init__
+
+        :param sensor:
+        :param data:
+        :param binding:
+        """
         self.binding = binding
         self.data = data
         self.time_stamp = datetime.now()
         self.parent_sensor = sensor
 
     def __str__(self):
+        """
+
+        :return:
+        """
         return '{}: {}'.format(self.binding, self.data)
 
     def __repr__(self):
+        """
+
+        :return:
+        """
         return self.__str__()
 
 
@@ -35,6 +61,11 @@ class WorldState(dict):
     """
 
     def __init__(self, *args, **kwargs):
+        """
+
+        :param args:
+        :param kwargs:
+        """
         super(WorldState, self).__init__(*args, **kwargs)
         for arg in args:
             if isinstance(arg, dict):
@@ -64,6 +95,9 @@ class WorldState(dict):
 
 
 class AutomatonPriorities:
+    """
+        AutomatonPriorities
+    """
 
     def __init__(self, items: list):
         self._items = items
@@ -83,8 +117,8 @@ class Automaton:
 
     machine = MethodicalMachine()
 
-    def __init__(self, name: str='Automaton', sensors: Sensors=[], actions: Actions=[],
-                 world_state: dict=DEFAULT_WORLD_STATE):
+    def __init__(self, name: str = 'Automaton', sensors: Sensors = [], actions: Actions = [],
+                 world_state: dict = DEFAULT_WORLD_STATE):
         # setup
         self.world_state = WorldState(world_state)
         self.working_memory = []
@@ -102,7 +136,8 @@ class Automaton:
     def __sense_environment(self):
         Observable.from_(self.sensors). \
             subscribe(
-            lambda sensor: self.working_memory.append(Fact(sensor=sensor.name, data=sensor.exec(), binding=sensor.binding))
+            lambda sensor: self.working_memory.append(
+                Fact(sensor=sensor.name, data=sensor.exec(), binding=sensor.binding))
         )
         Observable.from_(self.working_memory). \
             subscribe(
@@ -200,6 +235,7 @@ if __name__ == '__main__':
     """
 
     from pprint import PrettyPrinter
+
     pp = PrettyPrinter(indent=4)
     priorities = AutomatonPriorities([
         {'vpc_state': 'available', 'db_state': 'available', 'app_state': 'running'}
@@ -265,4 +301,3 @@ if __name__ == '__main__':
     pp.pprint(
         'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan, ai.actions_response)
     )
-

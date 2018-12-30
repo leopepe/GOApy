@@ -1,15 +1,20 @@
+# -*- coding: utf-8 -*-
+"""
+ errors.py
+
+"""
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
 
 class OperationFailedError(Exception):
+    """OperationFailedError"""
+
     def __init__(self, reason):
         """
         Args:
             reason:
         """
-        self.msg = reason
-
 
 class SensorError(Exception):
     """Sensor's Error base class"""
@@ -32,10 +37,12 @@ class SensorAlreadyInCollectionError(SensorError):
 
 
 class PlanError(Exception):
+    """Plan Error Exception"""
     pass
 
 
 class PlanFailed(PlanError):
+    """Plan Failed Exception"""
     pass
 
 
@@ -48,3 +55,7 @@ class ActionMultipleTypeError(ActionError):
     """Action cannot be two types at once"""
     pass
 
+
+class ActionAlreadyInCollectionError(ActionError):
+    """Action Already In Collection"""
+    pass

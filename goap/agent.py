@@ -1,13 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+ agent.py
+
+"""
+from datetime import datetime
 from random import choice
 from time import sleep
-from datetime import datetime
 
 import boto3
-from goap.state_machine import StateMachine
+
 from goap.action import Actions
+from goap.state_machine import StateMachine
 
 
 class Sensors:
+    """
+    Sensors
+    """
 
     def __init__(self):
         """
@@ -81,7 +90,7 @@ class Sensors:
             elif len(resp['Instances']) == 0:
                 return False
 
-    def check_local_command_output(self, command: str=None):
+    def check_local_command_output(self, command: str = None):
         """ executes a command on the local system and expects status code 0 success.
 
         :param command
@@ -92,22 +101,38 @@ class Sensors:
         pass
 
     def check_mock_module_vpc(self):
+        """
+
+        :return:
+        """
         val = choice([{'vpc': True}, {'vpc': False}])
         self.values.update(val)
         return True
 
     def check_mock_module_app(self):
+        """
+
+        :return:
+        """
         val = choice([{'app': True}, {'app': False}])
         self.values.update(val)
         return True
 
     def check_mock_module_db(self) -> bool:
+        """
+
+        :return:
+        """
         val = choice([{'db': True}, {'db': False}])
         # self.values with the result of the sensor inspections
         self.values.update(val)
         return True
 
     def run_all(self):
+        """
+
+        :return:
+        """
         case1 = {'vpc': False, 'db': False, 'app': False}
 
         case2 = {'vpc': True, 'db': True, 'app': False}
@@ -136,7 +161,7 @@ class Agent:
         'inconsistent': {'vpc': 'inconsistent', 'db': 'inconsistent', 'app': 'inconsistent'}
     }
 
-    def __init__(self, name: str, actions: Actions, initial_state: dict={}, goal: dict={}):
+    def __init__(self, name: str, actions: Actions, initial_state: dict = {}, goal: dict = {}):
         """
 
         :param name:
@@ -177,7 +202,7 @@ class Agent:
         """
         self.goal = goal
 
-    def run(self, goal: dict={'vpc': True, 'db': True, 'app': True}):
+    def run(self, goal: dict = {'vpc': True, 'db': True, 'app': True}):
         """ start the AA
 
         :return:
@@ -196,7 +221,8 @@ class Agent:
                 if not actions_result:
                     print('[ERROR]: Unknown state\n[ERROR]: Nothing to be done, need manual interaction\n{}')
                     self.world_state = self.STD_STATES['inconsistent']
-                    actions_result = self.fsm.start(init_state=self.world_state, end_state=self.STD_STATES['obliterate'])
+                    actions_result = self.fsm.start(init_state=self.world_state,
+                                                    end_state=self.STD_STATES['obliterate'])
 
                 print('[INFO] Plan executed: {}'.format(actions_result))
 
@@ -206,6 +232,7 @@ class Agent:
 
 if __name__ == '__main__':
     from goap.action import Actions
+
     # import pprint
 
     # ACTIONS

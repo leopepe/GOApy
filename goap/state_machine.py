@@ -1,8 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+ state_machine.py
+
+"""
 from goap.action import Actions
 from goap.planner import Planner as Plan
 
 
 class StateMachine:
+    """StateMachine"""
+
     def __init__(self, states: Actions):
         """
             Don't need initial and end state since the transition will be a
@@ -39,9 +46,17 @@ class StateMachine:
         self._transitions = transitions
 
     def get_transitions(self):
+        """
+
+        :return:
+        """
         return self._transitions
 
     def stop(self):
+        """
+
+        :return:
+        """
         self._current_state = None
         # sys.exit(1)
 

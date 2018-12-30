@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+ action.py
+
+"""
 import subprocess
 from filecmp import cmp
 from json import dumps
@@ -6,6 +11,9 @@ from goap.errors import *
 
 
 class Action:
+    """
+    Action
+    """
 
     def __init__(self, name: str, pre_conditions: dict, effects: dict):
         self.name = name
@@ -30,10 +38,17 @@ class Action:
         self.exec()
 
     def exec(self) -> tuple:
+        """
+
+        :return:
+        """
         pass
 
 
 class ActionResponse:
+    """
+    ActionResponse
+    """
 
     def __init__(self, name: str, action_type: str, return_code: str, stdout: str = '', stderr: str = ''):
         """
@@ -65,6 +80,9 @@ class ActionResponse:
 
 
 class ShellAction(Action):
+    """
+    ShellAction
+    """
 
     def __init__(self, name: str, pre_conditions: dict, effects: dict, shell: str):
         self.response = {}
@@ -107,6 +125,9 @@ class ShellAction(Action):
 
 
 class Actions:
+    """
+    Actions
+    """
 
     def __init__(self):
         self.actions = list()
@@ -131,6 +152,11 @@ class Actions:
                 return None
 
     def get(self, name):
+        """
+
+        :param name:
+        :return:
+        """
         result = None
         for action in self.actions:
             if action.name == name:
@@ -138,10 +164,19 @@ class Actions:
         return result
 
     def get_action_by_pre_condition(self, pre_conditions):
+        """
+
+        :param pre_conditions:
+        :return:
+        """
         result = [action for action in self.actions if action.pre_conditions == pre_conditions]
         return result
 
     def all_possible_states(self):
+        """
+
+        :return:
+        """
         state_grid = []
         for action in self.actions:
             if action.pre_conditions not in state_grid:
@@ -154,12 +189,17 @@ class Actions:
         if not ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects) in self.actions:
             self.actions.append(ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects))
         else:
-            raise actionAlreadyInCollectionError
+            raise ActionAlreadyInCollectionError
 
     def __add_obj_action(self, name, obj, pre_conditions, effects):
         raise NotImplementedError
 
     def add(self, **kwargs):
+        """
+
+        :param kwargs:
+        :return:
+        """
         if kwargs.get('shell') and kwargs.get('obj'):
             raise ActionMultipleTypeError
 
@@ -174,6 +214,11 @@ class Actions:
             self.__add_obj_action(name, obj, pre_conditions, effects)
 
     def remove(self, name: str):
+        """
+
+        :param name:
+        :return:
+        """
         result = False
         for action in self.actions:
             if action.name == name:
@@ -182,11 +227,21 @@ class Actions:
         return result
 
     def exec_all(self) -> list:
+        """
+
+        :return:
+        """
         responses = [s.exec() for s in self.actions]
         return responses
 
     @staticmethod
     def compare_actions(action1: Action, action2: Action):
+        """
+
+        :param action1:
+        :param action2:
+        :return:
+        """
         result = None
         if action1.pre_conditions == action2.pre_conditions and action1.effects == action2.effects:
             result = 'Action {} and Action {} are equal'.format(action1.name, action2.name)

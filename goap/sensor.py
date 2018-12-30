@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+ sensor.py
+
+"""
+
 import subprocess
 
 from goap.errors import SensorMultipleTypeError, \
@@ -34,6 +40,9 @@ class Sensor:
 
 
 class SensorResponse:
+    """
+    SensorResponse
+    """
 
     def __init__(self, name: str, sensor_type: str, return_code: str,
                  stdout: str = '', stderr: str = ''):
@@ -98,11 +107,13 @@ class ShellSensor(Sensor):
             raise ('{}'.format(timeout_error_exception))
         finally:
             process.kill()
-
         return self.response
 
 
 class Sensors:
+    """
+    Sensors
+    """
 
     def __init__(self, sensors: list = []):
         """ Collection of sensors, adds only unique sensors
@@ -139,6 +150,11 @@ class Sensors:
         return str(output)
 
     def get(self, name):
+        """
+
+        :param name:
+        :return:
+        """
         result = None
         for sensor in self.sensors:
             if sensor.name == name:
@@ -159,6 +175,11 @@ class Sensors:
         raise NotImplementedError
 
     def add(self, **kwargs):
+        """
+
+        :param kwargs:
+        :return:
+        """
         if kwargs.get('shell') and kwargs.get('obj'):
             raise SensorMultipleTypeError
 
@@ -172,6 +193,11 @@ class Sensors:
             self.__add_obj_sensor(name, obj, binding)
 
     def remove(self, name: str):
+        """
+
+        :param name:
+        :return:
+        """
         result = False
         for sensor in self.sensors:
             if sensor.name == name:
@@ -180,6 +206,10 @@ class Sensors:
         return result
 
     def exec_all(self) -> list:
+        """
+
+        :return:
+        """
         responses = [s.exec() for s in self.sensors]
         return responses
 

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-# __init__.py
-#
-#
+"""
+ __init__.py
+
+"""
 
 from goap.action import Action, Actions
 from goap import agent
