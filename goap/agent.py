@@ -98,7 +98,6 @@ class Sensors:
         """
         # values = {}
         # self.values.update(values)
-        pass
 
     def check_mock_module_vpc(self):
         """

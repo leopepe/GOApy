@@ -36,7 +36,6 @@ class Sensor:
 
     def exec(self):
         """ Interface method to the sensors execution """
-        pass
 
 
 class SensorResponse:

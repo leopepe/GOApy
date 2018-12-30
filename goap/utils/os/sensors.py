@@ -138,7 +138,6 @@ class FileIsOlderThan(OSFilePath):
         :param days:
         :return:
         """
-        pass
 
 
 class FileNamePattern(OSFilePath):
@@ -160,7 +159,6 @@ class FileNamePattern(OSFilePath):
 
         :return:
         """
-        pass
 
 
 class FileHasExtension(OSFilePath):
@@ -183,7 +181,6 @@ class FileHasExtension(OSFilePath):
         :param extension:
         :return:
         """
-        pass
 
 
 class LVM(Sensor):
@@ -221,28 +218,24 @@ class LVM(Sensor):
 
         :return:
         """
-        pass
 
     def vg_available_space(self):
         """
 
         :return:
         """
-        pass
 
     def lv_exists(self):
         """
 
         :return:
         """
-        pass
 
     def lv_size(self):
         """
 
         :return:
         """
-        pass
 
 
 class VGExists(LVM):
@@ -270,4 +263,3 @@ if __name__ == '__main__':
     """
     __name__
     """
-    pass

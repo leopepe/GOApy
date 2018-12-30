@@ -42,7 +42,6 @@ class Action:
 
         :return:
         """
-        pass
 
 
 class ActionResponse:

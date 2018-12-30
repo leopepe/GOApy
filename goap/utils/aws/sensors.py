@@ -42,14 +42,12 @@ class AWSClient:
         :param key:
         :return:
         """
-        pass
 
     def exec(self):
         """
 
         :return:
         """
-        pass
 
 
 class EC2Client(AWSClient):
@@ -88,7 +86,6 @@ class EC2Client(AWSClient):
 
         :return:
         """
-        pass
 
 
 class VPCClient(AWSClient):
@@ -128,7 +125,6 @@ class VPCClient(AWSClient):
 
         :return:
         """
-        pass
 
 
 class AWSCheckVPCUnique(VPCClient):
@@ -206,14 +202,12 @@ class AWSCheckInstancesCapacity(EC2Client):
         :param instance_id:
         :return:
         """
-        pass
 
     def exec(self):
         """
 
         :return:
         """
-        pass
 
 
 class AWSCheckLatestProjectAMI(EC2Client):
@@ -227,14 +221,12 @@ class AWSCheckLatestProjectAMI(EC2Client):
         :param version:
         :return:
         """
-        pass
 
     def exec(self):
         """
 
         :return:
         """
-        pass
 
 
 class AWSCheckInstancesWithOldAMI(EC2Client):
@@ -247,11 +239,9 @@ class AWSCheckInstancesWithOldAMI(EC2Client):
 
         :return: list of instances ids with AMI with an old version
         """
-        pass
 
 
 class AWSCheckOrphanEBS(EC2Client):
     """
     AWSCheckOrphanEBS
     """
-    pass
