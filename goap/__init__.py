@@ -4,18 +4,18 @@
 
 """
 
-from goap.action import Action, Actions
-from goap import agent
+from goap.action import Action
+from goap.agent import Agent
+from goap.automaton import Automaton
+from goap.errors import OperationFailedError
 from goap.planner import Planner
 from goap.state_machine import StateMachine
-from goap.errors import OperationFailedError
-# from goap.Automaton import Automaton
 
 __all__ = [
-    'agent.py',
+    'Agent',
     'Action',
     'Planner',
     'StateMachine',
-    'errors',
-    # 'Automaton'
+    'Automaton',
+    'OperationFailedError',
 ]
