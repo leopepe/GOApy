@@ -15,6 +15,8 @@ class OperationFailedError(Exception):
         Args:
             reason:
         """
+        super(Exception, self).__init__(reason)
+
 
 class SensorError(Exception):
     """Sensor's Error base class"""
