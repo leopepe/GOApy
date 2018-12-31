@@ -1,7 +1,8 @@
 import unittest
+
 from goap.action import Actions
-from goap.sensor import Sensors
 from goap.automaton import Automaton
+from goap.sensor import Sensors
 
 
 class AutomatonTest(unittest.TestCase):
@@ -9,7 +10,7 @@ class AutomatonTest(unittest.TestCase):
     def setUp(self):
         self.actions = Actions()
         self.sensors = Sensors()
-        self.automaton = Automaton()
+        self.automaton = None
 
     def test_all(self):
         from pprint import PrettyPrinter
@@ -39,19 +40,21 @@ class AutomatonTest(unittest.TestCase):
             shell='ls -ltrd /tmp/goap_tmp',
             binding='tmp_dir_state'
         )
-        ai = Automaton(name='infra_builder', actions=aws_actions, sensors=aws_sensors, world_state=world_state_matrix)
+
+        self.ai = Automaton(name='infra_builder', actions=self.actions, sensors=self.sensors,
+                            world_state=world_state_matrix)
         # Control
         # what is the environment status? what does the sensors return? ai has a goal?
         # goal = priorities # object not working returning object rather then dict
-        ai.input_goal(goal)
-        ai.sense()
+        self.ai.input_goal(goal)
+        self.ai.sense()
         pp.pprint(
-            'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan,
-                                                                        ai.actions_response)
+            'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(self.ai.world_state, self.ai.action_plan,
+                                                                        self.ai.actions_response)
         )
-        ai.plan()
-        ai.act()
+        self.ai.plan()
+        self.ai.act()
         pp.pprint(
-            'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan,
-                                                                        ai.actions_response)
+            'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(self.ai.world_state, self.ai.action_plan,
+                                                                        self.ai.actions_response)
         )
