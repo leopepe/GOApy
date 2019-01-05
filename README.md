@@ -14,81 +14,80 @@ To perform the search the planner sets a graph using the possible world states a
 
 ## Usage
 
-### Using the Agent class
+### Using the Automaton class
 
 From the Agent.py class perspective the usage and interaction should be:
 
 ```python
-from Goap.Action import Actions
-from Goap.Agent import Agent
-import pprint
-
-# ACTIONS
-actions = Actions()
-# VPC/Network set
-actions.add_action(
+from pprint import PrettyPrinter
+pp = PrettyPrinter(indent=4)
+priorities = AutomatonPriorities([
+    {'vpc_state': 'available', 'db_state': 'available', 'app_state': 'running'}
+])
+world_state_matrix = {
+    "vpc_state": 'Unknown',
+    "db_state": 'Unknown',
+    "app_state": 'Unknown',
+}
+goal = {
+    "vpc_state": "available",
+    "db_state": "available",
+    "app_state": "running",
+}
+aws_actions = Actions()
+aws_actions.add(
     name='CreateVPC',
-    pre_conditions={'vpc': False, 'db': False, 'app': False},
-    effects={'vpc': True, 'db': False, 'app': False}
+    pre_conditions={'vpc_state': 'unavailable', 'db_state': 'unavailable', 'app_state': 'unavailable'},
+    effects={'vpc_state': 'available', 'db_state': 'unavailable', 'app_state': 'unavailable'},
+    shell='echo "vpc created"'
 )
-# DB set
-actions.add_action(
+aws_actions.add(
     name='CreateDB',
-    pre_conditions={'vpc': True, 'db': False, 'app': False},
-    effects={'vpc': True, 'db': True, 'app': False}
+    pre_conditions={'vpc_state': 'available', 'db_state': 'unavailable', 'app_state': 'unavailable'},
+    effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'unavailable'},
+    shell='echo "db created"'
 )
-actions.add_action(
-    name='StartDB',
-    pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
-    effects={'vpc': True, 'db': 'started', 'app': False}
-)
-actions.add_action(
-    name='StopDB',
-    pre_conditions={'vpc': True, 'db': 'started', 'app': False},
-    effects={'vpc': True, 'db': 'stopped', 'app': False}
-)
-actions.add_action(
-    name='DestroyDB',
-    pre_conditions={'vpc': True, 'db': 'not_health', 'app': False},
-    effects={'vpc': True, 'db': False, 'app': False}
-)
-# APP set
-actions.add_action(
+aws_actions.add(
     name='CreateApp',
-    pre_conditions={'vpc': True, 'db': True, 'app': False},
-    effects={'vpc': True, 'db': True, 'app': True}
+    pre_conditions={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'unavailable'},
+    effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'running'},
+    shell='echo "app created" > /tmp/CreateApp.out'
 )
-actions.add_action(
-    name='StartApp',
-    pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-    effects={'vpc': True, 'db': True, 'app': 'started'}
+aws_sensors = Sensors()
+aws_sensors.add(
+    name='FindProjectVPC',
+    # shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text',
+    shell='echo -n "unavailable"',
+    binding='vpc_state'
 )
-actions.add_action(
-    name='StopApp',
-    pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
-    effects={'vpc': True, 'db': True, 'app': 'stopped'}
+aws_sensors.add(
+    name='FindProjectDB',
+    # shell='aws rds describe-db-instances --filters "Name=db-instance-id,Values=rds-oraculo" --query "DBInstances[].DBInstanceStatus" --output text',
+    shell='echo -n "unavailable"',
+    binding='db_state'
 )
-actions.add_action(
-    name='DestroyApp',
-    pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
-    effects={'vpc': True, 'db': True, 'app': False}
+aws_sensors.add(
+    name='CheckAppState',
+    shell='echo -n "unavailable"',
+    binding='app_state'
 )
-
-init_state = {'vpc': False, 'app': False, 'db': False}
-init_goal = {'vpc': True, 'db': True, 'app': True}
-
-ai_cloud_builder = Agent(name='CloudBuilder', actions=actions, init_state=init_state, goal=init_goal)
-result = ai_cloud_builder.run()
-
-pprint.pprint(result, indent=2, width=80)
+ai = Automaton(name='infra_builder', actions=aws_actions, sensors=aws_sensors, world_state=world_state_matrix)
+# Control
+# what is the environment status? what does the sensors return? ai has a goal?
+# goal = priorities # object not working returning object rather then dict
+ai.input_goal(goal)
+ai.sense()
+pp.pprint(
+    'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan, ai.actions_response)
+)
+ai.plan()
+ai.act()
+pp.pprint(
+    'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan, ai.actions_response)
+)
 ```
 
 ## Version
 
-# TODO
+v0.2.0
 
-* Agent.py to impl. FSM.py
-* Dockerize (Makefile)
-* Unit Tests
-* Docs (PyDocs, Sphinx, Model, Diagrams)
-* Pants
