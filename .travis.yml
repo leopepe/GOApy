@@ -2,10 +2,8 @@ language: python
 python:
   - "3.7-dev"
 branches:
- only:
+  only:
   - master
-  - /^v\d+\.\d+\.\d+
-install:
- test - make all
+  - /^v\d+\.\d+\.\d+$/
 script:
   - make test
