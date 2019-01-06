@@ -118,4 +118,4 @@ unittest:
 	echo "Automaton Class Unittests"
 	$(PYTHON) -m unittest tests/Automaton_test.py
 	echo "Fullstack Unittests"
-	$(PYTHON) -m unittest tests/create_full_stack.py
+	$(PYTHON) -m unittest tests/Planner_test.py
