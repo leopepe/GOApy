@@ -1,9 +1,7 @@
 # TODO
 
 * Logging (Feature toggle to enable logging activities of the AI)
-* Testing: implement unittests for all classes
 * Pants: use pex to package the project
-* Full test coverage: Create unittests to all classes and methods
 * Create real examples with real world scenarios/test cases. Now it is possible to use the lib in experimental tests using real actions and sensors.
 * Create utils classes/methods for:
   - Cloud scenarios
@@ -12,6 +10,10 @@
   - AWS Cloud formation
 * Functional tests using docker
 * Add costs to the actions to guarantee a better performance on long action chains.
+
+# DONE: v0.2.0
+* Testing: implement unittests for all classes
+* Full test coverage: Create unittests to all classes and methods (Need to check real coverage)
 
 # DONE: v0.1.0
 * Action.py must implement exec() method. It will be used by the Planner to actually execute the action itself and change the environment.
