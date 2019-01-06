@@ -3,7 +3,6 @@ import unittest
 import subprocess
 from pprint import PrettyPrinter
 from Goap.Action import Actions
-from Goap.Sensor import Sensors
 from Goap.Automaton import Planner
 
 
