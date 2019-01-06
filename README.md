@@ -1,4 +1,4 @@
-# GOAPy
+# GOAPy [![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.0)](https://travis-ci.com/leopepe/GOApy)
 
 ![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
 
