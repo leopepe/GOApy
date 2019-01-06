@@ -13,8 +13,7 @@ class Action:
         self.effects = effects
 
     def __str__(self):
-        # return dumps({'Name': self.name, 'Conditions': self.pre_conditions, 'Effects': self.effects})
-        return dumps({'Name': self.name})
+        return self.name
 
     def __repr__(self):
         return self.__str__()
@@ -71,12 +70,6 @@ class ShellAction(Action):
         self.type = 'shell'
         self.shell = shell
         Action.__init__(self, name=name, pre_conditions=pre_conditions, effects=effects)
-
-    def __repr__(self):
-        return 'Name: {}'.format(self.name)
-
-    def __str__(self):
-        return self.__repr__()
 
     def exec(self):
         cmd = self.shell

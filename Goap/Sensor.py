@@ -16,10 +16,10 @@ class Sensor:
         self.name = name
         self.response = {}
 
-    def __repr__(self):
-        return 'Name: {}'.format(self.name)
-
     def __str__(self):
+        return self.name
+
+    def __repr__(self):
         return self.__repr__()
 
     def __call__(self, **kwargs):
