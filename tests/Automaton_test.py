@@ -22,8 +22,12 @@ class AutomatonTest(unittest.TestCase):
         )
 
     def setUp(self):
-        self.__reset_environment()
         self.print = PrettyPrinter(indent=4)
+
+        self.goal = {
+            "tmp_dir_state": "exist",
+            "tmp_dir_content": "token_found",
+        }
         self.actions = Actions()
         self.sensors = Sensors()
         self.sensors.add(
@@ -59,13 +63,16 @@ class AutomatonTest(unittest.TestCase):
             world_state=world_state_matrix
         )
 
+    def test_sensing(self):
+        self.__reset_environment()
+        self.automaton.input_goal(self.goal)
+        self.automaton.sense()
+        self.__print()
+        assert self.automaton.world_state == {'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'}
+
     def test_planning(self):
         self.__reset_environment()
-        goal = {
-            "tmp_dir_state": "exist",
-            "tmp_dir_content": "token_found",
-        }
-        self.automaton.input_goal(goal)
+        self.automaton.input_goal(self.goal)
         self.automaton.sense()
         self.automaton.plan()
         assert self.automaton.action_plan == [
@@ -73,27 +80,20 @@ class AutomatonTest(unittest.TestCase):
             (1, 2, {'object': self.actions.get('CreateToken')})
         ]
 
-    def test_sensing(self):
+    def test_acting(self):
         self.__reset_environment()
-        goal = {
-            "tmp_dir_state": "exist",
-            "tmp_dir_content": "token_found",
-        }
-        self.automaton.input_goal(goal)
+        self.automaton.input_goal(self.goal)
         self.automaton.sense()
-        self.__print()
-        assert self.automaton.world_state == {'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'}
+        self.automaton.plan()
+        self.automaton.act()
+        assert path.isdir('/tmp/goap_tmp') and path.isfile('/tmp/goap_tmp/.token')
 
     def test_all(self):
         self.__reset_environment()
-        goal = {
-            "tmp_dir_state": "exist",
-            "tmp_dir_content": "token_found",
-        }
         # Control
         # what is the environment status? what does the sensors return? ai has a goal?
         # goal = priorities # object not working returning object rather then dict
-        self.automaton.input_goal(goal)
+        self.automaton.input_goal(self.goal)
         self.automaton.sense()
         self.__print()
         self.automaton.plan()
@@ -101,5 +101,5 @@ class AutomatonTest(unittest.TestCase):
         self.__print()
         self.automaton.sense()
         self.__print()
-        assert self.automaton.world_state == goal
+        assert self.automaton.world_state == self.goal
 
