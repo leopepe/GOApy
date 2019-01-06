@@ -225,33 +225,4 @@ class Planner:
         plt.savefig(file_name, dpi=1024)
 
 
-if __name__ == '__main__':
-    from Goap.Action import Actions
-    from pprint import pprint
-
-    # ACTIONS
-    fs_actions = Actions()
-    fs_actions.add(
-        name='CompactBigLogFiles',
-        pre_conditions={'files_to_compact': 'Exists'},
-        effects={'files_to_compact': 'None'},
-        shell='find /tmp -name "*.log" -type f -size +900M| xargs tar -zcvf logfile-$(date "+%d%m%y-%H%M%S").tar.gz {}'
-    )
-    print(fs_actions)
-    print('Actions: ', fs_actions)
-    planner = Planner(actions=fs_actions)
-    print('Planner: ', planner)
-    print('Graph.Nodes: ', planner.graph.nodes(data=True))
-    print('Graph.Edges: ', planner.graph.edges(data=True))
-    print('Action sequence')
-    # Plan again
-    plan = planner.plan(
-        init_state={'files_to_compact': 'Exists'},
-        goal={'files_to_compact': 'None'}
-    )
-    pprint('Action Plan: {}'.format(planner.action_plan))
-    print('PATH: ', planner.path)
-    print('Action planning: ')
-    pprint(plan, indent=2)
-
 

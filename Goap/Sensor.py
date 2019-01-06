@@ -174,33 +174,4 @@ class Sensors:
         return responses
 
 
-if __name__ == '__main__':
-    # ACTIONS
-    '''
-    aws_sensors = Sensors()
-    aws_sensors.add(
-        name='VpcState',
-        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text'
-    )
-    aws_sensors.add(
-        name='VpcId',
-        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].VpcId" --output text'
-    )
-    # resp_aws = aws_sensors.exec_all()
-    # print('responses: ', resp_aws)
-    #
-    '''
-    fs_sensors = Sensors()
-    fs_sensors.add(
-        name='FindOldFilesOnTmp',
-        shell='find /tmp/log_tests -mtime +1|wc -l|xargs test -f && echo "Exists" || echo "None"',
-        binding='old_files'
-    )
-    fs_sensors.add(
-        name='LogFilesToCompact',
-        shell='test $(find /tmp/log_tests -name "*.log" -type f -size +900M| wc -l) -gt 0 && echo "Exists" || echo "None"',
-        binding='old_files'
-    )
-    resp = fs_sensors.exec_all()
-    print('responses for fs sensors: {}', resp)
 
