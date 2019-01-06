@@ -21,8 +21,8 @@ class SensorsTest(unittest.TestCase):
             shell='test $(find /tmp/log_tests -name "*.log" -type f -size +900M| wc -l) -gt 0 && echo "Exists" || echo "None"',
             binding='old_files'
         )
-        assert 'Name: LogFilesToCompact' == str(self.sensors.get(name='LogFilesToCompact'))
-        assert 'Name: FindOldFilesOnTmp' == str(self.sensors.get(name='FindOldFilesOnTmp'))
+        assert 'LogFilesToCompact' == str(self.sensors.get(name='LogFilesToCompact'))
+        assert 'FindOldFilesOnTmp' == str(self.sensors.get(name='FindOldFilesOnTmp'))
 
     def test_remove_sensor_success(self):
         assert self.sensors.remove(name='LogFilesToCompact') is True

@@ -21,8 +21,8 @@ class ActionTest(unittest.TestCase):
             effects={'vpc': True, 'db': True, 'app': False},
             shell='awscli vpc create'
         )
-        assert 'Name: CreateVPC' == str(self.actions.get(name='CreateVPC'))
-        assert 'Name: CreateDB' == str(self.actions.get(name='CreateDB'))
+        assert 'CreateVPC' == str(self.actions.get(name='CreateVPC'))
+        assert 'CreateDB' == str(self.actions.get(name='CreateDB'))
 
     def test_remove_action_success(self):
         self.actions.add(
