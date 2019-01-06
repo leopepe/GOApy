@@ -4,14 +4,7 @@ from Goap.Sensor import Sensors
 from Goap.Action import Actions
 from Goap.Planner import Planner
 from rx import Observable
-
-DEFAULT_WORLD_STATE = {
-    'vpc_state': 'Unknown',
-    'pub_subnet': 'Unknown',
-    'prv_subnet': 'Unknown',    # True || False
-    'db_state': 'Unknown',      # True || False
-    'app_state': 'Unknown',     # True || False
-}
+from time import sleep
 
 
 class Fact(object):
@@ -83,8 +76,7 @@ class Automaton:
 
     machine = MethodicalMachine()
 
-    def __init__(self, name: str='Automaton', sensors: Sensors=[], actions: Actions=[],
-                 world_state: dict=DEFAULT_WORLD_STATE):
+    def __init__(self, name: str, sensors: Sensors, actions: Actions, world_state: dict):
         # setup
         self.world_state = WorldState(world_state)
         self.working_memory = []
@@ -135,6 +127,10 @@ class Automaton:
         """ Executing action plan"""
 
     @machine.input()
+    def wait(self):
+        """ Input waiting_orders state """
+
+    @machine.input()
     def sense(self):
         """ Input sense state """
 
@@ -170,14 +166,56 @@ class Automaton:
         """ Actually sets goal """
         self.goal = goal
 
+    @machine.output()
+    def __reset_working_memory(self):
+        self.working_memory = []
+
     # cyclical main states
     waiting_orders.upon(sense, enter=sensing, outputs=[__sense])
     sensing.upon(plan, enter=planning, outputs=[__plan])
     planning.upon(act, enter=acting, outputs=[__act])
-    acting.upon(sense, enter=sensing, outputs=[__sense])
+    acting.upon(sense, enter=sensing, outputs=[__reset_working_memory, __sense])
     # change orders
     waiting_orders.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
     planning.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
     acting.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
+    # reset working memory from sensing
+    sensing.upon(wait, enter=waiting_orders, outputs=[__reset_working_memory])
+
+
+class AutomatonController(object):
+
+    def __init__(self, actions: Actions, sensors: Sensors, name: str, world_state: dict):
+        self.automaton = Automaton(actions=actions, sensors=sensors, name=name, world_state=world_state)
+
+    @property
+    def world_state(self):
+        return self.automaton.world_state
+
+    @world_state.setter
+    def world_state(self, value):
+        self.automaton.world_state = value
+
+    @property
+    def goal(self):
+        return self.automaton.goal
+
+    @goal.setter
+    def goal(self, value):
+        self.automaton.input_goal(value)
+
+    def start(self):
+        while True:
+            self.automaton.sense()
+            if self.automaton.world_state != self.goal:
+                print('World state differs from goal: \nState: {}\nGoal: {}'.format(self.automaton.world_state, self.goal))
+                print('Need to find an action plan')
+                self.automaton.plan()
+                print('Plain found. Will execute the action plan: {}'.format(self.automaton.action_plan))
+                self.automaton.act()
+            else:
+                print('World state equals to goal: {}'.format(self.goal))
+                self.automaton.wait()
+            sleep(5)
 
 
