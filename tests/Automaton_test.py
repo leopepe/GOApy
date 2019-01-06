@@ -1,4 +1,7 @@
+from os import path
 import unittest
+import subprocess
+from pprint import PrettyPrinter
 from Goap.Action import Actions
 from Goap.Sensor import Sensors
 from Goap.Automaton import Automaton
@@ -6,52 +9,97 @@ from Goap.Automaton import Automaton
 
 class AutomatonTest(unittest.TestCase):
 
+    @staticmethod
+    def __reset_environment():
+        if path.isdir('/tmp/goap_tmp'):
+            subprocess.call(['rm', '-rf', '/tmp/goap_tmp'])
+
+    def __print(self):
+        self.print.pprint(
+            'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(self.automaton.world_state,
+                                                                        self.automaton.action_plan,
+                                                                        self.automaton.actions_response)
+        )
+
     def setUp(self):
+        self.__reset_environment()
+        self.print = PrettyPrinter(indent=4)
         self.actions = Actions()
         self.sensors = Sensors()
-        self.automaton = Automaton()
-
-    def test_all(self):
-        from pprint import PrettyPrinter
-        pp = PrettyPrinter(indent=4)
-        world_state_matrix = {
-            "tmp_dir_state": 'Unknown',
-            "print_content": 'Unknown',
-        }
-        goal = {
-            "tmp_dir_state": "available",
-            "db_state": "available",
-        }
-        self.actions.add(
-            name='ListTmpDir',
-            pre_conditions={'tmp_dir_state': 'exist', 'print_content': 'not_exist'},
-            effects={'tmp_dir_state': 'exist', 'print_content': 'printed'},
-            shell='ls -ltr "/tmp/goap_tmp"'
+        self.sensors.add(
+            name='SenseTmpDirState',
+            shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
+            binding='tmp_dir_state'
+        )
+        self.sensors.add(
+            name='SenseTmpDirContent',
+            shell='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"',
+            binding='tmp_dir_content'
         )
         self.actions.add(
             name='CreateTmpDir',
-            pre_conditions={'tmp_dir_state': 'exist', 'print_content': 'not_exist'},
-            effects={'tmp_dir_state': 'exist', 'print_content': 'printed'},
-            shell='ls -ltr "/tmp/goap_tmp"'
+            pre_conditions={'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'},
+            effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
+            shell='mkdir -p /tmp/goap_tmp'
         )
-        self.sensors.add(
-            name='SenseTmpDirState',
-            shell='ls -ltrd /tmp/goap_tmp',
-            binding='tmp_dir_state'
+        self.actions.add(
+            name='CreateToken',
+            pre_conditions={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
+            effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'},
+            shell='touch /tmp/goap_tmp/.token'
         )
-        ai = Automaton(name='infra_builder', actions=aws_actions, sensors=aws_sensors, world_state=world_state_matrix)
+        world_state_matrix = {
+            "tmp_dir_state": 'Unknown',
+            "tmp_dir_content": 'Unknown',
+        }
+        self.automaton = Automaton(
+            name='directory_watcher',
+            actions=self.actions,
+            sensors=self.sensors,
+            world_state=world_state_matrix
+        )
+
+    def test_planning(self):
+        self.__reset_environment()
+        goal = {
+            "tmp_dir_state": "exist",
+            "tmp_dir_content": "token_found",
+        }
+        self.automaton.input_goal(goal)
+        self.automaton.sense()
+        self.automaton.plan()
+        assert self.automaton.action_plan == [
+            (0, 1, {'object': self.actions.get('CreateTmpDir')}),
+            (1, 2, {'object': self.actions.get('CreateToken')})
+        ]
+
+    def test_sensing(self):
+        self.__reset_environment()
+        goal = {
+            "tmp_dir_state": "exist",
+            "tmp_dir_content": "token_found",
+        }
+        self.automaton.input_goal(goal)
+        self.automaton.sense()
+        self.__print()
+        assert self.automaton.world_state == {'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'}
+
+    def test_all(self):
+        self.__reset_environment()
+        goal = {
+            "tmp_dir_state": "exist",
+            "tmp_dir_content": "token_found",
+        }
         # Control
         # what is the environment status? what does the sensors return? ai has a goal?
         # goal = priorities # object not working returning object rather then dict
-        ai.input_goal(goal)
-        ai.sense()
-        pp.pprint(
-            'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan,
-                                                                        ai.actions_response)
-        )
-        ai.plan()
-        ai.act()
-        pp.pprint(
-            'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan,
-                                                                        ai.actions_response)
-        )
+        self.automaton.input_goal(goal)
+        self.automaton.sense()
+        self.__print()
+        self.automaton.plan()
+        self.automaton.act()
+        self.__print()
+        self.automaton.sense()
+        self.__print()
+        assert self.automaton.world_state == goal
+
