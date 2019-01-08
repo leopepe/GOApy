@@ -9,5 +9,6 @@ branches:
   - /^v\d+\.\d+\.\d+$/
 script:
   - make test
+  - make pytest
 after_success:
   - coveralls
