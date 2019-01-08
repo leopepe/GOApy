@@ -1,9 +1,13 @@
 language: python
 python:
   - "3.7-dev"
+install:
+  - pip install coveralls
 branches:
   only:
   - master
   - /^v\d+\.\d+\.\d+$/
 script:
   - make test
+after_success:
+  - coveralls
