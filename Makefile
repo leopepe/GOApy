@@ -19,6 +19,9 @@ all: venv install-in-venv
 
 test: venv install-in-venv unittest
 
+pytest: install-pytest
+	pytest tests/
+
 docker-all: pre-build docker-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
 	push do-push post-push
 
@@ -29,6 +32,9 @@ pre-build:
 post-build:
 
 post-push:
+
+install-pytest:
+	pip install pytest
 
 container-run:
 	@echo "Go Go Go..."

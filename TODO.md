@@ -1,5 +1,8 @@
 # TODO
 
+* Build with travis-ci
+* Enable coveralls.io
+* Full test coverage: Create unittests to all classes and methods (Need to check real coverage)
 * Logging (Feature toggle to enable logging activities of the AI)
 * Pants: use pex to package the project
 * Create real examples with real world scenarios/test cases. Now it is possible to use the lib in experimental tests using real actions and sensors.
@@ -13,7 +16,6 @@
 
 # DONE: v0.2.0
 * Testing: implement unittests for all classes
-* Full test coverage: Create unittests to all classes and methods (Need to check real coverage)
 
 # DONE: v0.1.0
 * Action.py must implement exec() method. It will be used by the Planner to actually execute the action itself and change the environment.
