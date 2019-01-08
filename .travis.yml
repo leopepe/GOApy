@@ -3,12 +3,12 @@ python:
   - "3.7-dev"
 install:
   - pip install coveralls
+  - pip install -r requirements
 branches:
   only:
   - master
   - /^v\d+\.\d+\.\d+$/
 script:
   - make test
-  - make pytest
 after_success:
   - coveralls
