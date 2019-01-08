@@ -17,10 +17,7 @@ PYTHON=./venv/bin/python${PYTHON_VERSION}
 
 all: venv install-in-venv
 
-test: venv install-in-venv unittest
-
-pytest: venv install-in-venv install-pytest
-	pytest tests/
+test: unittest pytest test-coverage
 
 docker-all: pre-build docker-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
 	push do-push post-push
@@ -32,9 +29,6 @@ pre-build:
 post-build:
 
 post-push:
-
-install-pytest:
-	pip install pytest
 
 container-run:
 	@echo "Go Go Go..."
@@ -116,6 +110,9 @@ install-in-venv: venv
 clean-venv:
 	rm -rf venv/
 
+install-pytest: venv install-in-venv
+	pip install pytest
+
 unittest:
 	echo "Action Class Unittests"
 	$(PYTHON) -m unittest tests/Action_test.py
@@ -125,3 +122,13 @@ unittest:
 	$(PYTHON) -m unittest tests/Automaton_test.py
 	echo "Fullstack Unittests"
 	$(PYTHON) -m unittest tests/Planner_test.py
+
+install-coveralls: venv install-in-venv
+	pip install coveralls
+
+pytest: venv install-in-venv install-pytest
+	pytest tests/
+
+test-coverage: install-coveralls
+	coverage run --source=Goap/ setup.py test
+
