@@ -113,7 +113,7 @@ clean-venv:
 install-pytest: venv install-in-venv
 	pip install pytest
 
-unittest:
+unittest: venv install-in-venv
 	echo "Action Class Unittests"
 	$(PYTHON) -m unittest tests/Action_test.py
 	echo "Sensor Class Unittests"
