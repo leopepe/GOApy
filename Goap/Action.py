@@ -13,7 +13,7 @@ class Action:
         self.effects = effects
 
     def __str__(self):
-        return self.name
+        return '{}, {}, {}'.format(self.name, self.pre_conditions, self.effects)
 
     def __repr__(self):
         return self.__str__()
