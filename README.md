@@ -1,8 +1,12 @@
-# GOAPy [![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.0)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.0)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.0)
+# GOAPy 
+[![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.0)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.0)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.0)
+
+**Version**: 0.2.0
 
 ![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
 
 ***Goal-Oriented Action Planning (GOAP) implementation in Python***
+
 
 ## Introduction
 
@@ -83,8 +87,4 @@ def main():
 if __name__ == '__main__':
     main()
 ```
-
-## Version
-
-v0.2.0
 

@@ -6,7 +6,7 @@ from Goap.Automaton import AutomatonController
 def setup_sensors():
     sensors = Sensors()
     sensors.add(
-        name='SenseTmpDirState',
+        name='SenseGitRepo',
         shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
         binding='tmp_dir_state'
     )
@@ -21,15 +21,21 @@ def setup_sensors():
 def setup_actions():
     actions = Actions()
     actions.add(
-        name='CreateTmpDir',
-        pre_conditions={'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'},
-        effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
+        name='CloneGitRepo',
+        pre_conditions={},
+        effects={},
         shell='mkdir -p /tmp/goap_tmp'
     )
     actions.add(
-        name='CreateToken',
-        pre_conditions={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
-        effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'},
+        name='BuildProject',
+        pre_conditions={},
+        effects={},
+        shell='touch /tmp/goap_tmp/.token'
+    )
+    actions.add(
+        name='NotifyBuild',
+        pre_conditions={},
+        effects={},
         shell='touch /tmp/goap_tmp/.token'
     )
     return actions
@@ -37,8 +43,9 @@ def setup_actions():
 
 def setup_automaton():
     world_state_matrix = {
-        "tmp_dir_state": 'Unknown',
-        "tmp_dir_content": 'Unknown',
+        "git_repo_updated": 'Unknown',
+        "build_project": 'Unknown',
+        "notify_build": 'Unknown',
     }
     automaton = AutomatonController(
         name='directory_watcher',
