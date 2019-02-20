@@ -33,7 +33,7 @@ class Sensor:
 
 class SensorResponse:
 
-    def __init__(self, name: str, sensor_type: str, return_code: str, stdout: str='', stderr: str=''):
+    def __init__(self, name: str, sensor_type: str, return_code: str, stdout: str = '', stderr: str = ''):
         """
 
         :param name:
@@ -62,7 +62,7 @@ class SensorResponse:
 class ShellSensor(Sensor):
     """ Shell Sensor object factory """
 
-    def __init__(self, binding: str, name: str, shell: str=None):
+    def __init__(self, binding: str, name: str, shell: str = None):
         self.response = None
         self.type = 'shell'
         self.shell = shell
