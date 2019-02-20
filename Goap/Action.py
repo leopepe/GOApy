@@ -13,7 +13,8 @@ class Action:
         self.effects = effects
 
     def __str__(self):
-        return '{}, {}, {}'.format(self.name, self.pre_conditions, self.effects)
+        # return '{}, {}, {}'.format(self.name, self.pre_conditions, self.effects)
+        return self.name
 
     def __repr__(self):
         return self.__str__()
@@ -130,9 +131,11 @@ class Actions:
                 result = action
         return result
 
-    def get_action_by_pre_condition(self, pre_conditions):
-        result = [action for action in self.actions if action.pre_conditions == pre_conditions]
-        return result
+    def get_by_req_eff(self, pre_conditions: dict, effects: dict):
+        # result = [action for action in self.actions if action.pre_conditions == pre_conditions]
+        for action in self.actions:
+            if action.pre_conditions == pre_conditions and action.effects == effects:
+                return action
 
     def all_possible_states(self):
         state_grid = []
