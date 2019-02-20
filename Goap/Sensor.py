@@ -98,7 +98,7 @@ class ShellSensor(Sensor):
 
 class Sensors:
 
-    def __init__(self, sensors: list=[]):
+    def __init__(self, sensors: list = []):
         """ Collection of sensors, adds only unique sensors
 
         :param sensors: List containing the sensor objects
@@ -132,13 +132,6 @@ class Sensors:
             output.append(s.__repr__())
         return str(output)
 
-    def get(self, name):
-        result = None
-        for sensor in self.sensors:
-            if sensor.name == name:
-                result = sensor
-        return result
-
     def __add_shell_sensor(self, name, shell, binding):
         if not ShellSensor(name=name, shell=shell, binding=binding) in self.sensors:
             self.sensors.append(ShellSensor(name=name, shell=shell, binding=binding))
@@ -147,6 +140,13 @@ class Sensors:
 
     def __add_obj_sensor(self, name, obj, binding):
         raise NotImplementedError
+
+    def get(self, name):
+        result = None
+        for sensor in self.sensors:
+            if sensor.name == name:
+                result = sensor
+        return result
 
     def add(self, **kwargs):
         if kwargs.get('shell') and kwargs.get('obj'):
