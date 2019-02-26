@@ -135,7 +135,7 @@ class Planner:
 
         :return: None
         """
-        states = self.actions.all_possible_states()
+        states = self.actions.actions_attributes()
         # add nodes (idx: int, state: dict)
         [self.graph.add_node(idx, attr_dict=state) for idx, state in enumerate(states)]
         self.nodes = self.graph.nodes(data=True)
