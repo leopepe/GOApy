@@ -1,19 +1,18 @@
 import subprocess
 from filecmp import cmp
-from json import dumps
 
 from Goap.Errors import *
 
 
 class Action:
 
-    def __init__(self, name: str, pre_conditions: dict, effects: dict):
+    def __init__(self, name: str, pre_conditions: dict, effects: dict, cost: float):
         self.name = name
         self.pre_conditions = pre_conditions
         self.effects = effects
+        self.cost = cost
 
     def __str__(self):
-        # return '{}, {}, {}'.format(self.name, self.pre_conditions, self.effects)
         return self.name
 
     def __repr__(self):
@@ -35,7 +34,7 @@ class Action:
 
 class ActionResponse:
 
-    def __init__(self, name: str, action_type: str, return_code: str, stdout: str='', stderr: str=''):
+    def __init__(self, name: str, action_type: str, return_code: str, stdout: str = '', stderr: str = ''):
         """
         
         :param name: 
@@ -66,11 +65,11 @@ class ActionResponse:
 
 class ShellAction(Action):
 
-    def __init__(self, name: str, pre_conditions: dict, effects: dict, shell: str):
+    def __init__(self, name: str, pre_conditions: dict, effects: dict, shell: str, cost: float = 0.0):
         self.response = {}
         self.type = 'shell'
         self.shell = shell
-        Action.__init__(self, name=name, pre_conditions=pre_conditions, effects=effects)
+        Action.__init__(self, name=name, pre_conditions=pre_conditions, effects=effects, cost=cost)
 
     def exec(self):
         cmd = self.shell
@@ -131,26 +130,21 @@ class Actions:
                 result = action
         return result
 
-    def get_by_req_eff(self, pre_conditions: dict, effects: dict):
-        # result = [action for action in self.actions if action.pre_conditions == pre_conditions]
+    def get_by_pre_condition(self, pre_conditions: dict):
         for action in self.actions:
-            if action.pre_conditions == pre_conditions and action.effects == effects:
+            if action.pre_conditions == pre_conditions:
                 return action
 
-    def all_possible_states(self):
-        state_grid = []
-        for a in self.actions:
-            if a.pre_conditions not in state_grid:
-                state_grid.append(a.pre_conditions)
-            if a.effects not in state_grid:
-                state_grid.append(a.effects)
-        return state_grid
+    def get_by_effect(self, effects: dict):
+        for action in self.actions:
+            if action.effects == effects:
+                return action
 
     def __add_shell_action(self, name, shell, pre_conditions, effects):
         if not ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects) in self.actions:
             self.actions.append(ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects))
         else:
-            raise actionAlreadyInCollectionError
+            raise ActionAlreadyInCollectionError
 
     def __add_obj_action(self, name, obj, pre_conditions, effects):
         raise NotImplementedError
