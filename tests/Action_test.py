@@ -21,8 +21,8 @@ class ActionTest(unittest.TestCase):
             effects={'vpc': True, 'db': True, 'app': False},
             shell='awscli vpc create'
         )
-        assert "CreateVPC, {'vpc': False, 'db': False, 'app': False}, {'vpc': True, 'db': False, 'app': False}" == str(self.actions.get(name='CreateVPC'))
-        assert "CreateDB, {'vpc': True, 'db': False, 'app': False}, {'vpc': True, 'db': True, 'app': False}" == str(self.actions.get(name='CreateDB'))
+        assert "CreateVPC" == str(self.actions.get(name='CreateVPC'))
+        assert "CreateDB" == str(self.actions.get(name='CreateDB'))
 
     def test_remove_action_success(self):
         self.actions.add(
@@ -38,7 +38,7 @@ class ActionTest(unittest.TestCase):
             shell='awscli vpc create'
         )
         self.actions.remove(name='CreateVPC')
-        assert "CreateDB, {'vpc': True, 'db': False, 'app': False}, {'vpc': True, 'db': True, 'app': False}" == str(self.actions.get(name='CreateDB'))
+        assert "CreateDB" == str(self.actions.get(name='CreateDB'))
 
     def test_remove_action_error(self):
         self.actions.add(
