@@ -67,4 +67,11 @@ class PlannerTest(unittest.TestCase):
             (1, 2, {'object': self.actions.get('CreateToken')})
         ]
 
+    def test_all_possible_states(self):
+        assert self.planner.actions.actions_attributes() == [
+            {'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'},
+            {'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
+            {'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'}
+        ]
+
 
