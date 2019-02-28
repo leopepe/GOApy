@@ -30,3 +30,17 @@ class WorldState(dict):
     def __delitem__(self, key):
         super(WorldState, self).__delitem__(key)
         del self.__dict__[key]
+
+    def __le__(self, other):
+        for k, v in other.__dict__():
+            if other.__dict__()['k'] != v:
+                return False
+        return True
+
+    def __eq__(self, other):
+        if other.items() != self.items():
+            return False
+        else:
+            return True
+
+
