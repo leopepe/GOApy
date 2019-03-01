@@ -1,5 +1,5 @@
 from Goap.WorldState import WorldState
-from Goap.Action import Actions, Action
+from Goap.Action import Actions
 import networkx as nx
 
 
@@ -49,6 +49,10 @@ class Graph(object):
         else:
             return False
 
+    @property
+    def size(self):
+        return len(self.directed.nodes)
+
     def __add_node(self, node: Node, attribute: dict):
         self.directed.add_node(node, attr_dict=attribute, label=node.name, object=node)
 
@@ -61,31 +65,26 @@ class Graph(object):
     def add_edges_from(self, edges: list):
         [self.__add_edge(edge=edge) for edge in edges]
 
+    def edge_between_nodes(self, src: str, dst: str, data: bool = True):
+        return self.directed.edges(nbunch=(src, dst), data=data)
+
     def nodes(self, data: bool = True):
         return self.directed.nodes(data=data)
 
     def edges(self, data: bool = True):
         return self.directed.edges(data=data)
 
-    def edge_between_nodes(self, src: str, dst: str, data: bool = True):
-        return self.directed.edges(nbunch=(src, dst), data=data)
-
-    def path(self, src: dict, dst: dict):
-        if not self.__is_dst(src, dst):
-            return nx.astar_path(self.directed, self.get_node(attr=src), self.get_node(attr=dst))
-
-    def get_node(self, attr: dict = None):
+    def search_node(self, attr: dict = None):
         result = None
         if attr:
             for node in self.directed.nodes(data=True):
                 if node[1]['attr_dict'].items() == attr.items():
                     result = node[0]
-        print(type(result))
         return result
 
-    @property
-    def size(self):
-        return len(self.directed.nodes)
+    def path(self, src: dict, dst: dict):
+        if not self.__is_dst(src, dst):
+            return nx.astar_path(self.directed, self.search_node(attr=src), self.search_node(attr=dst))
 
     def plot(self, file_path: str):
         try:
@@ -130,8 +129,7 @@ class Planner(object):
         for d in l:
             if dic == d:
                 return True
-            else:
-                return False
+        return False
 
     @staticmethod
     def to_str(dic):
@@ -155,15 +153,15 @@ class Planner(object):
     def __generate_transitions(actions, states):
         edges = []
         pre, suc = None, None
-        for action in actions:
-            for state in states:
+        for state in states:
+            for action in actions:
                 if action.pre_conditions.items() <= state.attributes.items():
                     pre = state
                 if action.effects.items() <= state.attributes.items():
                     suc = state
-            if pre and suc:
-                edges.append(Edge(name=action.name, predecessor=pre, successor=suc, cost=action.cost))
-                pre, suc = None, None
+                if pre and suc:
+                    edges.append(Edge(name=action.name, predecessor=pre, successor=suc, cost=action.cost))
+                    pre, suc = None, None
         return edges
 
     @staticmethod
@@ -182,10 +180,11 @@ class Planner(object):
 
 
 if __name__ == '__main__':
-    # ws = WorldState(lv_need_expansion=True, vg_need_expansion=False)
+    # constants
     init_ws = WorldState(lv_need_expansion=False, vg_need_expansion=False)
     ws = WorldState(lv_need_expansion=True, vg_need_expansion=True)
     gs = WorldState(lv_need_expansion=False, vg_need_expansion=False)
+    #
     acts = Actions()
     acts.add(
         name='ExpandLV',
@@ -228,7 +227,6 @@ if __name__ == '__main__':
     print(p.graph.edges(data=True))
     # for n in p.graph.nodes(data=True):
     #     print(n)
-    # print(p.actions_attributes(world_state, actions))
     # print(world_state)
     # print(p.graph.edge_between_nodes(src='{lv_state: out_of_capacity, vg_state: ok}', dst='{lv_state: ok}'))
     print(p.graph.path(ws, gs))
