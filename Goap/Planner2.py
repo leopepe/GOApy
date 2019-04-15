@@ -42,10 +42,17 @@ class Nodes(object):
         self.nodes.append(other)
 
     def __iter__(self):
-        return self.nodes
+        return iter(self.nodes)
 
     def add(self, other: Node):
         self.__add__(other)
+
+    def get(self, attr):
+        result = None
+        for node in self.nodes:
+            if node.attributes == attr:
+                result = node
+        return result
 
 
 class Edges(object):
@@ -61,14 +68,14 @@ class Edges(object):
         self.edges.append(other)
 
     def __iter__(self):
-        return self.edges
+        return iter(self.edges)
 
     def add(self, other: Edge):
         self.__add__(other)
 
 
 class Graph(object):
-    def __init__(self, nodes: list, edges: list):
+    def __init__(self, nodes: Nodes, edges: Edges):
         self.directed = nx.DiGraph()
         self.add_nodes_from(nodes=nodes)
         self.add_edges_from(edges=edges)
@@ -94,14 +101,19 @@ class Graph(object):
     def __add_edge(self, edge: Edge):
         self.directed.add_edge(edge.predecessor, edge.successor, object=edge.obj, weight=edge.cost, label=edge.name)
 
-    def add_nodes_from(self, nodes: list):
+    def add_nodes_from(self, nodes: Nodes):
         [self.__add_node(node, attribute=node.attributes) for node in nodes]
 
-    def add_edges_from(self, edges: list):
+    def add_edges_from(self, edges: Edges):
         [self.__add_edge(edge=edge) for edge in edges]
 
-    def edge_between_nodes(self, src: str, dst: str, data: bool = True):
-        return self.directed.edges(nbunch=(src, dst), data=data)
+    def edge_between_nodes(self, path: list, data: bool = True):
+        edges = []
+        iter_path = iter(path)
+        for i in iter_path:
+            print("ITER PATH", i, next(iter_path))
+            edges.append(self.directed.edges(nbunch=(i, next(iter_path)), data=data))
+        return edges
 
     def nodes(self, data: bool = True):
         return self.directed.nodes(data=data)
@@ -119,7 +131,8 @@ class Graph(object):
 
     def path(self, src: dict, dst: dict):
         if not self.__is_dst(src, dst):
-            return nx.astar_path(self.directed, self.search_node(attr=src), self.search_node(attr=dst))
+            # return nx.astar_path(self.directed, self.search_node(attr=src), self.search_node(attr=dst))
+            return nx.astar_path(self.directed, src, dst)
 
     def plot(self, file_path: str):
         try:
@@ -149,15 +162,18 @@ class Graph(object):
 
 class Planner(object):
 
-    def __init__(self, world_state: WorldState, actions: Actions):
+    def __init__(self, actions: Actions):
         """
         :param actions: list of actions
         """
         # init vars
-        self.world_state = world_state
+        self.goal = None
+        self.world_state = None
         self.actions = actions
-        self.states = self.__generate_states(self.actions, self.world_state)
-        self.transitions = self.__generate_transitions(self.actions, self.states)
+        # self.states = self.__generate_states(self.actions, self.world_state)
+        # self.transitions = self.__generate_transitions(self.actions, self.states)
+        self.states = Nodes()
+        self.transitions = Edges()
         self.action_plan = []
         self.graph = Graph(nodes=self.states, edges=self.transitions)
 
@@ -172,26 +188,23 @@ class Planner(object):
     def to_str(dic):
         return str(dic).replace('\'', '')
 
-    def __generate_states(self, actions, world_state):
-        states = []
-        # if not states:
-        #     states.append(Node(attributes=world_state))
-
+    def __generate_states(self, actions, world_state, goal):
+        self.states.add(Node(world_state))
+        self.states.add(Node(goal))
         for action in actions:
             pre = {**world_state, **action.pre_conditions}
             eff = {**world_state, **action.effects}
-            if not self.__isinlist(pre, states):
-                states.append(Node(attributes=pre))
-            if not self.__isinlist(eff, states):
-                states.append(Node(attributes=eff))
-        return states
+            if not self.__isinlist(pre, self.states):
+                self.states.add(Node(attributes=pre))
+            if not self.__isinlist(eff, self.states):
+                self.states.add(Node(attributes=eff))
 
     # @staticmethod
     # def __generate_transitions(actions, states):
     #     edges = []
     #     pre, suc = None, None
-    #     for state in states:
-    #         for action in actions:
+    #     for action in actions:
+    #         for state in states:
     #             if action.pre_conditions.items() <= state.attributes.items():
     #                 pre = state
     #             if action.effects.items() <= state.attributes.items():
@@ -201,20 +214,13 @@ class Planner(object):
     #                 pre, suc = None, None
     #     return edges
 
-    @staticmethod
-    def __generate_transitions(actions, states):
-        edges = []
-        pre, suc = None, None
+    def __generate_transitions(self, actions, states):
         for action in actions:
             for state in states:
                 if action.pre_conditions.items() <= state.attributes.items():
-                    pre = state
-                if action.effects.items() <= state.attributes.items():
-                    suc = state
-                if pre and suc:
-                    edges.append(Edge(name=action.name, predecessor=pre, successor=suc, cost=action.cost, obj=action))
-                    pre, suc = None, None
-        return edges
+                    attr = {**state.attributes, **action.effects}
+                    suc = self.states.get(attr)
+                    self.transitions.add(Edge(name=action.name, predecessor=state, successor=suc, cost=action.cost, obj=action))
 
     @staticmethod
     def __is_end(i: int, l: list) -> bool:
@@ -224,18 +230,26 @@ class Planner(object):
             return False
 
     def plan(self, state: dict, goal: dict) -> list:
+        self.world_state = state
+        self.goal = goal
+        self.__generate_states(self.actions, self.world_state, self.goal)
+        self.__generate_transitions(self.actions, self.states)
+        self.graph = Graph(self.states, self.transitions)
+        ws_node = self.states.get(state)
+        gs_node = self.states.get(goal)
         plan = []
+        path = []
         if state != goal:
-            path = self.graph.path(state, goal)
-            plan = self.graph.edge_between_nodes(path[0], path[1])
-        return plan
+            path = self.graph.path(ws_node, gs_node)
+            plan = self.graph.edge_between_nodes(path)
+            print(plan)
+        return path
 
 
 if __name__ == '__main__':
     # constants
-    init_ws = WorldState(lv_need_expansion=False, vg_need_expansion=False)
-    ws = WorldState(lv_need_expansion=True, vg_need_expansion=True)
-    gs = WorldState(lv_need_expansion=False, vg_need_expansion=False)
+    ws = WorldState(lv_need_expansion=True, vg_need_expansion=True, pv_need_expansion=False)
+    gs = WorldState(lv_need_expansion=False, vg_need_expansion=False, pv_need_expansion=False)
 
     def setupPlanner():
         acts = Actions()
@@ -249,7 +263,7 @@ if __name__ == '__main__':
                 'lv_need_expansion': False,
             },
             shell='echo expand_lv',
-            cost=1.0
+            cost=1.5
         )
         acts.add(
             name='ExpandVG',
@@ -259,21 +273,21 @@ if __name__ == '__main__':
             effects={
                 'vg_need_expansion': False,
             },
-            shell='echo expand_vg'
+            shell='echo expand_vg',
+            cost=1.0,
         )
         acts.add(
-            name='PurgeOldFiles',
+            name='ExpandPV',
             pre_conditions={
-                'lv_need_expansion': True,
-                'vg_need_expansion': True,
+                'pv_need_expansion': True,
             },
             effects={
-                'lv_need_expansion': False,
+                'pv_need_expansion': False,
             },
-            shell='echo purge_old_files',
-            cost=1.5,
+            shell='echo expand_pv',
+            cost=0.5,
         )
-        return Planner(world_state=init_ws, actions=acts)
+        return Planner(actions=acts)
 
     p = setupPlanner()
 
@@ -300,7 +314,7 @@ if __name__ == '__main__':
 
     plotGraph()
 
-    printPath()
+    # printPath()
 
     printPlan()
 
