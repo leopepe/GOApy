@@ -45,7 +45,8 @@ class Nodes(object):
         return iter(self.nodes)
 
     def add(self, other: Node):
-        self.__add__(other)
+        if other not in self.nodes:
+            self.__add__(other)
 
     def get(self, attr):
         result = None
@@ -108,12 +109,7 @@ class Graph(object):
         [self.__add_edge(edge=edge) for edge in edges]
 
     def edge_between_nodes(self, path: list, data: bool = True):
-        edges = []
-        iter_path = iter(path)
-        for i in iter_path:
-            print("ITER PATH", i, next(iter_path))
-            edges.append(self.directed.edges(nbunch=(i, next(iter_path)), data=data))
-        return edges
+        return self.directed.edges(path, data=data)
 
     def nodes(self, data: bool = True):
         return self.directed.nodes(data=data)
@@ -131,7 +127,6 @@ class Graph(object):
 
     def path(self, src: dict, dst: dict):
         if not self.__is_dst(src, dst):
-            # return nx.astar_path(self.directed, self.search_node(attr=src), self.search_node(attr=dst))
             return nx.astar_path(self.directed, src, dst)
 
     def plot(self, file_path: str):
@@ -170,49 +165,19 @@ class Planner(object):
         self.goal = None
         self.world_state = None
         self.actions = actions
-        # self.states = self.__generate_states(self.actions, self.world_state)
-        # self.transitions = self.__generate_transitions(self.actions, self.states)
         self.states = Nodes()
         self.transitions = Edges()
         self.action_plan = []
         self.graph = Graph(nodes=self.states, edges=self.transitions)
-
-    @staticmethod
-    def __isinlist(dic: dict, l: list):
-        for d in l:
-            if dic == d.attributes:
-                return True
-        return False
-
-    @staticmethod
-    def to_str(dic):
-        return str(dic).replace('\'', '')
 
     def __generate_states(self, actions, world_state, goal):
         self.states.add(Node(world_state))
         self.states.add(Node(goal))
         for action in actions:
             pre = {**world_state, **action.pre_conditions}
-            eff = {**world_state, **action.effects}
-            if not self.__isinlist(pre, self.states):
-                self.states.add(Node(attributes=pre))
-            if not self.__isinlist(eff, self.states):
-                self.states.add(Node(attributes=eff))
-
-    # @staticmethod
-    # def __generate_transitions(actions, states):
-    #     edges = []
-    #     pre, suc = None, None
-    #     for action in actions:
-    #         for state in states:
-    #             if action.pre_conditions.items() <= state.attributes.items():
-    #                 pre = state
-    #             if action.effects.items() <= state.attributes.items():
-    #                 suc = state
-    #             if pre and suc:
-    #                 edges.append(Edge(name=action.name, predecessor=pre, successor=suc, cost=action.cost, obj=action))
-    #                 pre, suc = None, None
-    #     return edges
+            eff = {**pre, **action.effects}
+            self.states.add(Node(attributes=pre))
+            self.states.add(Node(attributes=eff))
 
     def __generate_transitions(self, actions, states):
         for action in actions:
@@ -221,13 +186,6 @@ class Planner(object):
                     attr = {**state.attributes, **action.effects}
                     suc = self.states.get(attr)
                     self.transitions.add(Edge(name=action.name, predecessor=state, successor=suc, cost=action.cost, obj=action))
-
-    @staticmethod
-    def __is_end(i: int, l: list) -> bool:
-        if i == len(l) - 1:
-            return True
-        else:
-            return False
 
     def plan(self, state: dict, goal: dict) -> list:
         self.world_state = state
@@ -241,14 +199,14 @@ class Planner(object):
         path = []
         if state != goal:
             path = self.graph.path(ws_node, gs_node)
+            print(path)
             plan = self.graph.edge_between_nodes(path)
-            print(plan)
-        return path
+        return plan
 
 
 if __name__ == '__main__':
     # constants
-    ws = WorldState(lv_need_expansion=True, vg_need_expansion=True, pv_need_expansion=False)
+    ws = WorldState(lv_need_expansion=True, vg_need_expansion=False, pv_need_expansion=False)
     gs = WorldState(lv_need_expansion=False, vg_need_expansion=False, pv_need_expansion=False)
 
     def setupPlanner():
@@ -269,6 +227,7 @@ if __name__ == '__main__':
             name='ExpandVG',
             pre_conditions={
                 'vg_need_expansion': True,
+                'pv_need_expansion': False,
             },
             effects={
                 'vg_need_expansion': False,
@@ -307,10 +266,10 @@ if __name__ == '__main__':
         print(ws)
 
     def printPath():
-        print(p.graph.path(ws, gs))
+        print('PATH: ', p.graph.path(ws, gs))
 
     def printPlan():
-        print(p.plan(ws, gs))
+        print('PLAN: ', p.plan(ws, gs))
 
     plotGraph()
 
@@ -318,30 +277,4 @@ if __name__ == '__main__':
 
     printPlan()
 
-    # print(p.transitions)
-    # for t in p.transitions:
-    #     print(t.obj)
 
-    # print(p.plan(ws, gs))
-    # # print(gs)
-    # # print(p.graph.get_node(gs))
-    # dir_acts = Actions()
-    # dir_acts.add(
-    #     name='CreateTmpDir',
-    #     pre_conditions={'tmp_dir_state': False, 'tmp_dir_content': False},
-    #     effects={'tmp_dir_state': True, 'tmp_dir_content': False},
-    #     shell='mkdir -p /tmp/goap_tmp'
-    # )
-    # dir_acts.add(
-    #     name='CreateToken',
-    #     pre_conditions={'tmp_dir_state': True, 'tmp_dir_content': False},
-    #     effects={'tmp_dir_state': True, 'tmp_dir_content': True},
-    #     shell='touch /tmp/goap_tmp/.token'
-    # )
-    # dir_init_ws = WorldState({"tmp_dir_state": False, "tmp_dir_content": False, })
-    # dir_gs = WorldState({"tmp_dir_state": True, "tmp_dir_content": True, })
-    # dir_handler = Planner(world_state=dir_init_ws, actions=dir_acts)
-    # print(dir_handler.graph.nodes(data=True))
-    # print(dir_handler.graph.size)
-    # print(dir_handler.graph.edges(data=True))
-    # print(dir_handler.graph.path(dir_init_ws, dir_gs))
