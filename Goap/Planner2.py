@@ -196,10 +196,8 @@ class Planner(object):
         ws_node = self.states.get(state)
         gs_node = self.states.get(goal)
         plan = []
-        path = []
         if state != goal:
             path = self.graph.path(ws_node, gs_node)
-            print(path)
             plan = self.graph.edge_between_nodes(path)
         return plan
 
