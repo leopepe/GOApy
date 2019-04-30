@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
+import Goap
+
 
 setup(
-    name='Goap',
-    version='1.1.0',
+    name=Goap.__name__,
+    version=Goap.__version__,
     packages=find_packages(),
     url='',
     license='Simplified BSD License',

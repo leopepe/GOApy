@@ -13,3 +13,5 @@ __all__ = [
     'Planner',
     'Errors',
 ]
+__version__ = '0.2.0'
+__name__ = 'Goap'
