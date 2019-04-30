@@ -6,7 +6,7 @@ botocore==1.5.14
 decorator==4.0.11
 docutils==0.13.1
 imagesize==0.7.1
-Jinja2==2.9.5
+Jinja2==2.10.1
 jmespath==0.9.1
 MarkupSafe==0.23
 networkx==1.11

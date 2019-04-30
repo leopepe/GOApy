@@ -44,3 +44,8 @@ class ActionMultipleTypeError(ActionError):
     """ Action cannot be two types at once """
     pass
 
+
+class ActionAlreadyInCollectionError(ActionError):
+    """ Action with same name already in collection """
+    pass
+

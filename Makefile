@@ -1,3 +1,5 @@
+.PHONY: all
+
 REGISTRY_HOST=docker.io
 USERNAME=$(USER)
 NAME=$(shell basename $(PWD))
@@ -10,11 +12,12 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 
 SHELL=/bin/bash
 
-PYTHON_VERSION=3.6
+PYTHON_VERSION=3.7
+PYTHON=./venv/bin/python${PYTHON_VERSION}
 
-.PHONY: all
+all: venv install-in-venv
 
-all: docker-build container-run
+test: unittest pytest test-coverage
 
 docker-all: pre-build docker-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
 	push do-push post-push
@@ -43,15 +46,13 @@ docker-build: .release
 		docker tag $(IMAGE):$(VERSION) $(IMAGE):latest ; \
 	fi
 
-.release:
+.release: test
 	@echo "release=0.0.0" > .release
 	@echo "tag=$(NAME)-0.0.0" >> .release
 	@echo INFO: .release created
 	@cat .release
 
-
 release: check-status check-release build push
-
 
 push: do-push post-push 
 
@@ -101,7 +102,33 @@ check-release: .release
 
 venv:
 	virtualenv -p python${PYTHON_VERSION} venv/
-	venv/bin/pip3 install -r requirements.txt
+	venv/bin/pip3 install -r requirements
+
+install-in-venv: venv
+	venv/bin/python setup.py install
 
 clean-venv:
 	rm -rf venv/
+
+install-pytest: venv install-in-venv
+	pip install pytest
+
+unittest: venv install-in-venv
+	echo "Action Class Unittests"
+	$(PYTHON) -m unittest tests/Action_test.py
+	echo "Sensor Class Unittests"
+	$(PYTHON) -m unittest tests/Sensor_test.py
+	echo "Automaton Class Unittests"
+	$(PYTHON) -m unittest tests/Automaton_test.py
+	echo "Fullstack Unittests"
+	$(PYTHON) -m unittest tests/Planner_test.py
+
+install-coveralls: venv install-in-venv
+	pip install coveralls
+
+pytest: venv install-in-venv install-pytest
+	pytest tests/
+
+test-coverage: install-coveralls
+	coverage run --source=Goap/ setup.py test
+

@@ -3,15 +3,9 @@ from automat import MethodicalMachine
 from Goap.Sensor import Sensors
 from Goap.Action import Actions
 from Goap.Planner import Planner
+from Goap.WorldState import WorldState
 from rx import Observable
-
-DEFAULT_WORLD_STATE = {
-    'vpc_state': 'Unknown',
-    'pub_subnet': 'Unknown',
-    'prv_subnet': 'Unknown',    # True || False
-    'db_state': 'Unknown',      # True || False
-    'app_state': 'Unknown',     # True || False
-}
+from time import sleep
 
 
 class Fact(object):
@@ -26,41 +20,6 @@ class Fact(object):
 
     def __repr__(self):
         return self.__str__()
-
-
-class WorldState(dict):
-    """
-    Example:
-    m = Map({'first_name': 'Eduardo'}, last_name='Pool', age=24, sports=['Soccer'])
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(WorldState, self).__init__(*args, **kwargs)
-        for arg in args:
-            if isinstance(arg, dict):
-                for k, v in arg.items():
-                    self[k] = v
-
-        if kwargs:
-            for k, v in kwargs.items():
-                self[k] = v
-
-    def __getattr__(self, attr):
-        return self.get(attr)
-
-    def __setattr__(self, key, value):
-        self.__setitem__(key, value)
-
-    def __setitem__(self, key, value):
-        super(WorldState, self).__setitem__(key, value)
-        self.__dict__.update({key: value})
-
-    def __delattr__(self, item):
-        self.__delitem__(item)
-
-    def __delitem__(self, key):
-        super(WorldState, self).__delitem__(key)
-        del self.__dict__[key]
 
 
 class AutomatonPriorities:
@@ -83,11 +42,7 @@ class Automaton:
 
     machine = MethodicalMachine()
 
-    def __init__(self,
-                 name: str='Automaton',
-                 sensors: Sensors=[],
-                 actions: Actions=[],
-                 world_state: dict=DEFAULT_WORLD_STATE):
+    def __init__(self, name: str, sensors: Sensors, actions: Actions, world_state: dict):
         # setup
         self.world_state = WorldState(world_state)
         self.working_memory = []
@@ -109,7 +64,7 @@ class Automaton:
         )
         Observable.from_(self.working_memory). \
             subscribe(
-            lambda fact: setattr(self.world_state, fact.binding, fact.data.output)
+            lambda fact: setattr(self.world_state, fact.binding, fact.data.response)
         )
 
     def __set_action_plan(self):
@@ -117,8 +72,7 @@ class Automaton:
         return self.action_plan
 
     def __execute_action_plan(self):
-        # [print(action[2]['object']) for action in self.action_plan]
-        self.actions_response = [self.actions.get(action[2]['object'].exec()) for action in self.action_plan]
+        self.actions_response = [action[2]['object'].exec() for action in self.action_plan]
         return 'Action planning execution results: {}'.format(self.action_plan_response)
 
     @machine.state(initial=True)
@@ -136,6 +90,10 @@ class Automaton:
     @machine.state()
     def acting(self):
         """ Executing action plan"""
+
+    @machine.input()
+    def wait(self):
+        """ Input waiting_orders state """
 
     @machine.input()
     def sense(self):
@@ -173,94 +131,56 @@ class Automaton:
         """ Actually sets goal """
         self.goal = goal
 
+    @machine.output()
+    def __reset_working_memory(self):
+        self.working_memory = []
+
     # cyclical main states
     waiting_orders.upon(sense, enter=sensing, outputs=[__sense])
     sensing.upon(plan, enter=planning, outputs=[__plan])
     planning.upon(act, enter=acting, outputs=[__act])
-    acting.upon(sense, enter=sensing, outputs=[__sense])
+    acting.upon(sense, enter=sensing, outputs=[__reset_working_memory, __sense])
     # change orders
     waiting_orders.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
     planning.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
     acting.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
+    # reset working memory from sensing
+    sensing.upon(wait, enter=waiting_orders, outputs=[__reset_working_memory])
 
 
-if __name__ == '__main__':
-    """ proposed world_state:
-    
-        world_state_matrix = {
-            "vpc_state": 'Unknown',
-            "private_subnet": 'Unknown',
-            "public_subnet": 'Unknown',
-            "internet_access": 'Unknown',
-            "access_to_vpn": 'Unknown',
-            "db_state": 'Unknown',
-            "db_type": 'Unknown',
-            "app_state": 'Unknown',
-            "app_type": 'Unknown',
-            "node_count": 0
-    }
-    
-    """
+class AutomatonController(object):
 
-    from pprint import PrettyPrinter
-    pp = PrettyPrinter(indent=4)
-    priorities = AutomatonPriorities([
-        {'vpc_state': 'available', 'db_state': 'available', 'app_state': 'running'}
-    ])
-    world_state_matrix = {
-        "vpc_state": 'Unknown',
-        "db_state": 'Unknown',
-        "app_state": 'Unknown',
-    }
-    goal = {
-        "vpc_state": "available",
-        "db_state": "available",
-        "app_state": "running",
-    }
-    aws_actions = Actions()
-    aws_actions.add(
-        name='CreateVPC',
-        pre_conditions={'vpc_state': 'unavailable', 'db_state': 'unavailable', 'app_state': 'unavailable'},
-        effects={'vpc_state': 'available', 'db_state': 'unavailable', 'app_state': 'unavailable'},
-        shell='echo "vpc created"'
-    )
-    aws_actions.add(
-        name='CreateDB',
-        pre_conditions={'vpc_state': 'available', 'db_state': 'unavailable', 'app_state': 'unavailable'},
-        effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'unavailable'},
-        shell='echo "db created"'
-    )
-    aws_actions.add(
-        name='CreateApp',
-        pre_conditions={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'unavailable'},
-        effects={'vpc_state': 'available', 'db_state': 'available', 'app_state': 'running'},
-        shell='echo "app created" > /tmp/CreateApp.out'
-    )
-    aws_sensors = Sensors()
-    aws_sensors.add(
-        name='FindProjectVPC',
-        shell='aws ec2 describe-vpcs --filters "Name=tag-key,Values=Name","Name=tag-value,Values=vpc_plataformas_stg" --query "Vpcs[].State" --output text',
-        binding='vpc_state'
-    )
-    aws_sensors.add(
-        name='FindProjectDB',
-        shell='aws rds describe-db-instances --filters "Name=db-instance-id,Values=rds-oraculo" --query "DBInstances[].DBInstanceStatus" --output text',
-        binding='db_state'
-    )
-    aws_sensors.add(
-        name='CheckAppState',
-        shell='echo "unavailable"',
-        binding='app_state'
-    )
-    ai = Automaton(name='infra_builder', actions=aws_actions, sensors=aws_sensors, world_state=world_state_matrix)
-    # Control
-    # what is the environment status? what does the sensors return? ai has a goal?
-    # goal = priorities # object not working returning object rather then dict
-    ai.input_goal(goal)
-    ai.sense()
-    ai.plan()
-    ai.act()
-    pp.pprint(
-        'Acknowledge world: {}, Action Plan: {}, Result: {}'.format(ai.world_state, ai.action_plan, ai.actions_response)
-    )
+    def __init__(self, actions: Actions, sensors: Sensors, name: str, world_state: dict):
+        self.automaton = Automaton(actions=actions, sensors=sensors, name=name, world_state=world_state)
+
+    @property
+    def world_state(self):
+        return self.automaton.world_state
+
+    @world_state.setter
+    def world_state(self, value):
+        self.automaton.world_state = value
+
+    @property
+    def goal(self):
+        return self.automaton.goal
+
+    @goal.setter
+    def goal(self, value):
+        self.automaton.input_goal(value)
+
+    def start(self):
+        while True:
+            self.automaton.sense()
+            if self.automaton.world_state != self.goal:
+                print('World state differs from goal: \nState: {}\nGoal: {}'.format(self.automaton.world_state, self.goal))
+                print('Need to find an action plan')
+                self.automaton.plan()
+                print('Plain found. Will execute the action plan: {}'.format(self.automaton.action_plan))
+                self.automaton.act()
+            else:
+                print('World state equals to goal: {}'.format(self.goal))
+                self.automaton.wait()
+            sleep(5)
+
 

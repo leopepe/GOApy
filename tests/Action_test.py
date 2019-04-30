@@ -1,6 +1,6 @@
 import unittest
 
-from Goap import Actions
+from Goap.Action import Actions
 
 
 class ActionTest(unittest.TestCase):
@@ -9,43 +9,49 @@ class ActionTest(unittest.TestCase):
         self.actions = Actions()
 
     def test_add_action_success(self):
-        self.actions.add_action(
+        self.actions.add(
             name='CreateVPC',
             pre_conditions={'vpc': False, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': False, 'app': False}
+            effects={'vpc': True, 'db': False, 'app': False},
+            shell='awscli vpc create'
         )
-        self.actions.add_action(
+        self.actions.add(
             name='CreateDB',
             pre_conditions={'vpc': True, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': True, 'app': False}
+            effects={'vpc': True, 'db': True, 'app': False},
+            shell='awscli vpc create'
         )
-        assert '{"Name": "CreateVPC"}' == str(self.actions.get(name='CreateVPC'))
-        assert '{"Name": "CreateDB"}' == str(self.actions.get(name='CreateDB'))
+        assert "CreateVPC" == str(self.actions.get(name='CreateVPC'))
+        assert "CreateDB" == str(self.actions.get(name='CreateDB'))
 
     def test_remove_action_success(self):
-        self.actions.add_action(
+        self.actions.add(
             name='CreateVPC',
             pre_conditions={'vpc': False, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': False, 'app': False}
+            effects={'vpc': True, 'db': False, 'app': False},
+            shell='awscli vpc create'
         )
-        self.actions.add_action(
+        self.actions.add(
             name='CreateDB',
             pre_conditions={'vpc': True, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': True, 'app': False}
+            effects={'vpc': True, 'db': True, 'app': False},
+            shell='awscli vpc create'
         )
-        self.actions.remove_action(name='CreateVPC')
-        assert '{"Name": "CreateDB"}' == str(self.actions.get(name='CreateDB'))
+        self.actions.remove(name='CreateVPC')
+        assert "CreateDB" == str(self.actions.get(name='CreateDB'))
 
     def test_remove_action_error(self):
-        self.actions.add_action(
+        self.actions.add(
             name='CreateVPC',
             pre_conditions={'vpc': False, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': False, 'app': False}
+            effects={'vpc': True, 'db': False, 'app': False},
+            shell='awscli vpc create'
         )
-        self.actions.add_action(
+        self.actions.add(
             name='CreateDB',
             pre_conditions={'vpc': True, 'db': False, 'app': False},
-            effects={'vpc': True, 'db': True, 'app': False}
+            effects={'vpc': True, 'db': True, 'app': False},
+            shell='awscli vpc create'
         )
-        self.actions.remove_action(name='CreateAPP')
+        self.actions.remove(name='CreateAPP')
         assert 'None' == str(self.actions.get(name='CreateAPP'))

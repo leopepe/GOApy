@@ -1,319 +1,278 @@
-import json
-
-from Action import Actions
-import Errors
+from Goap.WorldState import WorldState
+from Goap.Action import Actions
 import networkx as nx
-# import matplotlib
 
 
-class Planner:
-    """
-    from Goap.Action import Actions
+class Node(object):
 
-    # ACTIONS
-    actions = Actions()
-    # VPC/Network set
-    actions.add_action(
-        name='CreateVPC',
-        pre_conditions={'vpc': False, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
-    )
-    # DB set
-    actions.add_action(
-        name='CreateDB',
-        pre_conditions={'vpc': True, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    actions.add_action(
-        name='StopDB',
-        pre_conditions={'vpc': True, 'db': 'started', 'app': False},
-        effects={'vpc': True, 'db': 'stopped', 'app': False}
-    )
-    actions.add_action(
-        name='StartDB',
-        pre_conditions={'vpc': True, 'db': 'stopped', 'app': False},
-        effects={'vpc': True, 'db': 'started', 'app': False}
-    )
-    actions.add_action(
-        name='DestroyDB',
-        pre_conditions={'vpc': True, 'db': 'not_health', 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
-    )
-    # APP set
-    actions.add_action(
-        name='CreateApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': True}
-    )
-    actions.add_action(
-        name='StartApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': 'started'}
-    )
-    actions.add_action(
-        name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'started'},
-        effects={'vpc': True, 'db': True, 'app': 'stopped'}
-    )
-    actions.add_action(
-        name='DestroyApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'not_health'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    # Instantiate planner
-    planner = Planner(
-        actions=actions,
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
-    )
-    print('Graph.Nodes: ', planner.graph.nodes(data=True))
-    print('Graph.Edges: ', planner.graph.edges(data=True))
-    print('Action sequence')
-    pprint(planner.action_plan)
-    # Plan again
-    planning = planner.planning(
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
-    )
-    planning = planner.planning(
-        init_state={'vpc': True, 'db': False, 'app': False}, goal={'vpc': True, 'db': True, 'app': True})
-    print('PATH: ', planner.path)
-    print('Action sequence: ')
-    pprint(planning, indent=2)
+    def __init__(self, attributes: dict, weight: float = 0.0):
+        self.attributes = attributes
+        self.weight = weight
+        self.name = str(self.attributes)
 
-    Graph.Nodes:  [(0, {'db': False, 'app': False, 'vpc': False}), (1, {'db': False, 'app': False, 'vpc': True}), (2, {'db': True, 'app': False, 'vpc': True}), (3, {'db': 'started', 'app': False, 'vpc': True}), (4, {'db': 'stopped', 'app': False, 'vpc': True}), (5, {'db': 'not_health', 'app': False, 'vpc': True}), (6, {'db': True, 'app': True, 'vpc': True}), (7, {'db': True, 'app': 'stopped', 'vpc': True}), (8, {'db': True, 'app': 'started', 'vpc': True}), (9, {'db': True, 'app': 'not_health', 'vpc': True})]
-    Graph.Edges:  [(0, 1, {'object': {"Conditions": {"db": false, "app": false, "vpc": false}, "Name": "CreateVPC", "Effects": {"db": false, "app": false, "vpc": true}}}), (1, 2, {'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}), (2, 6, {'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}}), (3, 4, {'object': {"Conditions": {"db": "started", "app": false, "vpc": true}, "Name": "StopDB", "Effects": {"db": "stopped", "app": false, "vpc": true}}}), (4, 3, {'object': {"Conditions": {"db": "stopped", "app": false, "vpc": true}, "Name": "StartDB", "Effects": {"db": "started", "app": false, "vpc": true}}}), (5, 1, {'object': {"Conditions": {"db": "not_health", "app": false, "vpc": true}, "Name": "DestroyDB", "Effects": {"db": false, "app": false, "vpc": true}}}), (7, 8, {'object': {"Conditions": {"db": true, "app": "stopped", "vpc": true}, "Name": "StartApp", "Effects": {"db": true, "app": "started", "vpc": true}}}), (8, 7, {'object': {"Conditions": {"db": true, "app": "started", "vpc": true}, "Name": "StopApp", "Effects": {"db": true, "app": "stopped", "vpc": true}}}), (9, 2, {'object': {"Conditions": {"db": true, "app": "not_health", "vpc": true}, "Name": "DestroyApp", "Effects": {"db": true, "app": false, "vpc": true}}})]
-    Action sequence
-    [(0,
-      1,
-      {'object': {"Conditions": {"db": false, "app": false, "vpc": false}, "Name": "CreateVPC", "Effects": {"db": false, "app": false, "vpc": true}}}),
-     (1,
-      2,
-      {'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}),
-     (2,
-      6,
-      {'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}})]
-    PATH:  [1, 2, 6]
-    Action planning:
-    [ ( 1,
-        2,
-        { 'object': {"Conditions": {"db": false, "app": false, "vpc": true}, "Name": "CreateDB", "Effects": {"db": true, "app": false, "vpc": true}}}),
-      ( 2,
-        6,
-        { 'object': {"Conditions": {"db": true, "app": false, "vpc": true}, "Name": "CreateApp", "Effects": {"db": true, "app": true, "vpc": true}}})]
+    def __str__(self):
+        return self.name
 
-    """
+    def __repr__(self):
+        return self.__str__()
 
-    def __init__(self, actions: Actions, init_state: dict={}, goal: dict={}):
-        """
-        :param actions: list of actions
-        :param init_state: dict of initial state
-        :param goal: dict of desired state
-        """
-        # init vars
-        self.DEBUG = False
-        self.nodes = None
-        self.edges = None
-        self.path = None
-        self.action_plan = []
-        # setup graph
-        self.actions = actions
-        self.graph = nx.DiGraph()
-        self.init_state = init_state
-        self.goal = goal
-        # set nodes and edges and formulate planning
-        self.set_nodes()
-        self.set_edges()
-        self.plan(init_state=init_state, goal=goal)
+
+class Edge(object):
+
+    def __init__(self, name, predecessor: Node, successor: Node, cost: float = 0.0, obj: object = None):
+        self.name = name
+        self.cost = cost
+        self.predecessor = predecessor
+        self.successor = successor
+        self.obj = obj
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+class Nodes(object):
+
+    def __init__(self):
+        self.nodes = []
+
+    def __add__(self, other: Node):
+        self.nodes.append(other)
+
+    def __iter__(self):
+        return iter(self.nodes)
+
+    def add(self, other: Node):
+        if other not in self.nodes:
+            self.__add__(other)
+
+    def get(self, attr):
+        result = None
+        for node in self.nodes:
+            if node.attributes == attr:
+                result = node
+        return result
+
+
+class Edges(object):
+
+    def __init__(self, edges: list = None):
+        if edges:
+            for edge in edges:
+                self.add(edge)
+        else:
+            self.edges = []
+
+    def __add__(self, other: Edge):
+        self.edges.append(other)
+
+    def __iter__(self):
+        return iter(self.edges)
+
+    def add(self, other: Edge):
+        self.__add__(other)
+
+
+class Graph(object):
+    def __init__(self, nodes: Nodes, edges: Edges):
+        self.directed = nx.DiGraph()
+        self.add_nodes_from(nodes=nodes)
+        self.add_edges_from(edges=edges)
+        self.__size = self.size
+
+    def __repr__(self):
+        return self.directed
 
     @staticmethod
-    def __idx_is_end_node(i: int, l: list) -> bool:
-        if i == len(l) - 1:
+    def __is_dst(src: dict, dst: dict) -> bool:
+        if src == dst:
             return True
         else:
             return False
 
-    def set_nodes(self):
-        """
+    @property
+    def size(self):
+        return len(self.directed.nodes)
 
-        :return: None
-        """
-        states = self.actions.all_possible_states()
-        # add nodes (idx: int, state: dict)
-        [self.graph.add_node(idx, attr_dict=state) for idx, state in enumerate(states)]
-        self.nodes = self.graph.nodes(data=True)
+    def __add_node(self, node: Node, attribute: dict):
+        self.directed.add_node(node, attr_dict=attribute, label=node.name, object=node)
 
-    def set_edges(self):
-        """
+    def __add_edge(self, edge: Edge):
+        self.directed.add_edge(edge.predecessor, edge.successor, object=edge.obj, weight=edge.cost, label=edge.name)
 
-        :return: None
-        TODO:
-            test:
-              superset = node[1]
-              subnet = preconditions, effects
-              if all(item in superset.items() for item in subset.items())
-        """
-        # for action in self.actions.__iter__():
-        for action in self.actions:
-            src = None
-            dst = None
-            for node in self.nodes:
-                if action.pre_conditions == node[1]:
-                    src = node[0]
-                if action.effects == node[1]:
-                    dst = node[0]
+    def add_nodes_from(self, nodes: Nodes):
+        [self.__add_node(node, attribute=node.attributes) for node in nodes]
 
-                if src is not None and dst is not None:
-                    self.graph.add_edge(src, dst, object=action)
-                    src = None
-                    dst = None
+    def add_edges_from(self, edges: Edges):
+        [self.__add_edge(edge=edge) for edge in edges]
 
-        self.edges = self.graph.edges(data=True)
+    def edge_between_nodes(self, path: list, data: bool = True):
+        return self.directed.edges(path, data=data)
 
-    def plan(self, init_state: dict, goal: dict) -> list:
-        """
+    def nodes(self, data: bool = True):
+        return self.directed.nodes(data=data)
 
-        :rtype: list
-        :return: self.path
-        """
-        start_node = None
-        final_node = None
-        self.init_state = init_state
-        self.goal = goal
+    def edges(self, data: bool = True):
+        return self.directed.edges(data=data)
 
-        # find start and final node
-        for node in self.nodes:
-            if node[1] == self.init_state:
-                start_node = node[0]
-            elif self.goal == node[1]:
-                final_node = node[0]
-        # Try to generate the plan, return False if fails
+    def search_node(self, attr: dict = None):
+        result = None
+        if attr:
+            for node in self.directed.nodes(data=True):
+                if node[1]['attr_dict'].items() == attr.items():
+                    result = node[0]
+        return result
+
+    def path(self, src: dict, dst: dict):
+        if not self.__is_dst(src, dst):
+            return nx.astar_path(self.directed, src, dst)
+
+    def plot(self, file_path: str):
         try:
-            self.path = nx.astar_path(self.graph, start_node, final_node)
-            for idx, i in enumerate(self.path):
-                if self.__idx_is_end_node(idx, self.path):
-                    break
-                else:
-                    current = i
-                    nxt = self.path[idx+1]
-                    # planning.append(self.graph.in_edges(nbunch=(current, nxt), data=True))
-                    for src, dst, data in self.graph.edges(data=True):
-                        if (current, nxt) == (src, dst):
-                            self.action_plan.append((src, dst, data))
-            # commented to include the for above
-            # self.action_plan = self.graph.edges(self.path, data=True)
-            return self.action_plan
-        except Errors.PlanFailed as e:
-            print('[ERROR] There is no node to start planning {}'.format(e))
-            return []
+            import matplotlib.pyplot as plt
+        except ImportError as err:
+            raise('matplotlib not installed. Failed at: {}', err)
 
-    def plot_graph(self, file_name: str='graph.png', label_nodes: bool=True, label_edges: bool=True):
-        import matplotlib.pyplot as plt
-        # pos = nx.spring_layout(self.graph)
-        pos = nx.shell_layout(self.graph, dim=1024, scale=0.5)
-        # pos = nx.random_layout(self.graph, dim=1024, scale=0.5)
+        try:
+            pos = nx.nx_agraph.graphviz_layout(self.directed)
+            nx.draw(
+                self.directed,
+                pos=pos,
+                node_size=1200,
+                node_color='lightblue',
+                linewidths=0.25,
+                font_size=8,
+                font_weight='bold',
+                with_labels=True,
+                dpi=5000
+            )
+            # edge_labels = nx.get_edge_attributes(self.directed, name='attr_dict')
+            # nx.draw_networkx_edge_labels(self.directed, pos=pos, edge_labels=edge_labels)
+            plt.savefig(file_path)
+        except IOError as err:
+            raise('Could not create plot image: {}', err)
 
-        if label_edges:
-            edge_labels = {
-                (edge[0], edge[1]): edge[2]['object'] for edge in self.graph.edges(data=True)
-            }
-            nx.draw_networkx_edge_labels(self.graph, pos, edge_labels, font_size=5)
 
-        if label_nodes:
-            labels = {node[0]: node[1] for node in self.graph.nodes(data=True)}
-            nx.draw_networkx_labels(self.graph, pos, labels, font_size=5, alpha=0.8)
+class Planner(object):
 
-        # nx.draw(self.graph, with_labels=True, arrows=True, node_size=80)
-        nx.draw_spectral(self.graph, with_labels=True, arrows=True, node_size=80)
-        plt.savefig(file_name, dpi=1024)
+    def __init__(self, actions: Actions):
+        """
+        :param actions: list of actions
+        """
+        # init vars
+        self.goal = None
+        self.world_state = None
+        self.actions = actions
+        self.states = Nodes()
+        self.transitions = Edges()
+        self.action_plan = []
+        self.graph = Graph(nodes=self.states, edges=self.transitions)
+
+    def __generate_states(self, actions, world_state, goal):
+        self.states.add(Node(world_state))
+        self.states.add(Node(goal))
+        for action in actions:
+            pre = {**world_state, **action.pre_conditions}
+            eff = {**pre, **action.effects}
+            self.states.add(Node(attributes=pre))
+            self.states.add(Node(attributes=eff))
+
+    def __generate_transitions(self, actions, states):
+        for action in actions:
+            for state in states:
+                if action.pre_conditions.items() <= state.attributes.items():
+                    attr = {**state.attributes, **action.effects}
+                    suc = self.states.get(attr)
+                    self.transitions.add(Edge(name=action.name, predecessor=state, successor=suc, cost=action.cost, obj=action))
+
+    def plan(self, state: dict, goal: dict) -> list:
+        self.world_state = state
+        self.goal = goal
+        self.__generate_states(self.actions, self.world_state, self.goal)
+        self.__generate_transitions(self.actions, self.states)
+        self.graph = Graph(self.states, self.transitions)
+        ws_node = self.states.get(state)
+        gs_node = self.states.get(goal)
+        plan = []
+        if state != goal:
+            path = self.graph.path(ws_node, gs_node)
+            plan = self.graph.edge_between_nodes(path)
+        return plan
 
 
 if __name__ == '__main__':
-    from Goap.Action import Actions
-    from pprint import pprint
+    # constants
+    ws = WorldState(lv_need_expansion=True, vg_need_expansion=False, pv_need_expansion=False)
+    gs = WorldState(lv_need_expansion=False, vg_need_expansion=False, pv_need_expansion=False)
 
-    # ACTIONS
-    actions = Actions()
-    # VPC/Network set
-    actions.add(
-        name='CreateVPC',
-        pre_conditions={'vpc': False, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
-    )
-    actions.add(
-        name='DestroyVPC',
-        pre_conditions={'vpc': True, 'db': False, 'app': False},
-        effects={'vpc': False, 'db': False, 'app': False}
-    )
-    # DB set
-    actions.add(
-        name='CreateDB',
-        pre_conditions={'vpc': True, 'db': False, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    actions.add(
-        name='DestroyDB',
-        pre_conditions={'vpc': True, 'db': True, 'app': False},
-        effects={'vpc': True, 'db': False, 'app': False}
-    )
-    # APP set
-    actions.add(
-        name='CreateApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': False},
-        effects={'vpc': True, 'db': True, 'app': True}
-    )
-    actions.add(
-        name='StopApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'unhealthy'},
-        effects={'vpc': True, 'db': True, 'app': 'stopped'}
-    )
-    actions.add(
-        name='TerminateStoppedApps',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    # inconsistent app
-    actions.add(
-        name='DestroyInconsistentApp',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'inconsistent'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    # out of capacity
-    actions.add(
-        name='IncreaseAppCapacity',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'out_of_capacity'},
-        effects={'vpc': True, 'db': True, 'app': True}
-    )
-    actions.add(
-        name='TerminateStoppedApps',
-        pre_conditions={'vpc': True, 'db': True, 'app': 'stopped'},
-        effects={'vpc': True, 'db': True, 'app': False}
-    )
-    planner = Planner(actions=actions)
-    print('Graph.Nodes: ', planner.graph.nodes(data=True))
-    print('Graph.Edges: ', planner.graph.edges(data=True))
-    print('Action sequence')
-    pprint(planner.action_plan)
-    # Plan again
-    plan = planner.plan(
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
-    )
-    plan = planner.plan(
-        init_state={'vpc': True, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True})
-    print('PATH: ', planner.path)
-    print('Action planning: ')
-    pprint(plan, indent=2)
+    def setupPlanner():
+        acts = Actions()
+        acts.add(
+            name='ExpandLV',
+            pre_conditions={
+                'lv_need_expansion': True,
+                'vg_need_expansion': False,
+            },
+            effects={
+                'lv_need_expansion': False,
+            },
+            shell='echo expand_lv',
+            cost=1.5
+        )
+        acts.add(
+            name='ExpandVG',
+            pre_conditions={
+                'vg_need_expansion': True,
+                'pv_need_expansion': False,
+            },
+            effects={
+                'vg_need_expansion': False,
+            },
+            shell='echo expand_vg',
+            cost=1.0,
+        )
+        acts.add(
+            name='ExpandPV',
+            pre_conditions={
+                'pv_need_expansion': True,
+            },
+            effects={
+                'pv_need_expansion': False,
+            },
+            shell='echo expand_pv',
+            cost=0.5,
+        )
+        return Planner(actions=acts)
 
-    pprint('Monitor')
-    plan = planner.plan(
-        init_state={'vpc': False, 'db': False, 'app': False},
-        goal={'vpc': True, 'db': True, 'app': True}
-    )
-    print('PATH: ', planner.path)
-    print('Action planning: ')
-    pprint(plan, indent=2)
-    # print(type(planner.plot_graph()))
-    # planner.plot_graph()
+    p = setupPlanner()
+
+    def printNodes(data: bool = True):
+        print(p.graph.nodes(data=data))
+
+    def printEdges(data: bool = True):
+        print(p.graph.edges(data=data))
+
+    def printSize():
+        print(p.graph.size)
+
+    def plotGraph():
+        p.graph.plot('graph.png')
+
+    def printWS():
+        print(ws)
+
+    def printPath():
+        print('PATH: ', p.graph.path(ws, gs))
+
+    def printPlan():
+        print('PLAN: ', p.plan(ws, gs))
+
+    plotGraph()
+
+    # printPath()
+
+    printPlan()
+
 

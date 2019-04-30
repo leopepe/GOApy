@@ -1,26 +1,13 @@
-# GOAPy 
-[![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.0)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.0)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.0) [![PyPI version](https://badge.fury.io/py/goap.svg)](https://badge.fury.io/py/goap)
+# Examples
 
-**Version**: 0.2.7
+In this section you can take a look on practical examples on how to use the GOAPy library and its engine to produce automatons.
 
-![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
+## Directory Handler
 
-***Goal-Oriented Action Planning (GOAP) implementation in Python***
+Lets suppose that you need to ensure that a directory must exist and it needs an specific file inside of it. To accomplish that object you can create sensors that would monitor the directory and report changes on it.
+Based on the state of the directory the automaton would  make the decision on which actions it need to do to guarantee the desired state of the directory.
 
-
-## Introduction
-
-GOAP is a real-time planning algorithm for autonomous agents (AA).
-AA are able to create an action planning based on a set of actions available to the AA. 
-
-The Planner class searches for the correct set of actions from an initial state to it' goal. 
-To perform the search the planner sets a graph using the possible world states as nodes and the available actions as edges of the graph. To search  for the shortest path it uses the A* algorithm.  
-
-## Usage
-
-### Using the AutomatonController class
-
-From the AutomatonController class perspective the usage and interaction should be:
+### Code
 
 ```python
 from Goap.Action import Actions
@@ -88,3 +75,5 @@ if __name__ == '__main__':
     main()
 ```
 
+The sensors will detect if the directory exists and if the file ***.token*** is inside of the directory.
+In this example the sensors and the actions are simle Linux shell commands. Note that there is no conditional statement on the python code, the automaton engine perform all the measurements and asserts to identify the necessary actions to be taken.
