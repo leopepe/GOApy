@@ -2,9 +2,12 @@ from os import path
 import unittest
 import subprocess
 from pprint import PrettyPrinter
+
+import networkx as nx
+
 from Goap.WorldState import WorldState
 from Goap.Action import Actions
-from Goap.Planner2 import Planner
+from Goap.Planner import Planner
 
 
 class PlannerTest(unittest.TestCase):
@@ -21,24 +24,28 @@ class PlannerTest(unittest.TestCase):
 
     def setUp(self):
         self.print = PrettyPrinter(indent=4)
+        self.setUpDirHandlerCMD()
+        self.setUpLvmCMD()
         self.init_ws = WorldState({"tmp_dir_state": False, "tmp_dir_content": False, })
         self.gs = WorldState({"tmp_dir_state": True, "tmp_dir_content": True, })
-        self.actions = Actions()
-        self.actions.add(
+        self.planner = Planner(actions=self.dir_handler_cmd)
+
+    def setUpDirHandlerCMD(self):
+        self.dir_handler_cmd = Actions()
+        self.dir_handler_cmd.add(
             name='CreateTmpDir',
             pre_conditions={'tmp_dir_state': False, 'tmp_dir_content': False},
             effects={'tmp_dir_state': True, 'tmp_dir_content': False},
             shell='mkdir -p /tmp/goap_tmp'
         )
-        self.actions.add(
+        self.dir_handler_cmd.add(
             name='CreateToken',
             pre_conditions={'tmp_dir_state': True, 'tmp_dir_content': False},
             effects={'tmp_dir_state': True, 'tmp_dir_content': True},
             shell='touch /tmp/goap_tmp/.token'
         )
-        self.planner = Planner(world_state=self.init_ws, actions=self.actions)
 
-    def setLvmCmd(self):
+    def setUpLvmCMD(self):
         self.lv_act = Actions()
         self.lv_act.add(
             name='ExpandLV',
@@ -56,6 +63,7 @@ class PlannerTest(unittest.TestCase):
             name='ExpandVG',
             pre_conditions={
                 'vg_need_expansion': True,
+                'pv_need_expansion': False,
             },
             effects={
                 'vg_need_expansion': False,
@@ -63,13 +71,12 @@ class PlannerTest(unittest.TestCase):
             shell='echo expand_vg'
         )
         self.lv_act.add(
-            name='PurgeOldFiles',
+            name='ExpandPV',
             pre_conditions={
-                'lv_need_expansion': True,
-                'vg_need_expansion': True,
+                'pv_need_expansion': True,
             },
             effects={
-                'lv_need_expansion': False,
+                'pv_need_expansion': False,
             },
             shell='echo purge_old_files',
             cost=1.5,
@@ -79,31 +86,36 @@ class PlannerTest(unittest.TestCase):
         self.planner.goal = self.gs
         assert self.gs == self.planner.goal
 
-    def test_nodes(self):
-        assert self.planner.graph.nodes == [
-            (0, {'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'}),
-            (1, {'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'}),
-            (2, {'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'})
-        ]
+    def test_graph_isomorphic(self):
+        from Goap.Planner import Node
+        from Goap.Planner import Edge
 
-    def test_edges(self):
-        assert self.planner.graph.edges == [
-            (0, 1, {'object': self.actions.get('CreateTmpDir')}),
-            (1, 2, {'object': self.actions.get('CreateToken')})
-        ]
+        acts = Actions()
+        acts.add(
+            name='CreateTmpDir',
+            pre_conditions={'tmp_dir_state': False, 'tmp_dir_content': False},
+            effects={'tmp_dir_state': True, 'tmp_dir_content': False},
+            shell='mkdir -p /tmp/goap_tmp'
+        )
+        acts.add(
+            name='CreateToken',
+            pre_conditions={'tmp_dir_state': True, 'tmp_dir_content': False},
+            effects={'tmp_dir_state': True, 'tmp_dir_content': True},
+            shell='touch /tmp/goap_tmp/.token'
+        )
+        node1 = Node(attributes={'tmp_dir_state': False, 'tmp_dir_content': False})
+        node2 = Node(attributes={'tmp_dir_state': True, 'tmp_dir_content': False})
+        node3 = Node(attributes={'tmp_dir_state': True, 'tmp_dir_content': True})
+        edge1 = Edge(name='CreateTmpDir', predecessor=node1, successor=node2, obj=acts.get('CreateTmpDir'))
+        edge2 = Edge(name='CreateToken', predecessor=node2, successor=node3, obj=acts.get('CreateToken'))
+        g1 = nx.DiGraph(nodes=[node1, node2, node3], edges=[edge1, edge2])
+        g2 = self.planner.graph.directed
+        assert nx.is_isomorphic(g1, g2) is True
 
-    def test_planning(self):
-        self.planner.plan(state=self.init_ws, goal=self.gs)
-        assert self.planner.action_plan == [
-            (0, 1, {'object': self.actions.get('CreateTmpDir')}),
-            (1, 2, {'object': self.actions.get('CreateToken')})
-        ]
-
-    def test_all_possible_states(self):
-        assert self.planner.actions.states() == [
-            {'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'},
-            {'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
-            {'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'}
-        ]
-
+    def test_plan(self):
+        create_tmp_dir = self.planner.actions.get('CreateTmpDir')
+        create_token = self.planner.actions.get('CreateToken')
+        plan = self.planner.plan(state=self.init_ws, goal=self.gs)
+        action_plan = [action[2]['object'] for action in plan]
+        assert action_plan == [create_tmp_dir, create_token]
 
