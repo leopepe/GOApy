@@ -72,8 +72,7 @@ class Automaton:
         return self.action_plan
 
     def __execute_action_plan(self):
-        # [print(action[2]['object']) for action in self.action_plan]
-        self.actions_response = [self.actions.get(action[2]['object'].exec()) for action in self.action_plan]
+        self.actions_response = [action[2]['object'].exec() for action in self.action_plan]
         return 'Action planning execution results: {}'.format(self.action_plan_response)
 
     @machine.state(initial=True)
