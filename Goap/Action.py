@@ -63,6 +63,18 @@ class ActionResponse:
             self.response = self.stderr
 
 
+class ObjectAction(Action):
+
+    def __init__(self, name: str, pre_conditions: dict, effects: dict, obj: callable, cost: float = 0.0):
+        self.response = {}
+        self.type = 'shell'
+        self.obj = obj
+        Action.__init__(self, name=name, pre_conditions=pre_conditions, effects=effects, cost=cost)
+
+    def exec(self):
+        self.obj()
+
+
 class ShellAction(Action):
 
     def __init__(self, name: str, pre_conditions: dict, effects: dict, shell: str, cost: float = 0.0):
@@ -140,14 +152,17 @@ class Actions:
             if action.effects == effects:
                 return action
 
-    def __add_shell_action(self, name, shell, pre_conditions, effects):
-        if not ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects) in self.actions:
-            self.actions.append(ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects))
+    def __add_shell_action(self, name, shell, pre_conditions, effects, cost):
+        if not ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects, cost=cost) in self.actions:
+            self.actions.append(ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects, cost=cost))
         else:
             raise ActionAlreadyInCollectionError
 
-    def __add_obj_action(self, name, obj, pre_conditions, effects):
-        raise NotImplementedError
+    def __add_obj_action(self, name, obj, pre_conditions, effects, cost):
+        if not ObjectAction(name=name, obj=obj, pre_conditions=pre_conditions, effects=effects, cost=cost) in self.actions:
+            self.actions.append(ObjectAction(name=name, obj=obj, pre_conditions=pre_conditions, effects=effects, cost=cost))
+        else:
+            raise ActionAlreadyInCollectionError
 
     def add(self, **kwargs):
         if kwargs.get('shell') and kwargs.get('obj'):
@@ -158,10 +173,11 @@ class Actions:
         obj = kwargs.get('obj', None)
         pre_conditions = kwargs.get('pre_conditions', None)
         effects = kwargs.get('effects', None)
+        cost = kwargs.get('cost', None)
         if shell:
-            self.__add_shell_action(name, shell, pre_conditions, effects)
+            self.__add_shell_action(name, shell, pre_conditions, effects, cost)
         elif obj:
-            self.__add_obj_action(name, obj, pre_conditions, effects)
+            self.__add_obj_action(name, obj, pre_conditions, effects, cost)
 
     def remove(self, name: str):
         result = False
