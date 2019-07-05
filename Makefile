@@ -107,9 +107,6 @@ venv:
 install-in-venv: venv
 	venv/bin/python setup.py install
 
-clean-venv:
-	rm -rf venv/
-
 install-pytest: venv install-in-venv
 	pip install pytest
 
@@ -132,3 +129,10 @@ pytest: venv install-in-venv install-pytest
 test-coverage: install-coveralls
 	coverage run --source=Goap/ setup.py test
 
+clean-venv:
+	rm -rf venv/
+
+clean-build:
+	rm -rf build/ *.egg-info/
+
+clean-all: clean-venv clean-build
