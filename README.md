@@ -1,7 +1,7 @@
 # GOAPy 
-[![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.0)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.0)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.0) [![PyPI version](https://badge.fury.io/py/goap.svg)](https://badge.fury.io/py/goap)
+[![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.1)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.1)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.1) [![PyPI version](https://badge.fury.io/py/Goap.svg)](https://badge.fury.io/py/Goap)
 
-**Version**: 0.2.7
+**Version**: 0.2.0
 
 ![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
 
@@ -49,12 +49,14 @@ def setup_actions():
         name='CreateTmpDir',
         pre_conditions={'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'},
         effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
+        cost=0.1,
         shell='mkdir -p /tmp/goap_tmp'
     )
     actions.add(
         name='CreateToken',
         pre_conditions={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
         effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'},
+        cost=0.1,
         shell='touch /tmp/goap_tmp/.token'
     )
     return actions
