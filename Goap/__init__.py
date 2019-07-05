@@ -5,13 +5,14 @@ from Goap.Planner import Planner
 from Goap.Errors import OperationFailedError
 
 __all__ = [
-    'Automaton',
     'Action',
-    'Actions',
-    'Sensor',
-    'Sensors',
-    'Planner',
+    'Automaton',
     'Errors',
+    'Planner',
+    'Sensor',
+    'WorldState',
+    'name',
+    '__version__',
 ]
+name = 'Goap'
 __version__ = '0.2.0'
-__name__ = 'Goap'
