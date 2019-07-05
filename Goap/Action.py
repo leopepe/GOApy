@@ -173,7 +173,7 @@ class Actions:
         obj = kwargs.get('obj', None)
         pre_conditions = kwargs.get('pre_conditions', None)
         effects = kwargs.get('effects', None)
-        cost = kwargs.get('cost', None)
+        cost = kwargs.get('cost', 0.1)
         if shell:
             self.__add_shell_action(name, shell, pre_conditions, effects, cost)
         elif obj:
