@@ -6,7 +6,7 @@ from Goap.Errors import *
 
 class Action:
 
-    def __init__(self, name: str, pre_conditions: dict, effects: dict, cost: float):
+    def __init__(self, name: str, pre_conditions: dict, effects: dict, cost: float = 0.1):
         self.name = name
         self.pre_conditions = pre_conditions
         self.effects = effects
@@ -28,7 +28,7 @@ class Action:
         self.__init__(kwargs.get('name'), kwargs.get('pre_conditions'), kwargs.get('effects'))
         self.exec()
 
-    def exec(self) -> tuple:
+    def exec(self):
         pass
 
 
@@ -84,10 +84,10 @@ class ShellAction(Action):
         Action.__init__(self, name=name, pre_conditions=pre_conditions, effects=effects, cost=cost)
 
     def exec(self):
-        cmd = self.shell
+        cmd = self.shell.split()
         process = subprocess.Popen(
             cmd,
-            shell=True,
+            shell=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True
