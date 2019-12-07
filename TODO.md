@@ -1,6 +1,8 @@
 # TODO
 
 * Full test coverage: Create unittests to all classes and methods (Need to check real coverage)
+* PyDocs in all functions/methods
+* Auto generate documentation from pydocs (sphynx)
 * Logging (Feature toggle to enable logging activities of the AI)
 * Pants: use pex to package the project
 * Create real examples with real world scenarios/test cases. Now it is possible to use the lib in experimental tests using real actions and sensors.
