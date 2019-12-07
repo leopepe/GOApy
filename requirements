@@ -1,5 +1,5 @@
 docutils==0.13.1
 networkx==2.3
-Automat==0.6.0
+Automat==0.8.0
 rx==1.6.0
 conversion
