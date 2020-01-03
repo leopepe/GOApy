@@ -59,7 +59,7 @@ class SensorResponse:
             self.response = self.stderr
 
 
-class ShellSensor(Sensor):
+class ShellCommandSensor(Sensor):
     """ Shell Sensor object factory """
 
     def __init__(self, binding: str, name: str, shell: str = None):
@@ -83,8 +83,8 @@ class ShellSensor(Sensor):
             self.response = SensorResponse(
                 name=self.name,
                 sensor_type='shell',
-                stdout=stdout,
-                stderr=stderr,
+                stdout=stdout.rstrip('\r\n'),
+                stderr=stderr.rstrip('\r\n'),
                 return_code=return_code
             )
         except TimeoutError as e:
@@ -133,8 +133,8 @@ class Sensors:
         return str(output)
 
     def __add_shell_sensor(self, name, shell, binding):
-        if not ShellSensor(name=name, shell=shell, binding=binding) in self.sensors:
-            self.sensors.append(ShellSensor(name=name, shell=shell, binding=binding))
+        if not ShellCommandSensor(name=name, shell=shell, binding=binding) in self.sensors:
+            self.sensors.append(ShellCommandSensor(name=name, shell=shell, binding=binding))
         else:
             raise SensorAlreadyInCollectionError
 
