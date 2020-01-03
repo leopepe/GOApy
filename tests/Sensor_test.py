@@ -1,6 +1,31 @@
 import unittest
 
-from Goap.Sensor import Sensors
+from Goap.Sensor import Sensors, Sensor, ShellCommandSensor, SensorResponse
+
+
+class SensorResponseTest(unittest.TestCase):
+    pass
+
+
+class ShellCommandSensorTest(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.ls = ShellCommandSensor(name='ls', binding='dir_state', shell='ls -d /home')
+
+    def test_exec(self):
+        output = self.ls.exec()
+        # print(output)
+        self.assertIsInstance(output, SensorResponse)
+
+
+class SensorTest(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.stat_tmp_dir = Sensor(name='SenseTmpDir', binding='dir_state')
+        self.stat_tmp_dir.exec = str('exec')
+
+    def test_exec(self):
+        self.assertIsInstance(self.stat_tmp_dir.exec, str)
 
 
 class SensorsTest(unittest.TestCase):
