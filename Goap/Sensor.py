@@ -33,7 +33,13 @@ class Sensor:
 
 class SensorResponse:
 
-    def __init__(self, name: str, sensor_type: str, return_code: str, stdout: str = '', stderr: str = ''):
+    def __init__(
+            self,
+            name: str,
+            sensor_type: str,
+            return_code: str,
+            stdout: str = '',
+            stderr: str = ''):
         """
 
         :param name:
@@ -47,7 +53,8 @@ class SensorResponse:
         self.__response_parser()
 
     def __str__(self):
-        return 'Name: {}, Response: {}, ReturnCode: {}'.format(self.name, self.response, self.return_code)
+        return 'Name: {}, Response: {}, ReturnCode: {}'.format(
+            self.name, self.response, self.return_code)
 
     def __repr__(self):
         return self.__str__()
@@ -133,8 +140,15 @@ class Sensors:
         return str(output)
 
     def __add_shell_sensor(self, name, shell, binding):
-        if not ShellSensor(name=name, shell=shell, binding=binding) in self.sensors:
-            self.sensors.append(ShellSensor(name=name, shell=shell, binding=binding))
+        if not ShellSensor(
+                name=name,
+                shell=shell,
+                binding=binding) in self.sensors:
+            self.sensors.append(
+                ShellSensor(
+                    name=name,
+                    shell=shell,
+                    binding=binding))
         else:
             raise SensorAlreadyInCollectionError
 
@@ -172,6 +186,3 @@ class Sensors:
     def exec_all(self) -> list:
         responses = [s.exec() for s in self.sensors]
         return responses
-
-
-
