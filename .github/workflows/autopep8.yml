@@ -13,10 +13,10 @@ jobs:
         uses: peter-evans/create-pull-request@v2
         with:
           commit-message: autopep8 action fixes
-          committer: autopep8 <noemail@nomad.none>
+          committer: leopepe <lpepefreitas@gmail.com>
           title: Fixes by autopep8 action
           body: This is an auto-generated PR with fixes by autopep8.
           labels: autopep8, automated pr
-          reviewers: autopep8
+          reviewers: leopepe
           branch: autopep8-patches
    
