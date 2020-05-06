@@ -17,7 +17,7 @@ PYTHON=./venv/bin/python${PYTHON_VERSION}
 
 all: venv install-in-venv
 
-test: unittest pytest test-coverage
+test: unittest test-coverage
 
 docker-all: pre-build docker-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
 	push do-push post-push
@@ -103,7 +103,17 @@ check-release: .release
 venv:
 	virtualenv -p python${PYTHON_VERSION} venv/
 	venv/bin/pip3 install -r requirements
+	source venv/bin/activate
 
+dev: clean-venv install-dev-venv
+
+format: dev
+	venv/bin/autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
+
+install-dev-venv:
+	virtualenv -p python${PYTHON_VERSION} venv/
+	venv/bin/pip3 install -r requirements_dev.txt
+	
 install-in-venv: venv
 	venv/bin/python setup.py install
 
