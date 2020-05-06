@@ -19,15 +19,18 @@ class PlannerTest(unittest.TestCase):
 
     def __print(self):
         self.print.pprint(
-            'Nodes: {}, Edges: {}'.format(self.planner.graph.nodes, self.planner.graph.edges)
-        )
+            'Nodes: {}, Edges: {}'.format(
+                self.planner.graph.nodes,
+                self.planner.graph.edges))
 
     def setUp(self):
         self.print = PrettyPrinter(indent=4)
         self.setUpDirHandlerCMD()
         self.setUpLvmCMD()
-        self.init_ws = WorldState({"tmp_dir_state": False, "tmp_dir_content": False, })
-        self.gs = WorldState({"tmp_dir_state": True, "tmp_dir_content": True, })
+        self.init_ws = WorldState(
+            {"tmp_dir_state": False, "tmp_dir_content": False, })
+        self.gs = WorldState(
+            {"tmp_dir_state": True, "tmp_dir_content": True, })
         self.planner = Planner(actions=self.dir_handler_cmd)
 
     def setUpDirHandlerCMD(self):
@@ -103,11 +106,28 @@ class PlannerTest(unittest.TestCase):
             effects={'tmp_dir_state': True, 'tmp_dir_content': True},
             shell='touch /tmp/goap_tmp/.token'
         )
-        node1 = Node(attributes={'tmp_dir_state': False, 'tmp_dir_content': False})
-        node2 = Node(attributes={'tmp_dir_state': True, 'tmp_dir_content': False})
-        node3 = Node(attributes={'tmp_dir_state': True, 'tmp_dir_content': True})
-        edge1 = Edge(name='CreateTmpDir', predecessor=node1, successor=node2, obj=acts.get('CreateTmpDir'))
-        edge2 = Edge(name='CreateToken', predecessor=node2, successor=node3, obj=acts.get('CreateToken'))
+        node1 = Node(
+            attributes={
+                'tmp_dir_state': False,
+                'tmp_dir_content': False})
+        node2 = Node(
+            attributes={
+                'tmp_dir_state': True,
+                'tmp_dir_content': False})
+        node3 = Node(
+            attributes={
+                'tmp_dir_state': True,
+                'tmp_dir_content': True})
+        edge1 = Edge(
+            name='CreateTmpDir',
+            predecessor=node1,
+            successor=node2,
+            obj=acts.get('CreateTmpDir'))
+        edge2 = Edge(
+            name='CreateToken',
+            predecessor=node2,
+            successor=node3,
+            obj=acts.get('CreateToken'))
         g1 = nx.DiGraph(nodes=[node1, node2, node3], edges=[edge1, edge2])
         g2 = self.planner.graph.directed
         assert nx.is_isomorphic(g1, g2) is True
@@ -118,4 +138,3 @@ class PlannerTest(unittest.TestCase):
         plan = self.planner.plan(state=self.init_ws, goal=self.gs)
         action_plan = [action[2]['object'] for action in plan]
         assert action_plan == [create_tmp_dir, create_token]
-

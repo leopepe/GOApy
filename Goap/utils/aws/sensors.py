@@ -2,7 +2,7 @@ import boto3
 
 
 class AWSClient:
-    def __init__(self, client: str, filters: list=[], tag: dict={}):
+    def __init__(self, client: str, filters: list = [], tag: dict = {}):
         self.filters = filters
         self.tag = tag
         self.client = boto3.client(client)

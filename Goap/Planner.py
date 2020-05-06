@@ -19,7 +19,13 @@ class Node(object):
 
 class Edge(object):
 
-    def __init__(self, name, predecessor: Node, successor: Node, cost: float = 0.0, obj: object = None):
+    def __init__(
+            self,
+            name,
+            predecessor: Node,
+            successor: Node,
+            cost: float = 0.0,
+            obj: object = None):
         self.name = name
         self.cost = cost
         self.predecessor = predecessor
@@ -97,10 +103,19 @@ class Graph(object):
         return len(self.directed.nodes)
 
     def __add_node(self, node: Node, attribute: dict):
-        self.directed.add_node(node, attr_dict=attribute, label=node.name, object=node)
+        self.directed.add_node(
+            node,
+            attr_dict=attribute,
+            label=node.name,
+            object=node)
 
     def __add_edge(self, edge: Edge):
-        self.directed.add_edge(edge.predecessor, edge.successor, object=edge.obj, weight=edge.cost, label=edge.name)
+        self.directed.add_edge(
+            edge.predecessor,
+            edge.successor,
+            object=edge.obj,
+            weight=edge.cost,
+            label=edge.name)
 
     def add_nodes_from(self, nodes: Nodes):
         [self.__add_node(node, attribute=node.attributes) for node in nodes]
@@ -185,7 +200,13 @@ class Planner(object):
                 if action.pre_conditions.items() <= state.attributes.items():
                     attr = {**state.attributes, **action.effects}
                     suc = self.states.get(attr)
-                    self.transitions.add(Edge(name=action.name, predecessor=state, successor=suc, cost=action.cost, obj=action))
+                    self.transitions.add(
+                        Edge(
+                            name=action.name,
+                            predecessor=state,
+                            successor=suc,
+                            cost=action.cost,
+                            obj=action))
 
     def plan(self, state: dict, goal: dict) -> list:
         self.world_state = state
@@ -204,8 +225,14 @@ class Planner(object):
 
 if __name__ == '__main__':
     # constants
-    ws = WorldState(lv_need_expansion=True, vg_need_expansion=False, pv_need_expansion=False)
-    gs = WorldState(lv_need_expansion=False, vg_need_expansion=False, pv_need_expansion=False)
+    ws = WorldState(
+        lv_need_expansion=True,
+        vg_need_expansion=False,
+        pv_need_expansion=False)
+    gs = WorldState(
+        lv_need_expansion=False,
+        vg_need_expansion=False,
+        pv_need_expansion=False)
 
     def setupPlanner():
         acts = Actions()
@@ -274,5 +301,3 @@ if __name__ == '__main__':
     # printPath()
 
     printPlan()
-
-
