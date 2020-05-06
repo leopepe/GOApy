@@ -42,8 +42,11 @@ class Automaton:
     machine = MethodicalMachine()
 
     def __init__(
-        self, name: str, sensors: Sensors, actions: Actions, world_state: dict
-    ):
+            self,
+            name: str,
+            sensors: Sensors,
+            actions: Actions,
+            world_state: dict):
         # setup
         self.world_state = WorldState(world_state)
         self.working_memory = []
@@ -60,14 +63,14 @@ class Automaton:
 
     def __sense_environment(self):
         Observable.from_(
-            self.sensors).subscribe(
+            self.sensors). subscribe(
             lambda sensor: self.working_memory.append(
                 Fact(
                     sensor=sensor.name,
                     data=sensor.exec(),
                     binding=sensor.binding)))
         Observable.from_(
-            self.working_memory).subscribe(
+            self.working_memory). subscribe(
             lambda fact: setattr(
                 self.world_state,
                 fact.binding,
@@ -78,10 +81,9 @@ class Automaton:
         return self.action_plan
 
     def __execute_action_plan(self):
-        self.actions_response = [
-            action[2]["object"].exec() for action in self.action_plan
-        ]
-        return "Action planning execution results: {}".format(
+        self.actions_response = [action[2]['object'].exec()
+                                 for action in self.action_plan]
+        return 'Action planning execution results: {}'.format(
             self.action_plan_response)
 
     @machine.state(initial=True)
@@ -166,9 +168,13 @@ class Automaton:
 
 
 class AutomatonController(object):
+
     def __init__(
-        self, actions: Actions, sensors: Sensors, name: str, world_state: dict
-    ):
+            self,
+            actions: Actions,
+            sensors: Sensors,
+            name: str,
+            world_state: dict):
         self.automaton = Automaton(
             actions=actions,
             sensors=sensors,
@@ -196,15 +202,13 @@ class AutomatonController(object):
             self.automaton.sense()
             if self.automaton.world_state != self.goal:
                 print(
-                    "World state differs from goal: \nState: {}\nGoal: {}".format(
+                    'World state differs from goal: \nState: {}\nGoal: {}'.format(
                         self.automaton.world_state, self.goal))
-                print("Need to find an action plan")
+                print('Need to find an action plan')
                 self.automaton.plan()
                 print(
-                    "Plain found. Will execute the action plan: {}".format(
-                        self.automaton.action_plan
-                    )
-                )
+                    'Plain found. Will execute the action plan: {}'.format(
+                        self.automaton.action_plan))
                 self.automaton.act()
             else:
                 print("World state equals to goal: {}".format(self.goal))

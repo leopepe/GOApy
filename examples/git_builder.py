@@ -8,13 +8,11 @@ def setup_sensors():
     sensors.add(
         name='SenseGitRepo',
         shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
-        binding='tmp_dir_state'
-    )
+        binding='tmp_dir_state')
     sensors.add(
         name='SenseTmpDirContent',
         shell='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"',
-        binding='tmp_dir_content'
-    )
+        binding='tmp_dir_content')
     return sensors
 
 
