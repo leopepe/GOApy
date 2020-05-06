@@ -16,14 +16,13 @@ class Fact(object):
         self.parent_sensor = sensor
 
     def __str__(self):
-        return '{}: {}'.format(self.binding, self.data)
+        return "{}: {}".format(self.binding, self.data)
 
     def __repr__(self):
         return self.__str__()
 
 
 class AutomatonPriorities:
-
     def __init__(self, items: list):
         self._items = items
 
@@ -212,6 +211,6 @@ class AutomatonController(object):
                         self.automaton.action_plan))
                 self.automaton.act()
             else:
-                print('World state equals to goal: {}'.format(self.goal))
+                print("World state equals to goal: {}".format(self.goal))
                 self.automaton.wait()
             sleep(5)
