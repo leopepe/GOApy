@@ -1,5 +1,5 @@
 name: Python Formater
-on: [push, pull_request]
+on: push
 jobs:
   autopep8:
     runs-on: ubuntu-latest
