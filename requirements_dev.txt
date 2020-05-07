@@ -1,0 +1,9 @@
+docutils==0.13.1
+networkx==2.3
+Automat==0.6.0
+rx==1.6.0
+conversion==0.0.7
+Sphinx==1.5.2
+pytest==5.3.5
+pylint==2.5.2
+autopep8==1.5.2

@@ -6,7 +6,12 @@ from Goap.Errors import *
 
 class Action:
 
-    def __init__(self, name: str, pre_conditions: dict, effects: dict, cost: float = 0.1):
+    def __init__(
+            self,
+            name: str,
+            pre_conditions: dict,
+            effects: dict,
+            cost: float):
         self.name = name
         self.pre_conditions = pre_conditions
         self.effects = effects
@@ -25,7 +30,10 @@ class Action:
         return hash(self)
 
     def __call__(self, **kwargs):
-        self.__init__(kwargs.get('name'), kwargs.get('pre_conditions'), kwargs.get('effects'))
+        self.__init__(
+            kwargs.get('name'),
+            kwargs.get('pre_conditions'),
+            kwargs.get('effects'))
         self.exec()
 
     def exec(self):
@@ -34,14 +42,20 @@ class Action:
 
 class ActionResponse:
 
-    def __init__(self, name: str, action_type: str, return_code: str, stdout: str = '', stderr: str = ''):
+    def __init__(
+            self,
+            name: str,
+            action_type: str,
+            return_code: str,
+            stdout: str = '',
+            stderr: str = ''):
         """
-        
-        :param name: 
-        :param action_type: 
-        :param return_code: 
-        :param stdout: 
-        :param stderr: 
+
+        :param name:
+        :param action_type:
+        :param return_code:
+        :param stdout:
+        :param stderr:
         """
         self.name = name
         self.action_type = action_type
@@ -51,7 +65,8 @@ class ActionResponse:
         self.__response_parser()
 
     def __str__(self):
-        return 'Name: {}, Response: {}, ReturnCode: {}'.format(self.name, self.response, self.return_code)
+        return 'Name: {}, Response: {}, ReturnCode: {}'.format(
+            self.name, self.response, self.return_code)
 
     def __repr__(self):
         return self.__str__()
@@ -77,11 +92,22 @@ class ObjectAction(Action):
 
 class ShellAction(Action):
 
-    def __init__(self, name: str, pre_conditions: dict, effects: dict, shell: str, cost: float = 0.0):
+    def __init__(
+            self,
+            name: str,
+            pre_conditions: dict,
+            effects: dict,
+            shell: str,
+            cost: float = 0.0):
         self.response = {}
         self.type = 'shell'
         self.shell = shell
-        Action.__init__(self, name=name, pre_conditions=pre_conditions, effects=effects, cost=cost)
+        Action.__init__(
+            self,
+            name=name,
+            pre_conditions=pre_conditions,
+            effects=effects,
+            cost=cost)
 
     def exec(self):
         cmd = self.shell.split()
@@ -152,9 +178,18 @@ class Actions:
             if action.effects == effects:
                 return action
 
-    def __add_shell_action(self, name, shell, pre_conditions, effects, cost):
-        if not ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects, cost=cost) in self.actions:
-            self.actions.append(ShellAction(name=name, shell=shell, pre_conditions=pre_conditions, effects=effects, cost=cost))
+    def __add_shell_action(self, name, shell, pre_conditions, effects):
+        if not ShellAction(
+                name=name,
+                shell=shell,
+                pre_conditions=pre_conditions,
+                effects=effects) in self.actions:
+            self.actions.append(
+                ShellAction(
+                    name=name,
+                    shell=shell,
+                    pre_conditions=pre_conditions,
+                    effects=effects))
         else:
             raise ActionAlreadyInCollectionError
 
@@ -195,9 +230,7 @@ class Actions:
     def compare_actions(action1: Action, action2: Action):
         result = None
         if action1.pre_conditions == action2.pre_conditions and action1.effects == action2.effects:
-            result = 'Action {} and Action {} are equal'.format(action1.name, action2.name)
+            result = 'Action {} and Action {} are equal'.format(
+                action1.name, action2.name)
 
         return result
-
-
-

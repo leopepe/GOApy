@@ -48,4 +48,3 @@ class ActionMultipleTypeError(ActionError):
 class ActionAlreadyInCollectionError(ActionError):
     """ Action with same name already in collection """
     pass
-

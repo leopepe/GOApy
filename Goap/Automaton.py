@@ -16,14 +16,13 @@ class Fact(object):
         self.parent_sensor = sensor
 
     def __str__(self):
-        return '{}: {}'.format(self.binding, self.data)
+        return "{}: {}".format(self.binding, self.data)
 
     def __repr__(self):
         return self.__str__()
 
 
 class AutomatonPriorities:
-
     def __init__(self, items: list):
         self._items = items
 
@@ -42,7 +41,12 @@ class Automaton:
 
     machine = MethodicalMachine()
 
-    def __init__(self, name: str, sensors: Sensors, actions: Actions, world_state: dict):
+    def __init__(
+            self,
+            name: str,
+            sensors: Sensors,
+            actions: Actions,
+            world_state: dict):
         # setup
         self.world_state = WorldState(world_state)
         self.working_memory = []
@@ -58,22 +62,29 @@ class Automaton:
         self.goal = {}
 
     def __sense_environment(self):
-        Observable.from_(self.sensors). \
-            subscribe(
-            lambda sensor: self.working_memory.append(Fact(sensor=sensor.name, data=sensor.exec(), binding=sensor.binding))
-        )
-        Observable.from_(self.working_memory). \
-            subscribe(
-            lambda fact: setattr(self.world_state, fact.binding, fact.data.response)
-        )
+        Observable.from_(
+            self.sensors). subscribe(
+            lambda sensor: self.working_memory.append(
+                Fact(
+                    sensor=sensor.name,
+                    data=sensor.exec(),
+                    binding=sensor.binding)))
+        Observable.from_(
+            self.working_memory). subscribe(
+            lambda fact: setattr(
+                self.world_state,
+                fact.binding,
+                fact.data.response))
 
     def __set_action_plan(self):
         self.action_plan = self.planner.plan(self.world_state, self.goal)
         return self.action_plan
 
     def __execute_action_plan(self):
-        self.actions_response = [action[2]['object'].exec() for action in self.action_plan]
-        return 'Action planning execution results: {}'.format(self.action_plan_response)
+        self.actions_response = [action[2]['object'].exec()
+                                 for action in self.action_plan]
+        return 'Action planning execution results: {}'.format(
+            self.action_plan_response)
 
     @machine.state(initial=True)
     def waiting_orders(self):
@@ -139,9 +150,17 @@ class Automaton:
     waiting_orders.upon(sense, enter=sensing, outputs=[__sense])
     sensing.upon(plan, enter=planning, outputs=[__plan])
     planning.upon(act, enter=acting, outputs=[__act])
-    acting.upon(sense, enter=sensing, outputs=[__reset_working_memory, __sense])
+    acting.upon(
+        sense,
+        enter=sensing,
+        outputs=[
+            __reset_working_memory,
+            __sense])
     # change orders
-    waiting_orders.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
+    waiting_orders.upon(
+        input_goal,
+        enter=waiting_orders,
+        outputs=[__input_goal])
     planning.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
     acting.upon(input_goal, enter=waiting_orders, outputs=[__input_goal])
     # reset working memory from sensing
@@ -150,8 +169,17 @@ class Automaton:
 
 class AutomatonController(object):
 
-    def __init__(self, actions: Actions, sensors: Sensors, name: str, world_state: dict):
-        self.automaton = Automaton(actions=actions, sensors=sensors, name=name, world_state=world_state)
+    def __init__(
+            self,
+            actions: Actions,
+            sensors: Sensors,
+            name: str,
+            world_state: dict):
+        self.automaton = Automaton(
+            actions=actions,
+            sensors=sensors,
+            name=name,
+            world_state=world_state)
 
     @property
     def world_state(self):
@@ -173,14 +201,16 @@ class AutomatonController(object):
         while True:
             self.automaton.sense()
             if self.automaton.world_state != self.goal:
-                print('World state differs from goal: \nState: {}\nGoal: {}'.format(self.automaton.world_state, self.goal))
+                print(
+                    'World state differs from goal: \nState: {}\nGoal: {}'.format(
+                        self.automaton.world_state, self.goal))
                 print('Need to find an action plan')
                 self.automaton.plan()
-                print('Plain found. Will execute the action plan: {}'.format(self.automaton.action_plan))
+                print(
+                    'Plain found. Will execute the action plan: {}'.format(
+                        self.automaton.action_plan))
                 self.automaton.act()
             else:
-                print('World state equals to goal: {}'.format(self.goal))
+                print("World state equals to goal: {}".format(self.goal))
                 self.automaton.wait()
             sleep(5)
-
-
