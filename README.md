@@ -29,7 +29,13 @@ from Goap.Automaton import AutomatonController
 
 
 def setup_sensors():
+    """ Setup your automaton sensors.
+        The sensors are a collection of linux shell commads or python callables (functons or objects)
+    """
     sensors = Sensors()
+    # add a shell sensor that will check if a directory exist and returns a string with
+    # "exists" or "not_exist"
+    # The return string will update the automaton's world state
     sensors.add(
         name='SenseTmpDirState',
         shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
