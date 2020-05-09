@@ -1,7 +1,7 @@
 # GOAPy 
 [![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.0)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.0)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.0) [![PyPI version](https://badge.fury.io/py/goap.svg)](https://badge.fury.io/py/goap)
 
-**Version**: 0.2.7
+**Version**: 0.2.0
 
 ![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
 
