@@ -15,11 +15,12 @@ SHELL=/bin/bash
 PYTHON_VERSION=3.7
 PYTHON=.venv/bin/python${PYTHON_VERSION}
 
+req:
+	pip install poetry virtualenv
+
 all: venv install-in-venv
 
 test: unittest test-coverage
-
-
 
 patch:
 	poetry version patch
