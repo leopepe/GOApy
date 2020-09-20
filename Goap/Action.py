@@ -12,7 +12,7 @@ class Action:
             name: str,
             pre_conditions: dict,
             effects: dict,
-            cost: float):
+            cost: float = 0.1):
         self.func = func
         self.name = name
         self.pre_conditions = pre_conditions
@@ -176,7 +176,14 @@ class Actions:
             if action.effects == effects:
                 return action
 
-    def add(self, name: str, pre_conditions: dict, effects: dict, cost: float, func: Callable):
+    def add(
+        self,
+        name: str,
+        pre_conditions: dict,
+        effects: dict,
+        func: Callable,
+        cost: float = 0.1
+    ):
         self.actions.append(
             Action(func, name, pre_conditions, effects, cost)
         )
