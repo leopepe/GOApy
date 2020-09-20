@@ -1,21 +1,24 @@
-import subprocess
+# from Goap.Action import ActionResponse
+from typing import Callable, List, Optional
 from filecmp import cmp
 
-from Goap.Errors import *
+from Goap.Errors import ActionMultipleTypeError, ActionAlreadyInCollectionError
 
 
 class Action:
-
     def __init__(
             self,
+            func: Callable,
             name: str,
             pre_conditions: dict,
             effects: dict,
             cost: float):
+        self.func = func
         self.name = name
         self.pre_conditions = pre_conditions
         self.effects = effects
         self.cost = cost
+        self._response: Optional[ActionResponse] = None
 
     def __str__(self):
         return self.name
@@ -30,23 +33,41 @@ class Action:
         return hash(self)
 
     def __call__(self, **kwargs):
-        self.__init__(
-            kwargs.get('name'),
-            kwargs.get('pre_conditions'),
-            kwargs.get('effects'))
         self.exec()
 
+    @property
+    def response(self):
+        return self._response
+
+    @response.setter
+    def response(self,
+                 stdout: str,
+                 stderr: str,
+                 return_code: str,
+                 trim_chars: str
+                 ):
+        self._response = ActionResponse(
+            trim_chars=trim_chars,
+            stdout=stdout,
+            stderr=stderr,
+            return_code=return_code
+        )
+
     def exec(self):
-        pass
+        try:
+            self.func()
+        except RuntimeError as e:
+            raise RuntimeError(
+                f"Error executing function {self.func}. Exception: {e}"
+            )
 
 
 class ActionResponse:
 
     def __init__(
             self,
-            name: str,
-            action_type: str,
-            return_code: str,
+            trim_chars: str = '',
+            return_code: str = '0',
             stdout: str = '',
             stderr: str = ''):
         """
@@ -57,16 +78,11 @@ class ActionResponse:
         :param stdout:
         :param stderr:
         """
-        self.name = name
-        self.action_type = action_type
         self.return_code = return_code
         self.stdout = stdout
         self.stderr = stderr
+        self.trim_chars = trim_chars
         self.__response_parser()
-
-    def __str__(self):
-        return 'Name: {}, Response: {}, ReturnCode: {}'.format(
-            self.name, self.response, self.return_code)
 
     def __repr__(self):
         return self.__str__()
@@ -77,70 +93,87 @@ class ActionResponse:
         elif not self.stderr == '':
             self.response = self.stderr
 
+    def __str__(self):
+        return f'Response: {self.response}, ReturnCode: {self.return_code}'
 
-class ObjectAction(Action):
+    def __trim(self, string: str):
+        return string.strip(self.trim_shars)
 
-    def __init__(self, name: str, pre_conditions: dict, effects: dict, obj: callable, cost: float = 0.0):
-        self.response = {}
-        self.type = 'shell'
-        self.obj = obj
-        Action.__init__(self, name=name, pre_conditions=pre_conditions, effects=effects, cost=cost)
+    @ property
+    def stdout(self):
+        return self._stdout
 
-    def exec(self):
-        self.obj()
+    @ stdout.setter
+    def stdout(self, value: str):
+        self._stdout = self.__trim(value)
+
+    @ property
+    def stderr(self):
+        return self._stderr
+
+    @ stderr.setter
+    def stderr(self, value: str):
+        self._stderr = self.__trim(value)
+
+    @ property
+    def response(self):
+        if self.stdout:
+            return self.stdout
+        elif self.stderr:
+            return self.stderr
 
 
-class ShellAction(Action):
+# class ShellAction(Action):
 
-    def __init__(
-            self,
-            name: str,
-            pre_conditions: dict,
-            effects: dict,
-            shell: str,
-            cost: float = 0.0):
-        self.response = {}
-        self.type = 'shell'
-        self.shell = shell
-        Action.__init__(
-            self,
-            name=name,
-            pre_conditions=pre_conditions,
-            effects=effects,
-            cost=cost)
+#     def __init__(
+#             self,
+#             name: str,
+#             pre_conditions: dict,
+#             effects: dict,
+#             shell: str,
+#             cost: float = 0.0):
+#         self.response = {}
+#         self.type = 'cmd'
+#         self.shell = shell
+#         Action.__init__(
+#             self,
+#             name=name,
+#             pre_conditions=pre_conditions,
+#             effects=effects,
+#             cost=cost)
 
-    def exec(self):
-        cmd = self.shell.split()
-        process = subprocess.Popen(
-            cmd,
-            shell=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True
-        )
-        try:
-            stdout, stderr = process.communicate(timeout=30)
-            return_code = process.returncode
-            self.response = ActionResponse(
-                name=self.name,
-                action_type='shell',
-                stdout=stdout,
-                stderr=stderr,
-                return_code=return_code
-            )
-        except TimeoutError as e:
-            process.kill()
-            raise('{}'.format(e))
-        finally:
-            process.kill()
+#     def exec(self):
+#         cmd = self.shell.split()
+#         process = subprocess.Popen(
+#             cmd,
+#             shell=False,
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.PIPE,
+#             universal_newlines=True
+#         )
+#         try:
+#             stdout, stderr = process.communicate(timeout=30)
+#             return_code = process.returncode
+#             self.response = ActionResponse(
+#                 name=self.name,
+#                 action_type='cmd',
+#                 stdout=stdout,
+#                 stderr=stderr,
+#                 return_code=return_code
+#             )
+#         except TimeoutError as e:
+#             process.kill()
+#             raise('{}'.format(e))
+#         finally:
+#             process.kill()
 
-        return self.response
+#         return self.response
 
 
 class Actions:
 
-    def __init__(self):
-        self.actions = list()
+    def __init__(self, actions: Optional[List[Action]] = None):
+        self.actions = actions
 
     def __str__(self):
         return '{}'.format(self.actions)
@@ -154,65 +187,47 @@ class Actions:
     def __len__(self):
         return len(self.actions)
 
-    def __getitem__(self, key):
-        for a in self.actions:
-            if a.name == key:
-                return a
+    """
+    def __cmp__(self, other: Action):
+        pass
+
+
+    def __contains__(self, other: Action):
+        # if not self.get(other.name)
+        pass
+    """
+
+    def __getitem__(self, key: str):
+        for action in self.actions:
+            if action.name == key:
+                return action
             else:
                 return None
 
-    def get(self, name):
+    def get(self, name: str = None) -> Optional[Action]:
         result = None
         for action in self.actions:
             if action.name == name:
                 result = action
         return result
 
-    def get_by_pre_condition(self, pre_conditions: dict):
+    def get_by_pre_condition(self, pre_conditions: dict) -> Optional[Action]:
+        result = None
         for action in self.actions:
             if action.pre_conditions == pre_conditions:
-                return action
+                result = action
+        return result
 
     def get_by_effect(self, effects: dict):
         for action in self.actions:
             if action.effects == effects:
                 return action
 
-    def __add_shell_action(self, name, shell, pre_conditions, effects):
-        if not ShellAction(
-                name=name,
-                shell=shell,
-                pre_conditions=pre_conditions,
-                effects=effects) in self.actions:
-            self.actions.append(
-                ShellAction(
-                    name=name,
-                    shell=shell,
-                    pre_conditions=pre_conditions,
-                    effects=effects))
-        else:
-            raise ActionAlreadyInCollectionError
-
-    def __add_obj_action(self, name, obj, pre_conditions, effects, cost):
-        if not ObjectAction(name=name, obj=obj, pre_conditions=pre_conditions, effects=effects, cost=cost) in self.actions:
-            self.actions.append(ObjectAction(name=name, obj=obj, pre_conditions=pre_conditions, effects=effects, cost=cost))
-        else:
-            raise ActionAlreadyInCollectionError
-
-    def add(self, **kwargs):
-        if kwargs.get('shell') and kwargs.get('obj'):
-            raise ActionMultipleTypeError
-
-        name = kwargs.get('name')
-        shell = kwargs.get('shell', None)
-        obj = kwargs.get('obj', None)
-        pre_conditions = kwargs.get('pre_conditions', None)
-        effects = kwargs.get('effects', None)
-        cost = kwargs.get('cost', 0.1)
-        if shell:
-            self.__add_shell_action(name, shell, pre_conditions, effects, cost)
-        elif obj:
-            self.__add_obj_action(name, obj, pre_conditions, effects, cost)
+    def add(self, action: Action):
+        try:
+            self.actions.append(action)
+        except RuntimeError as e:
+            raise RuntimeError(f"Error adding actions: {e}")
 
     def remove(self, name: str):
         result = False
@@ -222,8 +237,12 @@ class Actions:
                 result = True
         return result
 
-    def exec_all(self) -> list:
-        responses = [s.exec() for s in self.actions]
+    async def exec_all(self) -> list:
+        responses = []
+        # await [responses.append(action.exec()) for action in self.actions]
+        for action in self.actions:
+            await action.exec()
+            responses.append(action.response)
         return responses
 
     @staticmethod
