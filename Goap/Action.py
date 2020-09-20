@@ -123,56 +123,9 @@ class ActionResponse:
             return self.stderr
 
 
-# class ShellAction(Action):
-
-#     def __init__(
-#             self,
-#             name: str,
-#             pre_conditions: dict,
-#             effects: dict,
-#             shell: str,
-#             cost: float = 0.0):
-#         self.response = {}
-#         self.type = 'cmd'
-#         self.shell = shell
-#         Action.__init__(
-#             self,
-#             name=name,
-#             pre_conditions=pre_conditions,
-#             effects=effects,
-#             cost=cost)
-
-#     def exec(self):
-#         cmd = self.shell.split()
-#         process = subprocess.Popen(
-#             cmd,
-#             shell=False,
-#             stdout=subprocess.PIPE,
-#             stderr=subprocess.PIPE,
-#             universal_newlines=True
-#         )
-#         try:
-#             stdout, stderr = process.communicate(timeout=30)
-#             return_code = process.returncode
-#             self.response = ActionResponse(
-#                 name=self.name,
-#                 action_type='cmd',
-#                 stdout=stdout,
-#                 stderr=stderr,
-#                 return_code=return_code
-#             )
-#         except TimeoutError as e:
-#             process.kill()
-#             raise('{}'.format(e))
-#         finally:
-#             process.kill()
-
-#         return self.response
-
-
 class Actions:
 
-    def __init__(self, actions: Optional[List[Action]] = None):
+    def __init__(self, actions: Optional[List[Action]] = []):
         self.actions = actions
 
     def __str__(self):
@@ -223,11 +176,10 @@ class Actions:
             if action.effects == effects:
                 return action
 
-    def add(self, action: Action):
-        try:
-            self.actions.append(action)
-        except RuntimeError as e:
-            raise RuntimeError(f"Error adding actions: {e}")
+    def add(self, name: str, pre_conditions: dict, effects: dict, cost: float, func: Callable):
+        self.actions.append(
+            Action(func, name, pre_conditions, effects, cost)
+        )
 
     def remove(self, name: str):
         result = False
@@ -237,9 +189,8 @@ class Actions:
                 result = True
         return result
 
-    async def exec_all(self) -> list:
+    async def run_all(self) -> list:
         responses = []
-        # await [responses.append(action.exec()) for action in self.actions]
         for action in self.actions:
             await action.exec()
             responses.append(action.response)

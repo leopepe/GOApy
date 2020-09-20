@@ -7,14 +7,15 @@ import subprocess
 class ShellCommand(object):
     """ Creates an callable object  """
 
-    def __init__(self, command: str):
+    def __init__(self, command: str, timeout: int = 30):
         self.command = command
+        self.timeout = timeout
         self.response = None
 
     def __call__(self):
-        self.exec(self.command)
+        self.run(self.command)
 
-    def exec(self, command=Optional[str]) -> Tuple[str, str, int]:
+    def run(self, command=Optional[str]) -> Tuple[str, str, int]:
         process = subprocess.Popen(
             ['/bin/sh', '-c', command],
             shell=False,
@@ -23,22 +24,13 @@ class ShellCommand(object):
             universal_newlines=True
         )
         try:
-            stdout, stderr = process.communicate(timeout=30)
+            stdout, stderr = process.communicate(timeout=self.timeout)
             return_code = process.returncode
             self.response = (stdout, stderr, return_code)
         except RuntimeError as e:
-            raise(f'Error opening process {self.cmd}: {e}')
+            raise Exception(
+                f'Error opening process {self.command}: {e}')
         finally:
             process.kill()
 
         return self.response
-
-
-class ShellCommandSensor(Sensor):
-    def __init__(self) -> None:
-        pass
-
-
-class ShellCommandAction(Action):
-    def __init__(self) -> None:
-        pass
