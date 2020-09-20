@@ -12,11 +12,15 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 
 SHELL=/bin/bash
 
-PYTHON_VERSION=3.7
+PYTHON_VERSION=3.8
 PYTHON=.venv/bin/python${PYTHON_VERSION}
 
 req:
-	pip install poetry virtualenv
+	#curl https://pyenv.run | bash
+	pyenv local 3.8.5
+	pip install poetry
+	pip install virtualenv
+	@echo install pyenv
 
 all: venv install-in-venv
 
@@ -50,23 +54,18 @@ check-release: .release
 	@. $(RELEASE_SUPPORT) ; tagExists $(TAG) || (echo "ERROR: version not yet tagged in git. make [minor,major,patch]-release." >&2 && exit 1) ;
 	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
 
-venv:
+venv: req
+	pyenv local
 	poetry install
 
-dev: clean-venv install-dev-venv
+install:
+	poetry install
 
-format: dev
+format: venv
 	.venv/bin/autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
 
-install-dev-venv:
-	virtualenv -p python${PYTHON_VERSION} venv/
-	.venv/bin/pip3 install -r requirements_dev.txt
-	
 install-in-venv: venv
 	.venv/bin/python setup.py install
-
-install-pytest: venv install-in-venv
-	pip install pytest
 
 unittest: venv install-in-venv
 	echo "Action Class Unittests"
@@ -88,9 +87,11 @@ test-coverage: install-coveralls
 	coverage run --source=Goap/ setup.py test
 
 clean-venv:
-	rm -rf venv/
+	rm -rf .venv/
 
 clean-build:
 	rm -rf build/ *.egg-info/
 
 clean-all: clean-venv clean-build
+
+clean: clean-all

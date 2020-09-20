@@ -5,11 +5,11 @@ description = "Goal Oriented Action Planning alghorithm implementation in Python
 authors = ["Leonardo Pepe de Freitas <lpepefreitas@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8.5"
 networkx = "2.3"
 Automat = "0.8.0"
 rx = "1.6.0"
-conversion = "^0.0.7"
+typing = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 docutils = "0.13.1"
