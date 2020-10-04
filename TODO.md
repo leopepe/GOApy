@@ -1,5 +1,6 @@
 # TODO
 
+* Refactor Actions and Sensors to receive func: Callable as parameter (no more ShellCommandAction and ObjectAction)
 * Full test coverage: Create unittests to all classes and methods (Need to check real coverage)
 * PyDocs in all functions/methods
 * Auto generate documentation from pydocs (sphynx)
