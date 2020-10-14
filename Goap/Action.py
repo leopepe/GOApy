@@ -1,7 +1,5 @@
 # from Goap.Action import ActionResponse
-from typing import Callable, List, Optional, Tuple
-from filecmp import cmp
-
+from typing import Callable, List, Optional
 from Goap.Errors import ActionAlreadyInCollectionError
 
 
