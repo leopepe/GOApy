@@ -139,7 +139,8 @@ class Actions:
         self.actions = actions
 
     def __str__(self):
-        return '{}'.format(self.actions)
+        names = [action.name for action in self.actions]
+        return '{}'.format(names)
 
     def __repr__(self):
         return self.__str__()
