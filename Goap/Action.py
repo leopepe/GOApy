@@ -153,7 +153,7 @@ class Actions:
         else:
             return 0
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> Optional[Action]:
         for action in self.actions:
             if action.name == key:
                 return action
@@ -168,9 +168,8 @@ class Actions:
         return result
 
     def get_by_pre_conditions(
-        self,
-        pre_conditions: dict
-    ) -> Optional[List[Action]]:
+            self,
+            pre_conditions: dict) -> Optional[List[Action]]:
         result = []
         for action in self.actions:
             if action.pre_conditions == pre_conditions:
@@ -178,9 +177,8 @@ class Actions:
         return result
 
     def get_by_effects(
-        self,
-        effects: dict
-    ) -> Optional[List[Action]]:
+            self,
+            effects: dict) -> Optional[List[Action]]:
         result = []
         for action in self.actions:
             if action.effects == effects:
@@ -188,13 +186,12 @@ class Actions:
         return result
 
     def add(
-        self,
-        name: str,
-        pre_conditions: dict,
-        effects: dict,
-        func: Callable,
-        cost: float = 0.1
-    ):
+            self,
+            name: str,
+            pre_conditions: dict,
+            effects: dict,
+            func: Callable,
+            cost: float = 0.1):
         if self.get(name):
             raise ActionAlreadyInCollectionError(
                 f"The action name {name} is already in use"
