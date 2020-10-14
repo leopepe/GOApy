@@ -1,4 +1,4 @@
-from GOApy.Goap.utils.os.ShellCommand import ShellCommand
+from Goap.utils.os.ShellCommand import ShellCommand
 
 
 def test_all():
