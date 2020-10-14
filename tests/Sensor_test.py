@@ -32,6 +32,9 @@ class SensorsTest(unittest.TestCase):
         self.tmp_dir_state = ShellCommand(
             'if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi')
 
+    def tearDown(self) -> None:
+        self.sensors = []
+
     def test_add_success(self):
         self.sensors.add(
             name='SenseTmpDirContent2',

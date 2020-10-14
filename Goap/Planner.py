@@ -1,3 +1,4 @@
+from typing import List
 from Goap.WorldState import WorldState
 from Goap.Action import Actions
 import networkx as nx
@@ -185,7 +186,7 @@ class Planner(object):
         self.action_plan = []
         self.graph = Graph(nodes=self.states, edges=self.transitions)
 
-    def __generate_states(self, actions, world_state, goal):
+    def __generate_states(self, actions: List[Actions], world_state: dict, goal: dict):
         self.states.add(Node(world_state))
         self.states.add(Node(goal))
         for action in actions:

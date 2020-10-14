@@ -135,7 +135,7 @@ class ActionResponse:
 
 class Actions:
 
-    def __init__(self, actions: Optional[List[Action]] = []):
+    def __init__(self, actions: List[Action] = []):
         self.actions = actions
 
     def __str__(self):
@@ -146,7 +146,7 @@ class Actions:
         return self.__str__()
 
     def __iter__(self):
-        return self.actions
+        return iter(self.actions)
 
     def __len__(self):
         if self.actions:
@@ -161,7 +161,7 @@ class Actions:
             else:
                 return None
 
-    def get(self, name: str = None) -> Optional[Action]:
+    def get(self, name: str) -> Optional[Action]:
         result = None
         for action in self.actions:
             if action.name == name:
