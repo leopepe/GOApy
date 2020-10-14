@@ -5,7 +5,7 @@ import subprocess
 
 
 class ShellCommand(object):
-    """ Creates an callable object  """
+    """ Creates an callable object which executes a shell command """
 
     def __init__(self, command: str, timeout: int = 30):
         self.command = command
