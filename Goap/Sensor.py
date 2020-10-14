@@ -1,19 +1,22 @@
 import subprocess
+from typing import Callable
 
-from Goap.Errors import SensorError
+from Goap.Errors import SensorAlreadyInCollectionError, SensorDoesNotExistError
 
 
 class Sensor:
     """ Sensor object factory """
 
-    def __init__(self, binding: str, name: str):
+    def __init__(self, name: str, binding: str, func: Callable):
         """ Sensor object model
 
-        :param binding: string containing the key name which the sensor will right to
+        :param binding: string containing the key name
+                        which the sensor will right to
         :param name: string containing the name of the sensor
         """
         self.binding = binding
         self.name = name
+        self.func = func
         self.response = {}
 
     def __str__(self):
@@ -22,85 +25,76 @@ class Sensor:
     def __repr__(self):
         return self.__repr__()
 
-    def __call__(self, **kwargs):
-        self.__init__(kwargs.get('binding'), kwargs.get('name'))
-        self.exec()
+    def __call__(self):
+        return self.exec()
 
     def exec(self):
-        """ Interface method to the sensors execution """
-        pass
+        try:
+            stdout, stderr, return_code = self.func()
+        except RuntimeError as e:
+            raise RuntimeError(
+                f"Error executing function {self.func}. Exception: {e}"
+            )
+        self.response = SensorResponse(
+            stdout=stdout,
+            stderr=stderr,
+            return_code=return_code
+        )
+        return self.response
 
 
 class SensorResponse:
 
     def __init__(
-            self,
-            name: str,
-            sensor_type: str,
-            return_code: str,
-            stdout: str = '',
-            stderr: str = ''):
+        self,
+        stdout: str = '',
+        stderr: str = '',
+        return_code: int = 0,
+    ):
         """
 
         :param name:
         :param sensor_type:
         """
-        self.name = name
-        self.sensor_type = sensor_type
+        self._stdout = stdout
+        self._stderr = stderr
         self.return_code = return_code
-        self.stdout = stdout
-        self.stderr = stderr
-        self.__response_parser()
 
     def __str__(self):
-        return 'Name: {}, Response: {}, ReturnCode: {}'.format(
-            self.name, self.response, self.return_code)
+        response = self.stdout
+        if self.stderr:
+            response = self.stderr
+        return 'Response: {}, ReturnCode: {}'.format(response, self.return_code)
 
     def __repr__(self):
         return self.__str__()
 
-    def __response_parser(self):
-        if not self.stdout == '':
-            self.response = self.stdout
-        elif not self.stderr == '':
-            self.response = self.stderr
+    @property
+    def stdout(self):
+        return self._stdout
 
+    @stdout.setter
+    def stdout(self, value: str):
+        self._stdout = value.rstrip('\r\n')
 
-class ShellCommandSensor(Sensor):
-    """ Shell Sensor object factory """
+    @property
+    def stderr(self):
+        return self._stderr
 
-    def __init__(self, binding: str, name: str, shell: str = None):
-        self.response = None
-        self.type = 'shell'
-        self.shell = shell
-        Sensor.__init__(self, binding=binding, name=name)
+    @stderr.setter
+    def stderr(self, value: str):
+        self._stderr = value.rstrip('\r\n')
 
-    def exec(self) -> SensorResponse:
-        cmd = self.shell
-        process = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True
-        )
-        try:
-            stdout, stderr = process.communicate(timeout=30)
-            return_code = process.returncode
-            self.response = SensorResponse(
-                name=self.name,
-                sensor_type='shell',
-                stdout=stdout.rstrip('\r\n'),
-                stderr=stderr.rstrip('\r\n'),
-                return_code=return_code
-            )
-        except TimeoutError as e:
-            process.kill()
-            raise('{}'.format(e))
-        finally:
-            process.kill()
+    @property
+    def response(self):
+        if self.stdout:
+            return self.stdout
+        else:
+            return self.stderr
 
-        return self.response
+    @response.setter
+    def response(self, value):
+        self.response = value
 
 
 class Sensors:
@@ -111,6 +105,19 @@ class Sensors:
         :param sensors: List containing the sensor objects
         """
         self.sensors = sensors
+
+    def __str__(self):
+        names = [sensor.name for sensor in self.sensors]
+        return '{}'.format(names)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __len__(self):
+        if self.sensors:
+            return len(self.sensors)
+        else:
+            return 0
 
     def __iter__(self):
         return iter(self.sensors)
@@ -133,28 +140,6 @@ class Sensors:
                 sens = s
         return sens
 
-    def __repr__(self):
-        output = []
-        for s in self.sensors:
-            output.append(s.__repr__())
-        return str(output)
-
-    def __add_shell_sensor(self, name, shell, binding):
-        if not ShellSensor(
-                name=name,
-                shell=shell,
-                binding=binding) in self.sensors:
-            self.sensors.append(
-                ShellSensor(
-                    name=name,
-                    shell=shell,
-                    binding=binding))
-        else:
-            raise SensorAlreadyInCollectionError
-
-    def __add_obj_sensor(self, name, obj, binding):
-        raise NotImplementedError
-
     def get(self, name):
         result = None
         for sensor in self.sensors:
@@ -162,18 +147,13 @@ class Sensors:
                 result = sensor
         return result
 
-    def add(self, **kwargs):
-        if kwargs.get('shell') and kwargs.get('obj'):
-            raise SensorMultipleTypeError
-
-        name = kwargs.get('name')
-        shell = kwargs.get('shell', None)
-        obj = kwargs.get('obj', None)
-        binding = kwargs.get('binding', None)
-        if shell:
-            self.__add_shell_sensor(name, shell, binding)
-        elif obj:
-            self.__add_obj_sensor(name, obj, binding)
+    def add(self, name: str, binding: str, func: Callable):
+        if not self.get(name=name):
+            self.sensors.append(Sensor(name=name, binding=binding, func=func))
+        else:
+            raise SensorAlreadyInCollectionError(
+                f"Another sensor is using the same name: {name}"
+            )
 
     def remove(self, name: str):
         result = False
