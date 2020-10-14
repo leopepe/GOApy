@@ -13,7 +13,7 @@ class ShellCommand(object):
         self.response = None
 
     def __call__(self):
-        self.run(self.command)
+        return self.run(self.command)
 
     def run(self, command=Optional[str]) -> Tuple[str, str, int]:
         process = subprocess.Popen(

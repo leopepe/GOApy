@@ -1,8 +1,8 @@
 # from Goap.Action import ActionResponse
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 from filecmp import cmp
 
-from Goap.Errors import ActionMultipleTypeError, ActionAlreadyInCollectionError
+from Goap.Errors import ActionAlreadyInCollectionError
 
 
 class Action:
@@ -27,100 +27,112 @@ class Action:
         return self.__str__()
 
     def __cmp__(self, other):
-        return cmp(self, other)
+        if len(self.__dict__) < len(other.__dict__):
+            return -1
+        elif len(self.__dict__) > len(other.__dict__):
+            return 1
+        else:
+            return 0
 
     def __hash__(self):
         return hash(self)
 
-    def __call__(self, **kwargs):
-        self.exec()
+    def __call__(self):
+        return self.exec()
 
     @property
     def response(self):
         return self._response
 
     @response.setter
-    def response(self,
-                 stdout: str,
-                 stderr: str,
-                 return_code: str,
-                 trim_chars: str
-                 ):
-        self._response = ActionResponse(
-            trim_chars=trim_chars,
-            stdout=stdout,
-            stderr=stderr,
-            return_code=return_code
-        )
+    def response(self, response):
+        self._response = response
+
+    async def async_exec(self):
+        return await self.func()
 
     def exec(self):
         try:
-            self.func()
+            stdout, stderr, return_code = self.func()
         except RuntimeError as e:
             raise RuntimeError(
                 f"Error executing function {self.func}. Exception: {e}"
             )
+        self.response = ActionResponse(
+            stdout=stdout,
+            stderr=stderr,
+            return_code=return_code
+        )
+        return self.response
 
 
 class ActionResponse:
-
     def __init__(
-            self,
-            trim_chars: str = '',
-            return_code: str = '0',
-            stdout: str = '',
-            stderr: str = ''):
+        self,
+        stdout: str = '',
+        stderr: str = '',
+        return_code: int = 0,
+        trim_chars: str = '\r\n',
+    ):
         """
 
-        :param name:
-        :param action_type:
         :param return_code:
         :param stdout:
         :param stderr:
         """
-        self.return_code = return_code
         self.stdout = stdout
         self.stderr = stderr
+        self.return_code = return_code
         self.trim_chars = trim_chars
-        self.__response_parser()
+        self.response = None
+
+    def __call__(self):
+        return self.response
+
+    def __str__(self):
+        return f'{self.response}'
 
     def __repr__(self):
         return self.__str__()
 
-    def __response_parser(self):
-        if not self.stdout == '':
-            self.response = self.stdout
-        elif not self.stderr == '':
-            self.response = self.stderr
+    @staticmethod
+    def __trim(string: str):
+        return string.strip('\r\n')
 
-    def __str__(self):
-        return f'Response: {self.response}, ReturnCode: {self.return_code}'
-
-    def __trim(self, string: str):
-        return string.strip(self.trim_shars)
-
-    @ property
+    @property
     def stdout(self):
         return self._stdout
 
-    @ stdout.setter
+    @stdout.setter
     def stdout(self, value: str):
         self._stdout = self.__trim(value)
 
-    @ property
+    @property
     def stderr(self):
         return self._stderr
 
-    @ stderr.setter
+    @stderr.setter
     def stderr(self, value: str):
         self._stderr = self.__trim(value)
 
-    @ property
+    @property
+    def return_code(self):
+        return self._return_code
+
+    @return_code.setter
+    def return_code(self, value: int):
+        self._return_code = value
+
+    @property
     def response(self):
         if self.stdout:
             return self.stdout
         elif self.stderr:
             return self.stderr
+
+    @response.setter
+    def response(self, value):
+        self._response = value
 
 
 class Actions:
@@ -135,20 +147,13 @@ class Actions:
         return self.__str__()
 
     def __iter__(self):
-        return iter(self.actions)
+        return self.actions
 
     def __len__(self):
-        return len(self.actions)
-
-    """
-    def __cmp__(self, other: Action):
-        pass
-
-
-    def __contains__(self, other: Action):
-        # if not self.get(other.name)
-        pass
-    """
+        if self.actions:
+            return len(self.actions)
+        else:
+            return 0
 
     def __getitem__(self, key: str):
         for action in self.actions:
@@ -164,17 +169,25 @@ class Actions:
                 result = action
         return result
 
-    def get_by_pre_condition(self, pre_conditions: dict) -> Optional[Action]:
-        result = None
+    def get_by_pre_conditions(
+        self,
+        pre_conditions: dict
+    ) -> Optional[List[Action]]:
+        result = []
         for action in self.actions:
             if action.pre_conditions == pre_conditions:
-                result = action
+                result.append(action)
         return result
 
-    def get_by_effect(self, effects: dict):
+    def get_by_effects(
+        self,
+        effects: dict
+    ) -> Optional[List[Action]]:
+        result = []
         for action in self.actions:
             if action.effects == effects:
-                return action
+                result.append(action)
+        return result
 
     def add(
         self,
@@ -184,6 +197,10 @@ class Actions:
         func: Callable,
         cost: float = 0.1
     ):
+        if self.get(name):
+            raise ActionAlreadyInCollectionError(
+                f"The action name {name} is already in use"
+            )
         self.actions.append(
             Action(func, name, pre_conditions, effects, cost)
         )
@@ -196,18 +213,26 @@ class Actions:
                 result = True
         return result
 
-    async def run_all(self) -> list:
+    def run_all(self) -> list:
         responses = []
         for action in self.actions:
-            await action.exec()
+            action.exec()
             responses.append(action.response)
         return responses
 
+    # async def async_run(self):
+    #     response = []
+    #     for action in self.actions:
+    #         await response.append(action.async_exec())
+
     @staticmethod
-    def compare_actions(action1: Action, action2: Action):
-        result = None
-        if action1.pre_conditions == action2.pre_conditions and action1.effects == action2.effects:
-            result = 'Action {} and Action {} are equal'.format(
-                action1.name, action2.name)
+    def compare_actions(action1: Action, action2: Action) -> bool:
+        result = False
+        if (
+            action1.pre_conditions == action2.pre_conditions
+            and action1.effects == action2.effects
+
+        ):
+            result = True
 
         return result
