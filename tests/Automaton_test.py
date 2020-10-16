@@ -1,10 +1,12 @@
-from os import path
-import unittest
 import subprocess
+import unittest
+from os import path
 from pprint import PrettyPrinter
-from Goap.Action import Actions
-from Goap.Sensor import Sensors
+
+from Goap.Action import Action, Actions
 from Goap.Automaton import Automaton
+from Goap.Sensor import Sensor, Sensors
+from Goap.utils.os.ShellCommand import ShellCommand
 
 
 class AutomatonTest(unittest.TestCase):
@@ -21,6 +23,42 @@ class AutomatonTest(unittest.TestCase):
                 self.automaton.action_plan,
                 self.automaton.actions_response))
 
+    def setupSensors(self):
+        self.sense_dir_state = Sensor(
+            name='SenseDirState',
+            func=ShellCommand(
+                command='if [ -d "/tmp/goap_tmp" ]; then printf "exist"; else printf "not_exist"; fi'),
+            binding='tmp_dir_state'
+        )
+        self.sense_dir_content = Sensor(
+            name='SenseTmpDirContent',
+            func=ShellCommand(
+                command='[ -f /tmp/goap_tmp/.token ] && printf "token_found" || printf "token_not_found"'),
+            binding='tmp_dir_content'
+        )
+
+    def setupActions(self):
+        self.create_dir = Action(
+            name='CreateDir',
+            pre_conditions={
+                'tmp_dir_state': 'not_exist',
+                'tmp_dir_content': 'token_not_found'},
+            effects={
+                'tmp_dir_state': 'exist',
+                'tmp_dir_content': 'token_not_found'},
+            func=ShellCommand(command='mkdir -p /tmp/goap_tmp')
+        )
+        self.create_file_token = Action(
+            name='CreateFileToken',
+            pre_conditions={
+                'tmp_dir_state': 'exist',
+                'tmp_dir_content': 'token_not_found'},
+            effects={
+                'tmp_dir_state': 'exist',
+                'tmp_dir_content': 'token_found'},
+            func=ShellCommand(command='touch /tmp/goap_tmp/.token')
+        )
+
     def setUp(self):
         self.print = PrettyPrinter(indent=4)
 
@@ -28,34 +66,11 @@ class AutomatonTest(unittest.TestCase):
             "tmp_dir_state": "exist",
             "tmp_dir_content": "token_found",
         }
-        self.actions = Actions()
-        self.sensors = Sensors()
-        self.sensors.add(
-            name='SenseTmpDirState',
-            shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
-            binding='tmp_dir_state')
-        self.sensors.add(
-            name='SenseTmpDirContent',
-            shell='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"',
-            binding='tmp_dir_content')
-        self.actions.add(
-            name='CreateTmpDir',
-            pre_conditions={
-                'tmp_dir_state': 'not_exist',
-                'tmp_dir_content': 'token_not_found'},
-            effects={
-                'tmp_dir_state': 'exist',
-                'tmp_dir_content': 'token_not_found'},
-            shell='mkdir -p /tmp/goap_tmp')
-        self.actions.add(
-            name='CreateToken',
-            pre_conditions={
-                'tmp_dir_state': 'exist',
-                'tmp_dir_content': 'token_not_found'},
-            effects={
-                'tmp_dir_state': 'exist',
-                'tmp_dir_content': 'token_found'},
-            shell='touch /tmp/goap_tmp/.token')
+        self.setupActions()
+        self.setupSensors()
+        self.actions = Actions(actions=[self.create_dir, self.create_file_token])
+        self.sensors = Sensors(sensors=[self.sense_dir_state, self.sense_dir_content])
+
         world_state_matrix = {
             "tmp_dir_state": 'Unknown',
             "tmp_dir_content": 'Unknown',
@@ -69,6 +84,7 @@ class AutomatonTest(unittest.TestCase):
 
     def test_sensing(self):
         self.__reset_environment()
+        # self.setupSensors()
         self.automaton.input_goal(self.goal)
         self.automaton.sense()
         assert self.automaton.world_state == {
@@ -76,8 +92,8 @@ class AutomatonTest(unittest.TestCase):
             'tmp_dir_content': 'token_not_found'}
 
     def test_planning(self):
-        create_tmp_dir = self.actions.get('CreateTmpDir')
-        create_token = self.actions.get('CreateToken')
+        create_tmp_dir = self.actions.get('CreateDir')
+        create_token = self.actions.get('CreateFileToken')
         self.__reset_environment()
         self.automaton.input_goal(self.goal)
         self.automaton.sense()
@@ -88,6 +104,7 @@ class AutomatonTest(unittest.TestCase):
 
     def test_acting(self):
         self.__reset_environment()
+        # self.setupActions()
         self.automaton.input_goal(self.goal)
         self.automaton.sense()
         self.automaton.plan()
