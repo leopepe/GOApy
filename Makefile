@@ -13,14 +13,15 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 SHELL=/bin/bash
 
 PYTHON_VERSION=3.8.5
-PYTHON=.venv/bin/python${PYTHON_VERSION}
+PYTHON_MINOR_VERSION=3.8
+PYTHON=.venv/bin/python${PYTHON_MINOR_VERSION}
 
 req:
 ifeq ($(shell which pyenv), "pyenv not found")
 	@echo "Installing pyenv"
 	curl https://pyenv.run | bash
 endif
-ifneq ($(shell python --version|cut -d" " -f2), 3.8.5)
+ifneq ($(shell python --version|cut -d" " -f2), ${PYTHON_VERSION})
 	@echo "Installing Python version ${PYTHON_VERSION}"
 	pyenv install ${PYTHON_VERSION}
 endif
