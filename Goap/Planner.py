@@ -1,5 +1,3 @@
-from typing import List
-from Goap.WorldState import WorldState
 from Goap.Action import Actions
 import networkx as nx
 
@@ -186,7 +184,7 @@ class Planner(object):
         self.action_plan = []
         self.graph = Graph(nodes=self.states, edges=self.transitions)
 
-    def __generate_states(self, actions: List[Actions], world_state: dict, goal: dict):
+    def __generate_states(self, actions: Actions, world_state: dict, goal: dict):
         self.states.add(Node(world_state))
         self.states.add(Node(goal))
         for action in actions:
@@ -222,83 +220,3 @@ class Planner(object):
             path = self.graph.path(ws_node, gs_node)
             plan = self.graph.edge_between_nodes(path)
         return plan
-
-
-if __name__ == '__main__':
-    # constants
-    ws = WorldState(
-        lv_need_expansion=True,
-        vg_need_expansion=False,
-        pv_need_expansion=False)
-    gs = WorldState(
-        lv_need_expansion=False,
-        vg_need_expansion=False,
-        pv_need_expansion=False)
-
-    def setupPlanner():
-        acts = Actions()
-        acts.add(
-            name='ExpandLV',
-            pre_conditions={
-                'lv_need_expansion': True,
-                'vg_need_expansion': False,
-            },
-            effects={
-                'lv_need_expansion': False,
-            },
-            shell='echo expand_lv',
-            cost=1.5
-        )
-        acts.add(
-            name='ExpandVG',
-            pre_conditions={
-                'vg_need_expansion': True,
-                'pv_need_expansion': False,
-            },
-            effects={
-                'vg_need_expansion': False,
-            },
-            shell='echo expand_vg',
-            cost=1.0,
-        )
-        acts.add(
-            name='ExpandPV',
-            pre_conditions={
-                'pv_need_expansion': True,
-            },
-            effects={
-                'pv_need_expansion': False,
-            },
-            shell='echo expand_pv',
-            cost=0.5,
-        )
-        return Planner(actions=acts)
-
-    p = setupPlanner()
-
-    def printNodes(data: bool = True):
-        print(p.graph.nodes(data=data))
-
-    def printEdges(data: bool = True):
-        print(p.graph.edges(data=data))
-
-    def printSize():
-        print(p.graph.size)
-
-    def plotGraph():
-        p.graph.plot('graph.png')
-
-    def printWS():
-        print(ws)
-
-    def printPath():
-        print('PATH: ', p.graph.path(ws, gs))
-
-    def printPlan():
-        print('PLAN: ', p.plan(ws, gs))
-
-    plotGraph()
-
-    # printPath()
-
-    printPlan()
