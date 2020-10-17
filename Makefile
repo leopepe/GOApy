@@ -20,7 +20,7 @@ ifeq ($(shell which pyenv), "pyenv not found")
 	@echo "Installing pyenv"
 	curl https://pyenv.run | bash
 endif
-ifeq ($(shell pyenv versions|grep ${PYTHON_VERSION}|wc -l),1)
+ifeq ($(shell pyenv versions|grep ${PYTHON_VERSION}|wc -l),0)
 	@echo "Installing Python version ${PYTHON_VERSION}"
 	pyenv install ${PYTHON_VERSION}
 endif
@@ -29,7 +29,7 @@ endif
 	pip install virtualenv
 	@echo install pyenv
 
-all: venv install-in-venv
+all: venv install-in-venv test
 
 test: unittest test-coverage
 
