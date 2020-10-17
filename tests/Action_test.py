@@ -21,7 +21,8 @@ class ActionTest(unittest.TestCase):
             cost=0.1,
             func=ShellCommand('/bin/sh -c "ls -ltr /tmp/"')
         )
-        assert True
+        create_dir = self.actions.get(name='create_dir')
+        self.assertTrue(create_dir)
 
     def test_add_multiple_actions(self):
         actions = [
