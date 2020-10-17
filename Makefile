@@ -14,7 +14,6 @@ SHELL=/bin/bash
 
 PYTHON_VERSION=3.8.5
 PYTHON_MINOR_VERSION=3.8
-PYTHON=.venv/bin/python${PYTHON_MINOR_VERSION}
 
 req:
 ifeq ($(shell which pyenv), "pyenv not found")
@@ -77,13 +76,13 @@ install-in-venv: venv install
 
 unittest: install-in-venv
 	echo "Action Class Unittests"
-	$(PYTHON) -m unittest tests/Action_test.py
+	pytest -v tests/Action_test.py
 	echo "Sensor Class Unittests"
-	$(PYTHON) -m unittest tests/Sensor_test.py
+	pytest -v tests/Sensor_test.py
 	echo "Automaton Class Unittests"
-	$(PYTHON) -m unittest tests/Automaton_test.py
+	pytest -v tests/Automaton_test.py
 	echo "Fullstack Unittests"
-	$(PYTHON) -m unittest tests/Planner_test.py
+	pytest -v tests/Planner_test.py
 
 install-coveralls: venv install-in-venv
 	pip install coveralls
