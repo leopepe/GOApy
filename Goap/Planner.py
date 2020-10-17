@@ -166,7 +166,7 @@ class Graph(object):
             # nx.draw_networkx_edge_labels(self.directed, pos=pos, edge_labels=edge_labels)
             plt.savefig(file_path)
         except IOError as err:
-            raise('Could not create plot image: {}', err)
+            raise IOError(f'Could not create plot image: {err}')
 
 
 class Planner(object):
