@@ -20,7 +20,7 @@ ifeq ($(shell which pyenv), "pyenv not found")
 	@echo "Installing pyenv"
 	curl https://pyenv.run | bash
 endif
-ifeq ($(shell pyenv versions|grep ${PYTHON_VERSION}|wc -l),0)
+ifneq ($(shell python --version|cut -d" " -f2), 3.8.5)
 	@echo "Installing Python version ${PYTHON_VERSION}"
 	pyenv install ${PYTHON_VERSION}
 endif
