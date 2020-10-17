@@ -109,6 +109,18 @@ class ActionTest(unittest.TestCase):
                 func=ShellCommand("/bin/sh -c 'echo create_gcp_account'")
             )
 
+    def test_fail_call_action(self):
+        self.actions.add(
+            name="failed",
+            pre_conditions={'state': 'none'},
+            effects={'state': 'done'},
+            cost=0.1,
+            func=ShellCommand(command='exit 1')
+        )
+        fail = self.actions.get('failed')
+        output = fail()
+        assert output.return_code == 1
+
     def test_call_action(self):
         self.actions.add(
             name="echo",
