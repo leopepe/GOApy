@@ -53,7 +53,7 @@ class ActionTest(unittest.TestCase):
             func=ShellCommand("/bin/sh -c 'echo create_gcp_account'")
         )
         self.actions.remove(name='create_vpc')
-        assert "None" == str(self.actions.get(name='CreateDB'))
+        assert not self.actions.get(name='CreateDB')
 
     def test_remove_non_existing_action(self):
         self.actions.remove(name='CreateAPP')
