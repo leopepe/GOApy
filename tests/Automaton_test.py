@@ -9,12 +9,15 @@ from Goap.Sensor import Sensor, Sensors
 from Goap.utils.os.ShellCommand import ShellCommand
 
 
+ENV_DIR = '/tmp/goap_tmp'
+
+
 class AutomatonTest(unittest.TestCase):
 
     @staticmethod
     def __reset_environment():
         if path.isdir('/tmp/goap_tmp'):
-            subprocess.call(['rm', '-rf', '/tmp/goap_tmp'])
+            subprocess.check_output(['rm', '-rf', ENV_DIR], timeout=5)
 
     def __print(self):
         self.print.pprint(
