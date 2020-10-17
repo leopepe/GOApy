@@ -12,14 +12,19 @@ TAG=$(shell . $(RELEASE_SUPPORT); getTag)
 
 SHELL=/bin/bash
 
-PYTHON_VERSION=3.8
+PYTHON_VERSION=3.8.5
 PYTHON=.venv/bin/python${PYTHON_VERSION}
 
 req:
 ifeq ($(shell which pyenv), "pyenv not found")
+	@echo "Installing pyenv"
 	curl https://pyenv.run | bash
 endif
-	pyenv local 3.8.5
+ifeq ($(shell pyenv versions|grep ${PYTHON_VERSION}|wc -l),1)
+	@echo "Installing Python version ${PYTHON_VERSION}"
+	pyenv install ${PYTHON_VERSION}
+endif
+	pyenv local ${PYTHON_VERSION}
 	pip install poetry
 	pip install virtualenv
 	@echo install pyenv
