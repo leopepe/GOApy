@@ -1,5 +1,5 @@
 import subprocess
-from typing import Callable
+from typing import Callable, List
 
 from Goap.Errors import SensorAlreadyInCollectionError, SensorDoesNotExistError
 
@@ -99,12 +99,12 @@ class SensorResponse:
 
 class Sensors:
 
-    def __init__(self, sensors: list = []):
+    def __init__(self, sensors: List[Sensor] = None):
         """ Collection of sensors, adds only unique sensors
 
         :param sensors: List containing the sensor objects
         """
-        self.sensors = sensors
+        self.sensors = sensors if sensors else []
 
     def __str__(self):
         names = [sensor.name for sensor in self.sensors]
@@ -142,9 +142,13 @@ class Sensors:
 
     def get(self, name):
         result = None
+        if not self.sensors:
+            return result
+
         for sensor in self.sensors:
             if sensor.name == name:
                 result = sensor
+
         return result
 
     def add(self, name: str, binding: str, func: Callable):

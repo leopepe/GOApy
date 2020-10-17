@@ -135,8 +135,8 @@ class ActionResponse:
 
 class Actions:
 
-    def __init__(self, actions: List[Action] = []):
-        self.actions = actions
+    def __init__(self, actions: List[Action] = None):
+        self.actions = actions if actions else []
 
     def __str__(self):
         names = [action.name for action in self.actions]
@@ -163,9 +163,13 @@ class Actions:
 
     def get(self, name: str) -> Optional[Action]:
         result = None
+        if not self.actions:
+            return result
+
         for action in self.actions:
             if action.name == name:
                 result = action
+
         return result
 
     def get_by_pre_conditions(

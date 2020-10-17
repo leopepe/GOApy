@@ -57,7 +57,7 @@ class ActionTest(unittest.TestCase):
 
     def test_remove_non_existing_action(self):
         self.actions.remove(name='CreateAPP')
-        assert 'None' == str(self.actions.get(name='CreateAPP'))
+        self.assertIsNone(self.actions.get(name='CreateAPP'))
 
     def test_get_by_precondition(self):
         self.actions.add(
@@ -100,6 +100,13 @@ class ActionTest(unittest.TestCase):
         assert len(actions) == 1
 
     def test_unique_action_name(self):
+        self.actions.add(
+            name='create_gcp',
+            pre_conditions={'gcp_account_status': 'exist'},
+            effects={'gcp_account_status': 'exist'},
+            cost=0.1,
+            func=ShellCommand("/bin/sh -c 'echo create_gcp_account'")
+        )
         with self.assertRaises(ActionAlreadyInCollectionError):
             self.actions.add(
                 name='create_gcp',
