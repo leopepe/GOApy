@@ -71,7 +71,7 @@ install:
 format: venv
 	.venv/bin/autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
 
-install-in-venv: venv
+install-in-venv: venv install
 	.venv/bin/python setup.py install
 
 unittest: install-in-venv
