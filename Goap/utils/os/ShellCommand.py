@@ -1,7 +1,5 @@
-from Goap import Sensor
 from typing import Optional, Tuple
-from Goap.Action import Action
-import subprocess
+from subprocess import Popen, PIPE
 
 
 class ShellCommand(object):
@@ -16,11 +14,11 @@ class ShellCommand(object):
         return self.run(self.command)
 
     def run(self, command=Optional[str]) -> Tuple[str, str, int]:
-        process = subprocess.Popen(
+        process = Popen(
             ['/bin/sh', '-c', command],
             shell=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
             universal_newlines=True
         )
         try:
