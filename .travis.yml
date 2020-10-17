@@ -1,13 +1,13 @@
 language: python
 python:
-  - "3.7-dev"
+  - "3.8-dev"
 install:
   - pip install coveralls poetry
   - poetry install
 branches:
   only:
-  - master
-  - /^v\d+\.\d+\.\d+$/
+    - master
+    - /^v\d+\.\d+\.\d+$/
 script:
   - make test
 after_success:
