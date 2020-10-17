@@ -74,7 +74,7 @@ format: venv
 install-in-venv: venv
 	.venv/bin/python setup.py install
 
-unittest:
+unittest: install-in-venv
 	echo "Action Class Unittests"
 	$(PYTHON) -m unittest tests/Action_test.py
 	echo "Sensor Class Unittests"
