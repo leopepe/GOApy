@@ -1,3 +1,4 @@
+envs: POETRY_VIRTUALENVS_PATH=.venv/
 language: python
 python:
   - "3.8.5"
