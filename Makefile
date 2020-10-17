@@ -16,7 +16,9 @@ PYTHON_VERSION=3.8
 PYTHON=.venv/bin/python${PYTHON_VERSION}
 
 req:
-	#curl https://pyenv.run | bash
+ifeq ($(shell which pyenv), "pyenv not found")
+	curl https://pyenv.run | bash
+endif
 	pyenv local 3.8.5
 	pip install poetry
 	pip install virtualenv
