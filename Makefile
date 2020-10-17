@@ -15,6 +15,10 @@ SHELL=/bin/bash
 PYTHON_VERSION=3.8.5
 PYTHON_MINOR_VERSION=3.8
 
+all: venv install-in-venv test
+
+test: unittest test-coverage
+
 req:
 ifeq ($(shell which pyenv), "pyenv not found")
 	@echo "Installing pyenv"
@@ -25,13 +29,7 @@ ifneq ($(shell python --version|cut -d" " -f2), ${PYTHON_VERSION})
 	pyenv install ${PYTHON_VERSION}
 endif
 	pyenv local ${PYTHON_VERSION}
-	pip install poetry
-	pip install virtualenv
-	@echo install pyenv
-
-all: venv install-in-venv test
-
-test: unittest test-coverage
+	pip install poetry virtualenv
 
 patch:
 	poetry version patch
@@ -62,17 +60,16 @@ check-release: .release
 	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
 
 venv: req
-	pyenv local
 	poetry install
 
 install:
-	poetry install
+	python setup.py install
 
 format: venv
-	.venv/bin/autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
+	autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
 
 install-in-venv: venv install
-	.venv/bin/python setup.py install
+	python setup.py install
 
 unittest: install-in-venv
 	echo "Action Class Unittests"
@@ -86,9 +83,6 @@ unittest: install-in-venv
 
 install-coveralls: venv install-in-venv
 	pip install coveralls
-
-pytest: venv install-in-venv install-pytest
-	pytest tests/
 
 test-coverage: install-coveralls
 	coverage run --source=Goap/ setup.py test
