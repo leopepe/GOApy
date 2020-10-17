@@ -1,4 +1,3 @@
-import subprocess
 from typing import Callable, List
 
 from Goap.Errors import SensorAlreadyInCollectionError, SensorDoesNotExistError
