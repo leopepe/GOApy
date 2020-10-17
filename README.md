@@ -23,42 +23,60 @@ To perform the search the planner sets a graph using the possible world states a
 From the AutomatonController class perspective the usage and interaction should be:
 
 ```python
+from Goap.utils.os.ShellCommand import ShellCommand
 from Goap.Action import Actions
 from Goap.Sensor import Sensors
 from Goap.Automaton import AutomatonController
 
 
 def setup_sensors():
+    """ The sensor collection can add any callable object to the collection 
+        and call it returning the output to the binding key in the WorldState dictionary
+    """
+    sense_dir_state = ShellCommand(
+        command='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi'
+    )
+    sense_dir_content = ShellCommand(
+        command='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"'
+    )
     sensors = Sensors()
     sensors.add(
         name='SenseTmpDirState',
-        shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
-        binding='tmp_dir_state'
-    )
+        func=sense_dir_state,
+        binding='tmp_dir_state')
     sensors.add(
         name='SenseTmpDirContent',
-        shell='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"',
-        binding='tmp_dir_content'
-    )
+        func=sense_dir_content,
+        binding='tmp_dir_content')
     return sensors
 
 
 def setup_actions():
+    mkdir = ShellCommand(
+        command='mkdir -p /tmp/goap_tmp'
+    )
+    mktoken = ShellCommand(
+        command='touch /tmp/goap_tmp/.token'
+    )
     actions = Actions()
     actions.add(
         name='CreateTmpDir',
-        pre_conditions={'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'},
-        effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
-        cost=0.1,
-        shell='mkdir -p /tmp/goap_tmp'
-    )
+        pre_conditions={
+            'tmp_dir_state': 'not_exist',
+            'tmp_dir_content': 'token_not_found'},
+        effects={
+            'tmp_dir_state': 'exist',
+            'tmp_dir_content': 'token_not_found'},
+        func=mkdir)
     actions.add(
         name='CreateToken',
-        pre_conditions={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
-        effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'},
-        cost=0.1,
-        shell='touch /tmp/goap_tmp/.token'
-    )
+        pre_conditions={
+            'tmp_dir_state': 'exist',
+            'tmp_dir_content': 'token_not_found'},
+        effects={
+            'tmp_dir_state': 'exist',
+            'tmp_dir_content': 'token_found'},
+        func=mktoken)
     return actions
 
 
@@ -88,5 +106,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 ```
 
