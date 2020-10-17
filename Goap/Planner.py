@@ -147,7 +147,7 @@ class Graph(object):
         try:
             import matplotlib.pyplot as plt
         except ImportError as err:
-            raise('matplotlib not installed. Failed at: {}', err)
+            raise ImportError(f'matplotlib not installed. Failed at: {err}')
 
         try:
             pos = nx.nx_agraph.graphviz_layout(self.directed)
