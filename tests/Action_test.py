@@ -11,7 +11,7 @@ class ActionTest(unittest.TestCase):
         # ACTIONS
         self.actions = Actions()
         self.ls = ShellCommand('ls -ltr /tmp/')
-        self.echo = ShellCommand('echo output')
+        self.echo = ShellCommand('printf output')
 
     def test_add_action(self):
         self.actions.add(
@@ -140,3 +140,14 @@ class ActionTest(unittest.TestCase):
         output = echo()
         assert output.response == 'output'
         assert output.return_code == 0
+
+    def test_run_all(self):
+        self.actions.add(
+            name="test_run_all",
+            pre_conditions={'state': 'none'},
+            effects={'state': 'done'},
+            cost=0.1,
+            func=self.echo
+        )
+        response = self.actions.run_all()
+        assert str(response) == '[output]'

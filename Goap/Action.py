@@ -46,9 +46,6 @@ class Action:
     def response(self, response):
         self._response = response
 
-    async def async_exec(self):
-        return await self.func()
-
     def exec(self):
         try:
             stdout, stderr, return_code = self.func()
@@ -207,23 +204,17 @@ class Actions:
 
     def remove(self, name: str):
         result = False
-        for action in self.actions:
-            if action.name == name:
-                self.actions.remove(action)
-                result = True
+        if not self.actions:
+            return result
+        action = self.get(name)
+        if action:
+            self.actions.remove(action)
+            result = True
         return result
 
     def run_all(self) -> list:
-        responses = []
-        for action in self.actions:
-            action.exec()
-            responses.append(action.response)
+        responses = [action.exec() for action in self.actions]
         return responses
-
-    # async def async_run(self):
-    #     response = []
-    #     for action in self.actions:
-    #         await response.append(action.async_exec())
 
     @staticmethod
     def compare_actions(action1: Action, action2: Action) -> bool:
