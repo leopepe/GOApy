@@ -87,6 +87,9 @@ install-coveralls: venv install-in-venv
 test-coverage: install-coveralls
 	coverage run --source=Goap/ setup.py test
 
+docker-build:
+	docker build -t goapy:$(shell poetry version|cut -d" " -f2) .
+
 clean-venv:
 	rm -rf .venv/
 
