@@ -40,6 +40,9 @@ def setup_sensors():
         command='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"'
     )
     sensors = Sensors()
+    # add a shell sensor that will check if a directory exist and returns a string with
+    # "exists" or "not_exist"
+    # The return string will update the automaton's world state
     sensors.add(
         name='SenseTmpDirState',
         func=sense_dir_state,
