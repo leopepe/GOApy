@@ -26,11 +26,11 @@ class SensorsTest(unittest.TestCase):
         # ACTIONS
         self.sensors = Sensors()
         self.check_dir = ShellCommand(
-            command='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi'
+            command='if [ -d "/tmp/goap_tmp" ]; then printf  "exist"; else printf  "not_exist"; fi'
         )
 
         self.tmp_dir_state = ShellCommand(
-            'if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi')
+            'if [ -d "/tmp/goap_tmp" ]; then printf  "exist"; else printf  "not_exist"; fi')
 
     def tearDown(self) -> None:
         self.sensors = []
@@ -39,7 +39,7 @@ class SensorsTest(unittest.TestCase):
         self.sensors.add(
             name='SenseTmpDirContent2',
             func=ShellCommand(
-                '[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"'),
+                '[ -f /tmp/goap_tmp/.token ] && printf  "token_found" || printf  "token_not_found"'),
             binding='tmp_dir_content2'
         )
         print(self.sensors)
@@ -52,7 +52,16 @@ class SensorsTest(unittest.TestCase):
             func=self.tmp_dir_state,
             binding='tmp_dir_state'
         )
-        assert self.sensors.remove(name='SenseTmpDirState') is True
+        self.assertTrue(self.sensors.remove(name='SenseTmpDirState'))
 
     def test_remove_sensor_error(self):
-        assert self.sensors.remove(name='CreateAPP') is False
+        self.assertFalse(self.sensors.remove(name='CreateAPP'))
+
+    def test_run_all(self):
+        self.sensors.add(
+            name='test_run_all',
+            binding='test_result',
+            func=self.check_dir
+        )
+        response = self.sensors.run_all()
+        assert str(response) == '[Response: not_exist, ReturnCode: 0]'

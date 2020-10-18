@@ -160,12 +160,14 @@ class Sensors:
 
     def remove(self, name: str):
         result = False
-        for sensor in self.sensors:
-            if sensor.name == name:
-                self.sensors.remove(sensor)
-                result = True
+        if not self.sensors:
+            return result
+        sensor = self.get(name)
+        if sensor:
+            self.sensors.remove(sensor)
+            result = True
         return result
 
-    def exec_all(self) -> list:
-        responses = [s.exec() for s in self.sensors]
+    def run_all(self) -> list:
+        responses = [sensor.exec() for sensor in self.sensors]
         return responses
