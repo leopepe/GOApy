@@ -15,6 +15,8 @@
 # DONE: v0.2.1
 * Refactor Actions and Sensors to receive func: Callable as parameter (no more ShellCommandAction and ObjectAction)
 * Add costs to the actions to guarantee a better performance on long action chains.
+* Code quality increased to A level on Codacy
+* Test coverage increased to 81%
 
 # DONE: v0.2.0
 * Testing: implement unittests for all classes
