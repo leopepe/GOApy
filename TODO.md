@@ -1,18 +1,27 @@
 # TODO
 
-* Full test coverage: Create unittests to all classes and methods (Need to check real coverage)
+
 * PyDocs in all functions/methods
 * Auto generate documentation from pydocs (sphynx)
 * Logging (Feature toggle to enable logging activities of the AI)
 * Create real examples with real world scenarios/test cases. Now it is possible to use the lib in experimental tests using real actions and sensors.
-  * Create utils classes/methods for:
+  * Create utils classes/methods for real life scenarios such as:
+    - Security audit tasks
     - Cloud scenarios
     - LVM and FS maintenance
-    - Cleanup tasks (docker, filesystem temp files cleanup)
-    - AWS Cloud formation
+    - Cleanup tasks (docker, filesystem temp files cleanup, file rename, backups)
+    - AWS operations (create, update, delete resources)
 * Change Planner so the adding nodes and edges would follow the implementation described in https://www.datacamp.com/community/tutorials/networkx-python-graph-tutorial (CSV or table based import. Useful when using config files to generate the automaton)
 
+NOTES: 
+    The automaton must be able to sense the response or effect of its own actions
+    The automaton need a history or recent memory (which actions were performed and succeeded?)
+    The actions need access to the automaton knowledge in due to extract useful parameters to its actions
+    The automatons need to be reactive: Change of states needs to trigger a plan
+    The automatons need to communicate to each other and combine plans
+
 # DONE: v0.2.1
+* Test coverage obove 80%
 * Refactor Actions and Sensors to receive func: Callable as parameter (no more ShellCommandAction and ObjectAction)
 * Add costs to the actions to guarantee a better performance on long action chains.
 * Code quality increased to A level on Codacy
