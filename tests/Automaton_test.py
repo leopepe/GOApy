@@ -82,7 +82,7 @@ class AutomatonTest(unittest.TestCase):
             name='directory_watcher',
             actions=self.actions,
             sensors=self.sensors,
-            world_state=world_state_matrix
+            world_state_facts=world_state_matrix
         )
 
     def test_sensing(self):

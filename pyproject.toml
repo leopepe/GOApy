@@ -22,6 +22,7 @@ pylint = "2.5.2"
 pytest = "5.3.5"
 rope = "^0.17.0"
 rx = "1.6.0"
+boto3 = "^1.16.23"
 
 [build-system]
 build-backend = "poetry.masonry.api"
