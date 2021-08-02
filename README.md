@@ -1,7 +1,7 @@
 # GOAPy 
-[![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.0)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.0)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.0) [![PyPI version](https://badge.fury.io/py/goap.svg)](https://badge.fury.io/py/goap)
+[![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.1)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.1)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.1) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/41a49ddaaf54400d9dd3d08f7bb1852a)](https://www.codacy.com/manual/lpepefreitas/GOApy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=leopepe/GOApy&amp;utm_campaign=Badge_Grade) [![PyPI version](https://badge.fury.io/py/Goap.svg)](https://badge.fury.io/py/Goap) [![Python Formater](https://github.com/leopepe/GOApy/actions/workflows/autopep8.yml/badge.svg?branch=master)](https://github.com/leopepe/GOApy/actions/workflows/autopep8.yml)
 
-**Version**: 0.2.0
+**Version**: 0.2.1
 
 ![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
 
@@ -23,46 +23,63 @@ To perform the search the planner sets a graph using the possible world states a
 From the AutomatonController class perspective the usage and interaction should be:
 
 ```python
+from Goap.utils.os.ShellCommand import ShellCommand
 from Goap.Action import Actions
 from Goap.Sensor import Sensors
 from Goap.Automaton import AutomatonController
 
 
 def setup_sensors():
-    """ Setup your automaton sensors.
-        The sensors are a collection of linux shell commads or python callables (functons or objects)
+    """ The sensor collection can add any callable object to the collection 
+        and call it returning the output to the binding key in the WorldState dictionary
     """
+    sense_dir_state = ShellCommand(
+        command='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi'
+    )
+    sense_dir_content = ShellCommand(
+        command='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"'
+    )
     sensors = Sensors()
     # add a shell sensor that will check if a directory exist and returns a string with
     # "exists" or "not_exist"
     # The return string will update the automaton's world state
     sensors.add(
         name='SenseTmpDirState',
-        shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
-        binding='tmp_dir_state'
-    )
+        func=sense_dir_state,
+        binding='tmp_dir_state')
     sensors.add(
         name='SenseTmpDirContent',
-        shell='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"',
-        binding='tmp_dir_content'
-    )
+        func=sense_dir_content,
+        binding='tmp_dir_content')
     return sensors
 
 
 def setup_actions():
+    mkdir = ShellCommand(
+        command='mkdir -p /tmp/goap_tmp'
+    )
+    mktoken = ShellCommand(
+        command='touch /tmp/goap_tmp/.token'
+    )
     actions = Actions()
     actions.add(
         name='CreateTmpDir',
-        pre_conditions={'tmp_dir_state': 'not_exist', 'tmp_dir_content': 'token_not_found'},
-        effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
-        shell='mkdir -p /tmp/goap_tmp'
-    )
+        pre_conditions={
+            'tmp_dir_state': 'not_exist',
+            'tmp_dir_content': 'token_not_found'},
+        effects={
+            'tmp_dir_state': 'exist',
+            'tmp_dir_content': 'token_not_found'},
+        func=mkdir)
     actions.add(
         name='CreateToken',
-        pre_conditions={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_not_found'},
-        effects={'tmp_dir_state': 'exist', 'tmp_dir_content': 'token_found'},
-        shell='touch /tmp/goap_tmp/.token'
-    )
+        pre_conditions={
+            'tmp_dir_state': 'exist',
+            'tmp_dir_content': 'token_not_found'},
+        effects={
+            'tmp_dir_state': 'exist',
+            'tmp_dir_content': 'token_found'},
+        func=mktoken)
     return actions
 
 
@@ -92,5 +109,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 ```
 

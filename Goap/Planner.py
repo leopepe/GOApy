@@ -1,4 +1,3 @@
-from Goap.WorldState import WorldState
 from Goap.Action import Actions
 import networkx as nx
 
@@ -148,7 +147,7 @@ class Graph(object):
         try:
             import matplotlib.pyplot as plt
         except ImportError as err:
-            raise('matplotlib not installed. Failed at: {}', err)
+            raise ImportError(f'matplotlib not installed. Failed at: {err}')
 
         try:
             pos = nx.nx_agraph.graphviz_layout(self.directed)
@@ -167,7 +166,7 @@ class Graph(object):
             # nx.draw_networkx_edge_labels(self.directed, pos=pos, edge_labels=edge_labels)
             plt.savefig(file_path)
         except IOError as err:
-            raise('Could not create plot image: {}', err)
+            raise IOError(f'Could not create plot image: {err}')
 
 
 class Planner(object):
@@ -185,7 +184,7 @@ class Planner(object):
         self.action_plan = []
         self.graph = Graph(nodes=self.states, edges=self.transitions)
 
-    def __generate_states(self, actions, world_state, goal):
+    def __generate_states(self, actions: Actions, world_state: dict, goal: dict):
         self.states.add(Node(world_state))
         self.states.add(Node(goal))
         for action in actions:
@@ -218,86 +217,14 @@ class Planner(object):
         gs_node = self.states.get(goal)
         plan = []
         if state != goal:
-            path = self.graph.path(ws_node, gs_node)
-            plan = self.graph.edge_between_nodes(path)
+            try:
+                path = self.graph.path(ws_node, gs_node)
+            except EnvironmentError as e:
+                print(f"No possible path: {e}")
+
+            try:
+                plan = self.graph.edge_between_nodes(path)
+            except EnvironmentError as e:
+                print(f"No plan available: {e}")
+
         return plan
-
-
-if __name__ == '__main__':
-    # constants
-    ws = WorldState(
-        lv_need_expansion=True,
-        vg_need_expansion=False,
-        pv_need_expansion=False)
-    gs = WorldState(
-        lv_need_expansion=False,
-        vg_need_expansion=False,
-        pv_need_expansion=False)
-
-    def setupPlanner():
-        acts = Actions()
-        acts.add(
-            name='ExpandLV',
-            pre_conditions={
-                'lv_need_expansion': True,
-                'vg_need_expansion': False,
-            },
-            effects={
-                'lv_need_expansion': False,
-            },
-            shell='echo expand_lv',
-            cost=1.5
-        )
-        acts.add(
-            name='ExpandVG',
-            pre_conditions={
-                'vg_need_expansion': True,
-                'pv_need_expansion': False,
-            },
-            effects={
-                'vg_need_expansion': False,
-            },
-            shell='echo expand_vg',
-            cost=1.0,
-        )
-        acts.add(
-            name='ExpandPV',
-            pre_conditions={
-                'pv_need_expansion': True,
-            },
-            effects={
-                'pv_need_expansion': False,
-            },
-            shell='echo expand_pv',
-            cost=0.5,
-        )
-        return Planner(actions=acts)
-
-    p = setupPlanner()
-
-    def printNodes(data: bool = True):
-        print(p.graph.nodes(data=data))
-
-    def printEdges(data: bool = True):
-        print(p.graph.edges(data=data))
-
-    def printSize():
-        print(p.graph.size)
-
-    def plotGraph():
-        p.graph.plot('graph.png')
-
-    def printWS():
-        print(ws)
-
-    def printPath():
-        print('PATH: ', p.graph.path(ws, gs))
-
-    def printPlan():
-        print('PLAN: ', p.plan(ws, gs))
-
-    plotGraph()
-
-    # printPath()
-
-    printPlan()

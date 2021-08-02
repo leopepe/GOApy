@@ -4,141 +4,93 @@ REGISTRY_HOST=docker.io
 USERNAME=$(USER)
 NAME=$(shell basename $(PWD))
 
-RELEASE_SUPPORT := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))/.make-release-support
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 IMAGE=$(shell tr '[:upper:]' '[:lower:]' <<< $(NAME))
 
-VERSION=$(shell . $(RELEASE_SUPPORT) ; getVersion)
-TAG=$(shell . $(RELEASE_SUPPORT); getTag)
+VERSION=$(shell poetry version|cut -d" " -f2)
 
 SHELL=/bin/bash
 
-PYTHON_VERSION=3.7
-PYTHON=./venv/bin/python${PYTHON_VERSION}
+PYTHON_VERSION=3.8.5
+PYTHON_MINOR_VERSION=3.8
 
-all: venv install-in-venv
+all: venv install-in-venv test
 
 test: unittest test-coverage
 
-docker-all: pre-build docker-build post-build build release patch-release minor-release major-release tag check-status check-release showver \
-	push do-push post-push
+req:
+ifeq ($(shell which pyenv), "pyenv not found")
+	@echo "Installing pyenv"
+	curl https://pyenv.run | bash
+endif
+ifneq ($(shell python --version|cut -d" " -f2), ${PYTHON_VERSION})
+	@echo "Installing Python version ${PYTHON_VERSION}"
+	pyenv install ${PYTHON_VERSION}
+endif
+	pyenv local ${PYTHON_VERSION}
+	pip install poetry virtualenv
 
-build: pre-build docker-build post-build
+patch:
+	poetry version patch
+	poetry version|cut -d" "  -f2 > .release
 
-pre-build:
+minor:
+	poetry version minor 
+	poetry version|cut -d" "  -f2 > .release
 
-post-build:
+major:
+	poetry version major
+	poetry version|cut -d" "  -f2 > .release
 
-post-push:
+.PHONY: version
+version:
+	@poetry version|cut -d" " -f2
 
-container-run:
-	@echo "Go Go Go..."
-	docker run --rm $(IMAGE):$(VERSION)
+release-minor: minor tag
 
-docker-build: .release
-	docker build -t $(IMAGE):$(VERSION) .
-	@DOCKER_MAJOR=$(shell docker -v | sed -e 's/.*version //' -e 's/,.*//' | cut -d\. -f1) ; \
-	DOCKER_MINOR=$(shell docker -v | sed -e 's/.*version //' -e 's/,.*//' | cut -d\. -f2) ; \
-	if [ $$DOCKER_MAJOR -eq 1 ] && [ $$DOCKER_MINOR -lt 10 ] ; then \
-		echo docker tag -f $(IMAGE):$(VERSION) $(IMAGE):latest ;\
-		docker tag -f $(IMAGE):$(VERSION) $(IMAGE):latest ;\
-	else \
-		echo docker tag $(IMAGE):$(VERSION) $(IMAGE):latest ;\
-		docker tag $(IMAGE):$(VERSION) $(IMAGE):latest ; \
-	fi
-
-.release: test
-	@echo "release=0.0.0" > .release
-	@echo "tag=$(NAME)-0.0.0" >> .release
-	@echo INFO: .release created
-	@cat .release
-
-release: check-status check-release build push
-
-push: do-push post-push 
-
-do-push: 
-	docker push $(IMAGE):$(VERSION)
-	docker push $(IMAGE):latest
-
-snapshot: build push
-
-showver: .release
-	@. $(RELEASE_SUPPORT); getVersion
-
-tag-patch-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextPatchLevel)
-tag-patch-release: .release tag 
-
-tag-minor-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMinorLevel)
-tag-minor-release: .release tag 
-
-tag-major-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMajorLevel)
-tag-major-release: .release tag 
-
-patch-release: tag-patch-release release
-	@echo $(VERSION)
-
-minor-release: tag-minor-release release
-	@echo $(VERSION)
-
-major-release: tag-major-release release
-	@echo $(VERSION)
-
-
-tag: TAG=$(shell . $(RELEASE_SUPPORT); getTag $(VERSION))
+tag: TAG=$(shell cat .release)
 tag: check-status
-	@. $(RELEASE_SUPPORT) ; ! tagExists $(TAG) || (echo "ERROR: tag $(TAG) for version $(VERSION) already tagged in git" >&2 && exit 1) ;
-	@. $(RELEASE_SUPPORT) ; setRelease $(VERSION)
-	git add .release
-	git commit -m "bumped to version $(VERSION)" ;
-	git tag $(TAG) ;
+	REL=$(shell cat .release)
+	HASTAG=$(shell git tag -l |grep ^"v${REL}\$")
+	@test "$(BRACH)" = "mater" || (echo "ERROR: Please merge your changes to master first" >&2 && exit 1)
+	@test -n "$tag" && test -z "$(HASTAG)" || (echo "ERROR: Tag already exists" >&2 && exit 1)
+	git tag v$(TAG)
 	@[ -n "$(shell git remote -v)" ] && git push --tags
 
 check-status:
-	@. $(RELEASE_SUPPORT) ; ! hasChanges || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
+	test -n "$(git status -s .)" || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
 
-check-release: .release
-	@. $(RELEASE_SUPPORT) ; tagExists $(TAG) || (echo "ERROR: version not yet tagged in git. make [minor,major,patch]-release." >&2 && exit 1) ;
-	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
+venv: req
+	poetry install
 
-venv:
-	virtualenv -p python${PYTHON_VERSION} venv/
-	venv/bin/pip3 install -r requirements
-	source venv/bin/activate
+install:
+	python setup.py install
 
-dev: clean-venv install-dev-venv
+format: venv
+	autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
 
-format: dev
-	venv/bin/autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
+install-in-venv: venv install
+	python setup.py install
 
-install-dev-venv:
-	virtualenv -p python${PYTHON_VERSION} venv/
-	venv/bin/pip3 install -r requirements_dev.txt
-	
-install-in-venv: venv
-	venv/bin/python setup.py install
-
-clean-venv:
-	rm -rf venv/
-
-install-pytest: venv install-in-venv
-	pip install pytest
-
-unittest: venv install-in-venv
-	echo "Action Class Unittests"
-	$(PYTHON) -m unittest tests/Action_test.py
-	echo "Sensor Class Unittests"
-	$(PYTHON) -m unittest tests/Sensor_test.py
-	echo "Automaton Class Unittests"
-	$(PYTHON) -m unittest tests/Automaton_test.py
-	echo "Fullstack Unittests"
-	$(PYTHON) -m unittest tests/Planner_test.py
+unittest: install-in-venv
+	@echo "Running unit tests"
+	pytest -v -s tests/
 
 install-coveralls: venv install-in-venv
 	pip install coveralls
 
-pytest: venv install-in-venv install-pytest
-	pytest tests/
-
 test-coverage: install-coveralls
 	coverage run --source=Goap/ setup.py test
 
+docker-build:
+	docker build -t goapy:$(shell poetry version|cut -d" " -f2) .
+
+clean-venv:
+	rm -rf .venv/
+
+clean-build:
+	rm -rf build/ *.egg-info/
+
+clean-all: clean-venv clean-build
+
+clean: clean-all

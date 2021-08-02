@@ -1,17 +1,20 @@
 from Goap.Action import Action, Actions
 from Goap.Sensor import Sensor, Sensors
 from Goap import Automaton
+from Goap import WorldState
 from Goap.Planner import Planner
-from Goap.Errors import OperationFailedError
+from Goap import Errors
 
+name = 'Goap'
+__version__ = '0.2.1'
 __all__ = [
-    'Automaton',
     'Action',
-    'Actions',
+    'Automaton',
+    'Errors',
+    'Planner',
     'Sensor',
     'Sensors',
-    'Planner',
-    'Errors',
+    'WorldState',
+    'name',
+    '__version__',
 ]
-__version__ = '0.2.0'
-__name__ = 'Goap'

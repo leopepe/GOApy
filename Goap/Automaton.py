@@ -46,9 +46,9 @@ class Automaton:
             name: str,
             sensors: Sensors,
             actions: Actions,
-            world_state: dict):
+            world_state_facts: dict):
         # setup
-        self.world_state = WorldState(world_state)
+        self.world_state = WorldState(world_state_facts)
         self.working_memory = []
         self.name = name
         self.sensors = sensors
@@ -179,7 +179,7 @@ class AutomatonController(object):
             actions=actions,
             sensors=sensors,
             name=name,
-            world_state=world_state)
+            world_state_facts=world_state)
 
     @property
     def world_state(self):

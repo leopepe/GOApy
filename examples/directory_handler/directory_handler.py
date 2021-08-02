@@ -1,22 +1,35 @@
+from Goap.utils.os.ShellCommand import ShellCommand
 from Goap.Action import Actions
 from Goap.Sensor import Sensors
 from Goap.Automaton import AutomatonController
 
 
 def setup_sensors():
+    sense_dir_state = ShellCommand(
+        command='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi'
+    )
+    sense_dir_content = ShellCommand(
+        command='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"'
+    )
     sensors = Sensors()
     sensors.add(
         name='SenseTmpDirState',
-        shell='if [ -d "/tmp/goap_tmp" ]; then echo -n "exist"; else echo -n "not_exist"; fi',
+        func=sense_dir_state,
         binding='tmp_dir_state')
     sensors.add(
         name='SenseTmpDirContent',
-        shell='[ -f /tmp/goap_tmp/.token ] && echo -n "token_found" || echo -n "token_not_found"',
+        func=sense_dir_content,
         binding='tmp_dir_content')
     return sensors
 
 
 def setup_actions():
+    mkdir = ShellCommand(
+        command='mkdir -p /tmp/goap_tmp'
+    )
+    mktoken = ShellCommand(
+        command='touch /tmp/goap_tmp/.token'
+    )
     actions = Actions()
     actions.add(
         name='CreateTmpDir',
@@ -26,7 +39,7 @@ def setup_actions():
         effects={
             'tmp_dir_state': 'exist',
             'tmp_dir_content': 'token_not_found'},
-        shell='mkdir -p /tmp/goap_tmp')
+        func=mkdir)
     actions.add(
         name='CreateToken',
         pre_conditions={
@@ -35,7 +48,7 @@ def setup_actions():
         effects={
             'tmp_dir_state': 'exist',
             'tmp_dir_content': 'token_found'},
-        shell='touch /tmp/goap_tmp/.token')
+        func=mktoken)
     return actions
 
 

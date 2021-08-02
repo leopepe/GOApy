@@ -1,21 +1,22 @@
-import subprocess
-from filecmp import cmp
-
-from Goap.Errors import *
+# from Goap.Action import ActionResponse
+from typing import Callable, List, Optional
+from Goap.Errors import ActionAlreadyInCollectionError
 
 
 class Action:
-
     def __init__(
             self,
+            func: Callable,
             name: str,
             pre_conditions: dict,
             effects: dict,
-            cost: float):
+            cost: float = 0.1):
+        self.func = func
         self.name = name
         self.pre_conditions = pre_conditions
         self.effects = effects
         self.cost = cost
+        self._response: Optional[ActionResponse] = None
 
     def __str__(self):
         return self.name
@@ -24,114 +25,119 @@ class Action:
         return self.__str__()
 
     def __cmp__(self, other):
-        return cmp(self, other)
+        if len(self.__dict__) < len(other.__dict__):
+            return -1
+        elif len(self.__dict__) > len(other.__dict__):
+            return 1
+        else:
+            return 0
 
     def __hash__(self):
         return hash(self)
 
-    def __call__(self, **kwargs):
-        self.__init__(
-            kwargs.get('name'),
-            kwargs.get('pre_conditions'),
-            kwargs.get('effects'))
-        self.exec()
+    def __call__(self):
+        return self.exec()
 
-    def exec(self) -> tuple:
-        pass
+    @property
+    def response(self):
+        return self._response
+
+    @response.setter
+    def response(self, response):
+        self._response = response
+
+    def exec(self):
+        try:
+            stdout, stderr, return_code = self.func()
+        except RuntimeError as e:
+            raise RuntimeError(
+                f"Error executing function {self.func}. Exception: {e}"
+            )
+        self.response = ActionResponse(
+            stdout=stdout,
+            stderr=stderr,
+            return_code=return_code
+        )
+        return self.response
 
 
 class ActionResponse:
-
     def __init__(
-            self,
-            name: str,
-            action_type: str,
-            return_code: str,
-            stdout: str = '',
-            stderr: str = ''):
+        self,
+        stdout: str = '',
+        stderr: str = '',
+        return_code: int = 0,
+        trim_chars: str = '\r\n',
+    ):
         """
 
-        :param name:
-        :param action_type:
         :param return_code:
         :param stdout:
         :param stderr:
         """
-        self.name = name
-        self.action_type = action_type
-        self.return_code = return_code
         self.stdout = stdout
         self.stderr = stderr
-        self.__response_parser()
+        self.return_code = return_code
+        self.trim_chars = trim_chars
+        self.response = None
+
+    def __call__(self):
+        return self.response
 
     def __str__(self):
-        return 'Name: {}, Response: {}, ReturnCode: {}'.format(
-            self.name, self.response, self.return_code)
+        return f'{self.response}'
 
     def __repr__(self):
         return self.__str__()
 
-    def __response_parser(self):
-        if not self.stdout == '':
-            self.response = self.stdout
-        elif not self.stderr == '':
-            self.response = self.stderr
+    @staticmethod
+    def __trim(string: str):
+        return string.strip('\r\n')
 
+    @property
+    def stdout(self):
+        return self._stdout
 
-class ShellAction(Action):
+    @stdout.setter
+    def stdout(self, value: str):
+        self._stdout = self.__trim(value)
 
-    def __init__(
-            self,
-            name: str,
-            pre_conditions: dict,
-            effects: dict,
-            shell: str,
-            cost: float = 0.0):
-        self.response = {}
-        self.type = 'shell'
-        self.shell = shell
-        Action.__init__(
-            self,
-            name=name,
-            pre_conditions=pre_conditions,
-            effects=effects,
-            cost=cost)
+    @property
+    def stderr(self):
+        return self._stderr
 
-    def exec(self):
-        cmd = self.shell
-        process = subprocess.Popen(
-            cmd,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True
-        )
-        try:
-            stdout, stderr = process.communicate(timeout=30)
-            return_code = process.returncode
-            self.response = ActionResponse(
-                name=self.name,
-                action_type='shell',
-                stdout=stdout,
-                stderr=stderr,
-                return_code=return_code
-            )
-        except TimeoutError as e:
-            process.kill()
-            raise('{}'.format(e))
-        finally:
-            process.kill()
+    @stderr.setter
+    def stderr(self, value: str):
+        self._stderr = self.__trim(value)
 
-        return self.response
+    @property
+    def return_code(self):
+        return self._return_code
+
+    @return_code.setter
+    def return_code(self, value: int):
+        self._return_code = value
+
+    @property
+    def response(self):
+        if self.stdout:
+            return self.stdout
+        elif self.stderr:
+            return self.stderr
+
+    @response.setter
+    def response(self, value):
+        self._response = value
 
 
 class Actions:
 
-    def __init__(self):
-        self.actions = list()
+    def __init__(self, actions: List[Action] = None):
+        self.actions = actions if actions else []
 
     def __str__(self):
-        return '{}'.format(self.actions)
+        names = [action.name for action in self.actions]
+        return '{}'.format(names)
 
     def __repr__(self):
         return self.__str__()
@@ -140,81 +146,84 @@ class Actions:
         return iter(self.actions)
 
     def __len__(self):
-        return len(self.actions)
+        if self.actions:
+            return len(self.actions)
+        else:
+            return 0
 
-    def __getitem__(self, key):
-        for a in self.actions:
-            if a.name == key:
-                return a
+    def __getitem__(self, key: str) -> Optional[Action]:
+        for action in self.actions:
+            if action.name == key:
+                return action
             else:
                 return None
 
-    def get(self, name):
+    def get(self, name: str) -> Optional[Action]:
         result = None
+        if not self.actions:
+            return result
+
         for action in self.actions:
             if action.name == name:
                 result = action
+
         return result
 
-    def get_by_pre_condition(self, pre_conditions: dict):
+    def get_by_pre_conditions(
+            self,
+            pre_conditions: dict) -> Optional[List[Action]]:
+        result = []
         for action in self.actions:
             if action.pre_conditions == pre_conditions:
-                return action
+                result.append(action)
+        return result
 
-    def get_by_effect(self, effects: dict):
+    def get_by_effects(
+            self,
+            effects: dict) -> Optional[List[Action]]:
+        result = []
         for action in self.actions:
             if action.effects == effects:
-                return action
+                result.append(action)
+        return result
 
-    def __add_shell_action(self, name, shell, pre_conditions, effects):
-        if not ShellAction(
-                name=name,
-                shell=shell,
-                pre_conditions=pre_conditions,
-                effects=effects) in self.actions:
-            self.actions.append(
-                ShellAction(
-                    name=name,
-                    shell=shell,
-                    pre_conditions=pre_conditions,
-                    effects=effects))
-        else:
-            raise ActionAlreadyInCollectionError
-
-    def __add_obj_action(self, name, obj, pre_conditions, effects):
-        raise NotImplementedError
-
-    def add(self, **kwargs):
-        if kwargs.get('shell') and kwargs.get('obj'):
-            raise ActionMultipleTypeError
-
-        name = kwargs.get('name')
-        shell = kwargs.get('shell', None)
-        obj = kwargs.get('obj', None)
-        pre_conditions = kwargs.get('pre_conditions', None)
-        effects = kwargs.get('effects', None)
-        if shell:
-            self.__add_shell_action(name, shell, pre_conditions, effects)
-        elif obj:
-            self.__add_obj_action(name, obj, pre_conditions, effects)
+    def add(
+            self,
+            name: str,
+            pre_conditions: dict,
+            effects: dict,
+            func: Callable,
+            cost: float = 0.1):
+        if self.get(name):
+            raise ActionAlreadyInCollectionError(
+                f"The action name {name} is already in use"
+            )
+        self.actions.append(
+            Action(func, name, pre_conditions, effects, cost)
+        )
 
     def remove(self, name: str):
         result = False
-        for action in self.actions:
-            if action.name == name:
-                self.actions.remove(action)
-                result = True
+        if not self.actions:
+            return result
+        action = self.get(name)
+        if action:
+            self.actions.remove(action)
+            result = True
         return result
 
-    def exec_all(self) -> list:
-        responses = [s.exec() for s in self.actions]
+    def run_all(self) -> list:
+        responses = [action.exec() for action in self.actions]
         return responses
 
     @staticmethod
-    def compare_actions(action1: Action, action2: Action):
-        result = None
-        if action1.pre_conditions == action2.pre_conditions and action1.effects == action2.effects:
-            result = 'Action {} and Action {} are equal'.format(
-                action1.name, action2.name)
+    def compare_actions(action1: Action, action2: Action) -> bool:
+        result = False
+        if (
+            action1.pre_conditions == action2.pre_conditions
+            and action1.effects == action2.effects
+
+        ):
+            result = True
 
         return result

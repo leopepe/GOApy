@@ -1,4 +1,6 @@
 # Leo
+.vscode**
+.venv**
 .idea
 .idea*
 *.pyc

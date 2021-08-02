@@ -33,7 +33,7 @@ class WorldState(dict):
 
     def __le__(self, other):
         for k, v in other.__dict__():
-            if other.__dict__()['k'] != v:
+            if other.__dict__()[k] != v:
                 return False
         return True
 

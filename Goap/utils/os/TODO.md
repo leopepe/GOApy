@@ -1,11 +1,22 @@
-from os import listdir
-from os.path import isdir, isfile, exists
-from lvm2py import *
+# TODO
 
-from Goap.Sensor import *
+## actions
 
+delete files older than X days
+delete files with different from pattern X
+delete files with pattern X
+compact files older than X days
+move files older than X days to path Y
+delete files with extension .X
+send email notification
+start process X
+stop process X
+increase LVM size in Xmb
+start container X
+stop container X
 
-""" TODO:
+## sensors
+
 detect files older than X days
 detect files with different from pattern X
 detect files with pattern X
@@ -13,14 +24,13 @@ detect files with extension .X
 detect if volume above X% usage
 detect if vg needs more disks
 detect if container X is running
-"""
 
-
+```python
 class OSFilePath(Sensor):
 
     def __init__(self, binding: str, name: str, path: str):
         self.path = path
-        super(Sensor).__init__(binding=binding, name=name)
+        super().__init__(binding=binding, name=name)
 
     def exists(self):
         return exists(self.path)
@@ -47,7 +57,7 @@ class OSFilePath(Sensor):
 class DirectoryExist(OSFilePath):
 
     def __init__(self, binding: str, name: str, path: str):
-        super(Sensor).__init__(binding=binding, name=name, path=path)
+        super().__init__(binding=binding, name=name, path=path)
 
     def exec(self):
         return self.is_dir()
@@ -56,7 +66,7 @@ class DirectoryExist(OSFilePath):
 class FileExist(OSFilePath):
 
     def __init__(self, binding: str, name: str, path: str):
-        super(Sensor).__init__(binding=binding, name=name, path=path)
+        super().__init__(binding=binding, name=name, path=path)
 
     def exec(self):
         return self.is_file()
@@ -65,7 +75,7 @@ class FileExist(OSFilePath):
 class FileIsOlderThan(OSFilePath):
 
     def __init__(self, binding: str, name: str, path: str):
-        super(Sensor).__init__(binding=binding, name=name, path=path)
+        super().__init__(binding=binding, name=name, path=path)
 
     def is_older(self, days: str):
         pass
@@ -74,7 +84,7 @@ class FileIsOlderThan(OSFilePath):
 class FileNamePattern(OSFilePath):
 
     def __init__(self, binding: str, name: str, path: str):
-        super(Sensor).__init__(binding=binding, name=name, path=path)
+        super().__init__(binding=binding, name=name, path=path)
 
     def has_name_pattern(self):
         pass
@@ -83,7 +93,7 @@ class FileNamePattern(OSFilePath):
 class FileHasExtension(OSFilePath):
 
     def __init__(self, binding: str, name: str, path: str):
-        super(Sensor).__init__(binding=binding, name=name, path=path)
+        super().__init__(binding=binding, name=name, path=path)
 
     def has_extension(self, extension: str):
         pass
@@ -91,13 +101,12 @@ class FileHasExtension(OSFilePath):
 
 class LVM(Sensor):
 
-    def __init__(self, **kwargs):
-        self.lvm = LVM()
-        self.binding = kwargs.get('binding', None)
-        self.binding = kwargs.get('name', None)
-        self.vg_name = kwargs.get('vg_name', None)
-        self.lv_name = kwargs.get('lv_name', None)
-        super(Sensor).__init__(binding=self.binding, name=self.name)
+    def __init__(self, biding: str, name: str, vg_name: str, lv_name: str):
+        self.lvm = None  # lvm client
+        self.binding = biding
+        self.vg_name = vg_name
+        self.lv_name = lv_name
+        super().__init__(binding=self.binding, name=self.name)
 
     def vg_exists(self):
         try:
@@ -120,15 +129,4 @@ class LVM(Sensor):
     def lv_size(self):
         pass
 
-
-class VGExists(LVM):
-
-    def __init__(self, binding: str, vg_name: str):
-        super(Sensor).__init__(binding=binding, vg_name=vg_name)
-
-    def exec(self):
-        return self.vg_exists()
-
-
-if __name__ == '__main__':
-    pass
+```
