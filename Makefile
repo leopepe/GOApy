@@ -44,7 +44,7 @@ major:
 
 .PHONY: version
 version:
-	@poetry version|cut -d" " -f2 > ./VERSION && echo $(shell cat ./VERSION)
+	@poetry version|cut -d" " -f2
 
 release-minor: minor tag
 
