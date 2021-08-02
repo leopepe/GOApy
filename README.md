@@ -1,5 +1,6 @@
 # GOAPy 
 [![Build Status](https://travis-ci.com/leopepe/GOApy.svg?branch=v0.2.1)](https://travis-ci.com/leopepe/GOApy) [![Coverage Status](https://coveralls.io/repos/github/leopepe/GOApy/badge.svg?branch=v0.2.1)](https://coveralls.io/github/leopepe/GOApy?branch=v0.2.1) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/41a49ddaaf54400d9dd3d08f7bb1852a)](https://www.codacy.com/manual/lpepefreitas/GOApy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=leopepe/GOApy&amp;utm_campaign=Badge_Grade) [![PyPI version](https://badge.fury.io/py/Goap.svg)](https://badge.fury.io/py/Goap) [![Python Formater](https://github.com/leopepe/GOApy/actions/workflows/autopep8.yml/badge.svg?branch=master)](https://github.com/leopepe/GOApy/actions/workflows/autopep8.yml)
+
 **Version**: 0.2.1
 
 ![GOAPy](docs/_static/rdaneelolivaw.jpg "Oh my god, it's full of stars!")
