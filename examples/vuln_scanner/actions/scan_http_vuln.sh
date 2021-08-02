@@ -5,7 +5,7 @@ OUTPUT_DIR="/tmp"
 SENSORS_DIR="$FILE_DIR/../sensors"
 ACTIVE_HTTP_FILE="/tmp/tmp.actv_http"
 if [ ! -f $ACTIVE_HTTP_FILE ]; then
-    exec $SENSORS_DIR/active_http_servers.sh
+    exec $SENSORS_DIR/list_active_http_servers.sh
 fi
 
 for host in `cat $ACTIVE_HTTP_FILE`; do

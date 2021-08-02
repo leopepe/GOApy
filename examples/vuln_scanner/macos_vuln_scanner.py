@@ -2,10 +2,13 @@ from Goap.utils.os.ShellCommand import ShellCommand
 from Goap.Action import Actions
 from Goap.Sensor import Sensors
 from Goap.Automaton import AutomatonController
+from os.path import dirname
 
 
-TARGET_FILE_PATH = '/tmp/target_hosts.txt'
+ACTIVE_NODES = '/tmp/tmp.actv_nds'
+ACTIVE_HTTP_SRVS = '/tmp/tmp.actv_http'
 SCANNED_HOSTS = '/tmp/scanned_hosts.txt'
+PROJECT_DIR = dirname(__file__)
 
 
 def setup_sensors() -> Sensors:
@@ -14,34 +17,22 @@ def setup_sensors() -> Sensors:
                       identify http active listen hosts
                       identify http server app and version
     """
-    default_inet = ShellCommand("netstat -nr -f inet|grep default|tr -s ' '|cut -d ' ' -f 4")
-    default_gw = ShellCommand("netstat -nr -f inet|grep default|tr -s ' '|cut -d ' ' -f 2")
     list_active_nodes = ShellCommand(
-        "nmap -T5 -sn 192.168.0.0/24|grep 'Host is up' -B 1|grep 'scan report'|awk '{print $NF}'|sed 's/(//g'|sed 's/)//g > {TARGET_FILE_PATH}'"
+        f"{PROJECT_DIR}/sensors/list_active_nodes.sh"
     )
-    # check if there are new nodes in list_active_nodes file
-    # if there are new nodes write it to nodes_to_scan
-    is_there_new_active_nodes = ShellCommand(f"diff {TARGET_FILE_PATH} {SCANNED_HOSTS}")
+    list_active_http_srvs = ShellCommand(
+        f"{PROJECT_DIR}/sensors/list_active_http_servers.sh"
+    )
     sensors = Sensors()
     sensors.add(
-        name="default_inet",
-        binding="net_default_interface",
-        func=default_inet
-    )
-    sensors.add(
-        name="default_gw",
-        binding="net_default_gateway",
-        func=default_gw
-    )
-    sensors.add(
-        name="active_nodes",
-        binding="network_active_nodes",
+        name="list_active_nodes",
+        binding="are_there_active_nodes",
         func=list_active_nodes
     )
     sensors.add(
-        name="is_there_new_active_nodes",
-        binding="there_is_new_nodes",
-        func=is_there_new_active_nodes
+        name="check_active_http_servers",
+        binding="are_there_http_servers",
+        func=list_active_http_srvs
     )
     return sensors
 
@@ -52,14 +43,35 @@ def setup_actions() -> Actions:
                                        scan host for http vuln
                                        exploit vuln hosts
     """
-    scan_http_hosts = ShellCommand(f"nmap -Pn -T5 -p 80 -sS -sV --version-all -iL {TARGET_FILE_PATH}")
+    scan_http_vuln = ShellCommand(f"{PROJECT_DIR}/actions/scan_http_vuln.sh")
     actions = Actions()
     actions.add(
-        name="scan_http_hosts",
-        pre_conditions={},
-        effects={},
-        func=scan_http_hosts,
+        name="scan_http_vuln",
+        pre_conditions={"are_there_http_servers": "true", "checked_all_http_servers": "false"},
+        effects={"checked_all_http_servers": "true"},
+        func=scan_http_vuln,
         cost=0.2
 
     )
     return actions
+
+
+if __name__ == "__main__":
+    sensors = setup_sensors()
+    actions = setup_actions()
+    world_state = {
+        "are_there_active_nodes": "false",
+        "are_there_http_servers": "false",
+        "checked_all_http_servers": "false"
+    }
+    automaton = AutomatonController(
+        name="http_vulneratron",
+        actions=actions,
+        sensors=sensors,
+        world_state=world_state
+    )
+    automaton.goal = {
+        "checked_all_http_servers": "true"
+    }
+    # automaton.planner.graph.plot()
+    automaton.start()

@@ -1,6 +1,6 @@
 # README
 
-NOTES: 
+GOALS: 
     The automaton must be able to sense the response or effect of its own actions
     The automaton need a history or recent memory (which actions were performed and succeeded?)
     The actions need access to the automaton knowledge in due to extract useful parameters to its actions

@@ -12,5 +12,14 @@ last_ip=$(echo $broadcast|cut -d'.' -f 4)
 default_gw=$(/usr/sbin/netstat -nr -f inet|grep default|tr -s ' '|cut -d ' ' -f 2)
 # list_active_nodes=$("nmap -T5 -sn i${default_gw}-${last_ip}|grep 'Host is up' -B 1|grep 'scan report'|awk '{print $NF}'|sed 's/(//g'|sed 's/)//g' > ${TARGET_FILE_PATH}'")
 list_active_nodes=$(nmap -T5 -sn ${default_gw}-${last_ip}|grep 'Host is up' -B 1|grep 'scan report'|awk '{print $NF}'|sed 's/(//g'|sed 's/)//g')
-echo $list_active_nodes > $TMP_OUTPUT_FILE
-echo $list_active_nodes
+# echo $list_active_nodes > $TMP_OUTPUT_FILE
+# echo $list_active_nodes
+cmp -s <(echo $list_active_nodes) <(cat $TMP_OUTPUT_FILE) 2>&1
+if [ $? -eq 1 ]; then
+    printf "false"
+    exit 0
+else
+    @echo $list_active_nodes > $TMP_OUTPUT_FILE
+    printf "true"
+    exit 0
+fi
