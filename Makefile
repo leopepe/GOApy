@@ -91,6 +91,9 @@ clean-venv:
 clean-build:
 	rm -rf build/ *.egg-info/
 
-clean-all: clean-venv clean-build
+clean-dist:
+	rm -rf dist/
+
+clean-all: clean-venv clean-build clean-dist
 
 clean: clean-all
