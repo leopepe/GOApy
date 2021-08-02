@@ -217,6 +217,14 @@ class Planner(object):
         gs_node = self.states.get(goal)
         plan = []
         if state != goal:
-            path = self.graph.path(ws_node, gs_node)
-            plan = self.graph.edge_between_nodes(path)
+            try:
+                path = self.graph.path(ws_node, gs_node)
+            except EnvironmentError as e:
+                print(f"No possible path: {e}")
+
+            try:
+                plan = self.graph.edge_between_nodes(path)
+            except EnvironmentError as e:
+                print(f"No plan available: {e}")
+
         return plan
