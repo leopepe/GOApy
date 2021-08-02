@@ -73,14 +73,8 @@ install-in-venv: venv install
 	python setup.py install
 
 unittest: install-in-venv
-	echo "Action Class Unittests"
-	pytest -v tests/Action_test.py
-	echo "Sensor Class Unittests"
-	pytest -v tests/Sensor_test.py
-	echo "Automaton Class Unittests"
-	pytest -v tests/Automaton_test.py
-	echo "Fullstack Unittests"
-	pytest -v tests/Planner_test.py
+	@echo "Running unit tests"
+	pytest -v -s tests/
 
 install-coveralls: venv install-in-venv
 	pip install coveralls
