@@ -4,11 +4,10 @@ REGISTRY_HOST=docker.io
 USERNAME=$(USER)
 NAME=$(shell basename $(PWD))
 
-RELEASE_SUPPORT := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))/.make-release-support
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 IMAGE=$(shell tr '[:upper:]' '[:lower:]' <<< $(NAME))
 
-VERSION=$(shell . $(RELEASE_SUPPORT) ; getVersion)
-TAG=$(shell . $(RELEASE_SUPPORT); getTag)
+VERSION=$(shell poetry version|cut -d" " -f2)
 
 SHELL=/bin/bash
 
@@ -33,31 +32,33 @@ endif
 
 patch:
 	poetry version patch
+	poetry version|cut -d" "  -f2 > .release
 
 minor:
-	poetry version minor
+	poetry version minor 
+	poetry version|cut -d" "  -f2 > .release
 
 major:
 	poetry version major
+	poetry version|cut -d" "  -f2 > .release
 
+.PHONY: version
 version:
-	poetry version
+	@poetry version|cut -d" " -f2 > ./VERSION && echo $(shell cat ./VERSION)
 
-tag: TAG=$(shell . $(RELEASE_SUPPORT); getTag $(VERSION))
+release-minor: minor tag
+
+tag: TAG=$(shell cat .release)
 tag: check-status
-	@. $(RELEASE_SUPPORT) ; ! tagExists $(TAG) || (echo "ERROR: tag $(TAG) for version $(VERSION) already tagged in git" >&2 && exit 1) ;
-	@. $(RELEASE_SUPPORT) ; setRelease $(VERSION)
-	git add .release
-	git commit -m "bumped to version $(VERSION)" ;
-	git tag $(TAG) ;
+	REL=$(shell cat .release)
+	HASTAG=$(shell git tag -l |grep ^"v${REL}\$")
+	@test "$(BRACH)" = "mater" || (echo "ERROR: Please merge your changes to master first" >&2 && exit 1)
+	@test -n "$tag" && test -z "$(HASTAG)" || (echo "ERROR: Tag already exists" >&2 && exit 1)
+	git tag v$(TAG)
 	@[ -n "$(shell git remote -v)" ] && git push --tags
 
 check-status:
-	@. $(RELEASE_SUPPORT) ; ! hasChanges || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
-
-check-release: .release
-	@. $(RELEASE_SUPPORT) ; tagExists $(TAG) || (echo "ERROR: version not yet tagged in git. make [minor,major,patch]-release." >&2 && exit 1) ;
-	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
+	test -n "$(git status -s .)" || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
 
 venv: req
 	poetry install
