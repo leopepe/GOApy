@@ -26,11 +26,15 @@ ifeq ($(shell which pyenv), "pyenv not found")
 	curl https://pyenv.run | bash
 endif
 ifneq ($(shell python --version|cut -d" " -f2), ${PYTHON_VERSION})
+	@echo "Local python version must be ${PYTHON_VERSION}"
+	pyenv local ${PYTHON_MINOR_VERSION}
+endif
+ifeq ($(?), 1)
 	@echo "Installing Python version ${PYTHON_VERSION}"
 	pyenv install ${PYTHON_VERSION}
-endif
-	pyenv local ${PYTHON_VERSION}
+	pyenv local ${PYTHON_MINOR_VERSION}
 	pip install poetry virtualenv
+endif
 
 patch:
 	poetry version patch
@@ -66,7 +70,10 @@ venv: req
 	poetry install
 
 install:
-	python setup.py install
+	poetry run python setup.py install
+
+lint: format
+	poetry run flake8 goap/
 
 format: venv
 	autopep8 --in-place --aggressive --aggressive --aggressive --recursive goap/
