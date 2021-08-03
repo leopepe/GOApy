@@ -1,6 +1,5 @@
 # TODO
-
-* create clients and tests
+  * create clients and tests
 
 ```python
 import boto3
