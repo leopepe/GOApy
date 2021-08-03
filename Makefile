@@ -26,7 +26,7 @@ ifeq ($(shell which pyenv), "pyenv not found")
 	curl https://pyenv.run | bash
 endif
 ifneq ($(shell python --version|cut -d" " -f2), ${PYTHON_VERSION})
-ifeq ("v$(shell pyenv versions|grep ${PYTHON_VERSION}|cut -d' ' -f2)", "v${PYTHON_VERSION}")
+ifeq ("v$(shell pyenv versions|grep ${PYTHON_VERSION}|sed 's/^[[:space:]]*//g')", "v${PYTHON_VERSION}")
 	@echo "Local python version must be ${PYTHON_VERSION}"
 	pyenv local ${PYTHON_VERSION}
 else
