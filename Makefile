@@ -26,14 +26,15 @@ ifeq ($(shell which pyenv), "pyenv not found")
 	curl https://pyenv.run | bash
 endif
 ifneq ($(shell python --version|cut -d" " -f2), ${PYTHON_VERSION})
+ifeq ("v$(shell pyenv versions|grep ${PYTHON_VERSION}|cut -d' ' -f2)", "v${PYTHON_VERSION}")
 	@echo "Local python version must be ${PYTHON_VERSION}"
-	pyenv local ${PYTHON_MINOR_VERSION}
-endif
-ifeq ($(?), 1)
-	@echo "Installing Python version ${PYTHON_VERSION}"
+	pyenv local ${PYTHON_VERSION}
+else
+	@echo "Python ${PYTHON_VERSION} not in local pyenv versions. Installing python ${PYTHON_VERSION}"
 	pyenv install ${PYTHON_VERSION}
-	pyenv local ${PYTHON_MINOR_VERSION}
+	pyenv local ${PYTHON_VERSION}
 	pip install poetry virtualenv
+endif
 endif
 
 patch:
