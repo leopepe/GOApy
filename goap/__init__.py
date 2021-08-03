@@ -6,7 +6,6 @@ from goap.Planner import Planner
 from goap import Errors
 
 name = 'goap'
-__name__ = 'goap'
 __version__ = '0.3.0'
 __all__ = [
     'Action',
@@ -18,6 +17,5 @@ __all__ = [
     'Sensors',
     'WorldState',
     'name',
-    '__name__',
     '__version__',
 ]
