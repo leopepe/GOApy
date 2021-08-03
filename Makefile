@@ -11,7 +11,9 @@ VERSION=$(shell poetry version|cut -d" " -f2)
 
 SHELL=/bin/bash
 
-PYTHON_VERSION=3.8.10
+# the python version must be inline with:
+# * poetry, travis, docker
+PYTHON_VERSION=3.8.5
 PYTHON_MINOR_VERSION=3.8
 
 all: venv install-in-venv test
