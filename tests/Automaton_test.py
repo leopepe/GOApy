@@ -43,7 +43,7 @@ class AutomatonTest(unittest.TestCase):
     def setupActions(self):
         self.create_dir = Action(
             name='CreateDir',
-            pre_conditions={
+            conditions={
                 'tmp_dir_state': 'not_exist',
                 'tmp_dir_content': 'token_not_found'},
             effects={
@@ -53,7 +53,7 @@ class AutomatonTest(unittest.TestCase):
         )
         self.create_file_token = Action(
             name='CreateFileToken',
-            pre_conditions={
+            conditions={
                 'tmp_dir_state': 'exist',
                 'tmp_dir_content': 'token_not_found'},
             effects={

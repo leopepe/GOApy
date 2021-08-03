@@ -52,13 +52,13 @@ class PlannerTest(unittest.TestCase):
     def setUpDirHandlerCMD(self):
         self.dir_handler_cmd.add(
             name='CreateTmpDir',
-            pre_conditions={'tmp_dir_state': False, 'tmp_dir_content': False},
+            conditions={'tmp_dir_state': False, 'tmp_dir_content': False},
             effects={'tmp_dir_state': True, 'tmp_dir_content': False},
             func=self.mkdir
         )
         self.dir_handler_cmd.add(
             name='CreateToken',
-            pre_conditions={'tmp_dir_state': True, 'tmp_dir_content': False},
+            conditions={'tmp_dir_state': True, 'tmp_dir_content': False},
             effects={'tmp_dir_state': True, 'tmp_dir_content': True},
             func=self.mktoken
         )
@@ -66,7 +66,7 @@ class PlannerTest(unittest.TestCase):
     def setUpLvmCMD(self):
         self.lv_act.add(
             name='ExpandLV',
-            pre_conditions={
+            conditions={
                 'lv_need_expansion': True,
                 'vg_need_expansion': False,
             },
@@ -78,7 +78,7 @@ class PlannerTest(unittest.TestCase):
         )
         self.lv_act.add(
             name='ExpandVG',
-            pre_conditions={
+            conditions={
                 'vg_need_expansion': True,
                 'pv_need_expansion': False,
             },
@@ -89,7 +89,7 @@ class PlannerTest(unittest.TestCase):
         )
         self.lv_act.add(
             name='ExpandPV',
-            pre_conditions={
+            conditions={
                 'pv_need_expansion': True,
             },
             effects={
@@ -110,13 +110,13 @@ class PlannerTest(unittest.TestCase):
         acts = Actions()
         acts.add(
             name='CreateTmpDirIso',
-            pre_conditions={'tmp_dir_state': False, 'tmp_dir_content': False},
+            conditions={'tmp_dir_state': False, 'tmp_dir_content': False},
             effects={'tmp_dir_state': True, 'tmp_dir_content': False},
             func=self.mkdir
         )
         acts.add(
             name='CreateTokenIso',
-            pre_conditions={'tmp_dir_state': True, 'tmp_dir_content': False},
+            conditions={'tmp_dir_state': True, 'tmp_dir_content': False},
             effects={'tmp_dir_state': True, 'tmp_dir_content': True},
             func=self.mktoken
         )

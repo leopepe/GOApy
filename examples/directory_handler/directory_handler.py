@@ -33,7 +33,7 @@ def setup_actions():
     actions = Actions()
     actions.add(
         name='CreateTmpDir',
-        pre_conditions={
+        conditions={
             'tmp_dir_state': 'not_exist',
             'tmp_dir_content': 'token_not_found'},
         effects={
@@ -42,7 +42,7 @@ def setup_actions():
         func=mkdir)
     actions.add(
         name='CreateToken',
-        pre_conditions={
+        conditions={
             'tmp_dir_state': 'exist',
             'tmp_dir_content': 'token_not_found'},
         effects={

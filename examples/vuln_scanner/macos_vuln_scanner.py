@@ -56,7 +56,7 @@ def setup_actions() -> Actions:
     actions = Actions()
     actions.add(
         name="scan_http_hosts",
-        pre_conditions={},
+        conditions={},
         effects={},
         func=scan_http_hosts,
         cost=0.2

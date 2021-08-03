@@ -3,16 +3,23 @@ from goap.Errors import ActionAlreadyInCollectionError
 
 
 class Action:
+    """ The Action class defines the interface used by the planner
+        to convert the actions into graph node's edges
+    func: Callable, a function or callable object
+    name: Action name used as ID
+    conditions: 
+    """
+
     def __init__(
             self,
             func: Callable,
             name: str,
-            pre_conditions: dict,
+            conditions: dict,
             effects: dict,
             cost: float = 0.1):
         self.func = func
         self.name = name
-        self.pre_conditions = pre_conditions
+        self.conditions = conditions
         self.effects = effects
         self.cost = cost
         self._response: Optional[ActionResponse] = None
@@ -173,7 +180,7 @@ class Actions:
             pre_conditions: dict) -> Optional[List[Action]]:
         result = []
         for action in self.actions:
-            if action.pre_conditions == pre_conditions:
+            if action.conditions == pre_conditions:
                 result.append(action)
         return result
 
@@ -189,7 +196,7 @@ class Actions:
     def add(
             self,
             name: str,
-            pre_conditions: dict,
+            conditions: dict,
             effects: dict,
             func: Callable,
             cost: float = 0.1):
@@ -198,7 +205,7 @@ class Actions:
                 f"The action name {name} is already in use"
             )
         self.actions.append(
-            Action(func, name, pre_conditions, effects, cost)
+            Action(func, name, conditions, effects, cost)
         )
 
     def remove(self, name: str):
@@ -219,7 +226,7 @@ class Actions:
     def compare_actions(action1: Action, action2: Action) -> bool:
         result = False
         if (
-            action1.pre_conditions == action2.pre_conditions
+            action1.conditions == action2.conditions
             and action1.effects == action2.effects
 
         ):

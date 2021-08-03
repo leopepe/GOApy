@@ -188,7 +188,7 @@ class Planner(object):
         self.states.add(Node(world_state))
         self.states.add(Node(goal))
         for action in actions:
-            pre = {**world_state, **action.pre_conditions}
+            pre = {**world_state, **action.conditions}
             eff = {**pre, **action.effects}
             self.states.add(Node(attributes=pre))
             self.states.add(Node(attributes=eff))
@@ -196,7 +196,7 @@ class Planner(object):
     def __generate_transitions(self, actions, states):
         for action in actions:
             for state in states:
-                if action.pre_conditions.items() <= state.attributes.items():
+                if action.conditions.items() <= state.attributes.items():
                     attr = {**state.attributes, **action.effects}
                     suc = self.states.get(attr)
                     self.transitions.add(
