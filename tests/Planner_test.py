@@ -1,4 +1,4 @@
-from Goap.utils.os.ShellCommand import ShellCommand
+from goap.utils.os.shell_command import ShellCommand
 from os import path
 import unittest
 import subprocess
@@ -6,9 +6,9 @@ from pprint import PrettyPrinter
 
 import networkx as nx
 
-from Goap.WorldState import WorldState
-from Goap.Action import Actions
-from Goap.Planner import Planner
+from goap.WorldState import WorldState
+from goap.Action import Actions
+from goap.Planner import Planner
 
 
 class PlannerTest(unittest.TestCase):
@@ -104,8 +104,8 @@ class PlannerTest(unittest.TestCase):
         assert self.gs == self.planner.goal
 
     def test_graph_isomorphic(self):
-        from Goap.Planner import Node
-        from Goap.Planner import Edge
+        from goap.Planner import Node
+        from goap.Planner import Edge
 
         acts = Actions()
         acts.add(

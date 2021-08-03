@@ -1,6 +1,6 @@
 from typing import Callable, List
 
-from Goap.Errors import SensorAlreadyInCollectionError, SensorDoesNotExistError
+from goap.Errors import SensorAlreadyInCollectionError, SensorDoesNotExistError
 
 
 class Sensor:

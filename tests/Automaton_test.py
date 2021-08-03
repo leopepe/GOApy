@@ -3,10 +3,10 @@ import unittest
 from os import path
 from pprint import PrettyPrinter
 
-from Goap.Action import Action, Actions
-from Goap.Automaton import Automaton
-from Goap.Sensor import Sensor, Sensors
-from Goap.utils.os.ShellCommand import ShellCommand
+from goap.Action import Action, Actions
+from goap.Automaton import Automaton
+from goap.Sensor import Sensor, Sensors
+from goap.utils.os.shell_command import ShellCommand
 
 
 ENV_DIR = '/tmp/goap_tmp'

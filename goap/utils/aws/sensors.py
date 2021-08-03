@@ -37,10 +37,10 @@ class EC2Client(AWSClient):
             response = self.client.describe_instances(Filters=self.filters)
             return response
         except IOError as e:
-            raise IOError(f'{e}'
+            raise IOError(f'{e}')
 
     def __get_item(self, key):
-        vpcs=self.__desc()
+        vpcs = self.__desc()
         return [vpc[key] for vpc in vpcs].pop()
 
     def exec(self):
@@ -59,13 +59,13 @@ class VPCClient(AWSClient):
         :rtype: json
         """
         try:
-            response=self.client.describe_vpcs(Filters=self.filters)
+            response = self.client.describe_vpcs(Filters=self.filters)
             return response
         except IOError as e:
             raise('{}'.format(e))
 
     def __get_item(self, key):
-        vpcs=self.__desc()
+        vpcs = self.__desc()
         return [vpc[key] for vpc in vpcs].pop()
 
     def exec(self):
@@ -75,7 +75,7 @@ class VPCClient(AWSClient):
 class AWSCheckVPCUnique(VPCClient):
 
     def is_unique(self):
-        vpcs=self.__desc()
+        vpcs = self.__desc()
         if len(vpcs) >= 2:
             return False
         else:

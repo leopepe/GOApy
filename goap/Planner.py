@@ -1,4 +1,4 @@
-from Goap.Action import Actions
+from goap.Action import Actions
 import networkx as nx
 
 

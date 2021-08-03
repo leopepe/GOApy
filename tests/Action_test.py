@@ -1,9 +1,9 @@
 from typing import Optional
 import unittest
 
-from Goap.utils.os.ShellCommand import ShellCommand
-from Goap.Action import Actions, Action
-from Goap.Errors import ActionAlreadyInCollectionError
+from goap.utils.os.shell_command import ShellCommand
+from goap.Action import Actions, Action
+from goap.Errors import ActionAlreadyInCollectionError
 
 
 class ActionTest(unittest.TestCase):

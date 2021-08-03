@@ -1,6 +1,6 @@
-# from Goap.Action import ActionResponse
+# from goap.Action import ActionResponse
 from typing import Callable, List, Optional
-from Goap.Errors import ActionAlreadyInCollectionError
+from goap.Errors import ActionAlreadyInCollectionError
 
 
 class Action:

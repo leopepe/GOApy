@@ -1,10 +1,9 @@
 from datetime import datetime
 from automat import MethodicalMachine
-from Goap.Sensor import Sensors
-from Goap.Action import Actions
-from Goap.Planner import Planner
-from Goap.WorldState import WorldState
-from rx import Observable
+from goap.Sensor import Sensors
+from goap.Action import Actions
+from goap.Planner import Planner
+from goap.WorldState import WorldState
 from time import sleep
 
 
@@ -62,19 +61,20 @@ class Automaton:
         self.goal = {}
 
     def __sense_environment(self):
-        Observable.from_(
-            self.sensors). subscribe(
-            lambda sensor: self.working_memory.append(
+        for sensor in self.sensors:
+            self.working_memory.append(
                 Fact(
                     sensor=sensor.name,
                     data=sensor.exec(),
-                    binding=sensor.binding)))
-        Observable.from_(
-            self.working_memory). subscribe(
-            lambda fact: setattr(
+                    binding=sensor.binding
+                )
+            )
+        for fact in self.working_memory:
+            setattr(
                 self.world_state,
                 fact.binding,
-                fact.data.response))
+                fact.data.response
+            )
 
     def __set_action_plan(self):
         self.action_plan = self.planner.plan(self.world_state, self.goal)

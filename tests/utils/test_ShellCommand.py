@@ -1,4 +1,4 @@
-from Goap.utils.os.ShellCommand import ShellCommand
+from goap.utils.os.shell_command import ShellCommand
 
 
 def test_command_output():

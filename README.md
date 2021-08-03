@@ -23,10 +23,10 @@ To perform the search the planner sets a graph using the possible world states a
 From the AutomatonController class perspective the usage and interaction should be:
 
 ```python
-from Goap.utils.os.ShellCommand import ShellCommand
-from Goap.Action import Actions
-from Goap.Sensor import Sensors
-from Goap.Automaton import AutomatonController
+from goap.utils.os.shell_command import ShellCommand
+from goap.Action import Actions
+from goap.Sensor import Sensors
+from goap.Automaton import AutomatonController
 
 
 def setup_sensors():

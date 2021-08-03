@@ -1,19 +1,19 @@
 [tool.poetry]
 authors = ["Leonardo Pepe de Freitas <lpepefreitas@gmail.com>"]
 description = "Goal Oriented Action Planning alghorithm implementation in Python"
-name = "goapy"
-version = "0.2.1"
+name = "goap"
+version = "0.3.0"
 
 [tool.poetry.dependencies]
 Automat = "0.8.0"
 networkx = "2.3"
 python = "^3.8.5"
-rx = "1.6.0"
 typing = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 Sphinx = "1.5.2"
 autopep8 = "1.5.2"
+boto3 = "^1.16.23"
 conversion = "0.0.7"
 docutils = "0.13.1"
 flake8 = "^3.7.9"
@@ -22,7 +22,8 @@ pylint = "2.5.2"
 pytest = "5.3.5"
 rope = "^0.17.0"
 rx = "1.6.0"
-boto3 = "^1.16.23"
+toml = "^0.10.2"
+coveralls = "^3.2.0"
 
 [build-system]
 build-backend = "poetry.masonry.api"
