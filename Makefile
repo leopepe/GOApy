@@ -11,7 +11,7 @@ VERSION=$(shell poetry version|cut -d" " -f2)
 
 SHELL=/bin/bash
 
-PYTHON_VERSION=3.8.5
+PYTHON_VERSION=3.8.10
 PYTHON_MINOR_VERSION=3.8
 
 all: venv install-in-venv test
@@ -67,20 +67,17 @@ install:
 	python setup.py install
 
 format: venv
-	autopep8 --in-place --aggressive --aggressive --aggressive --recursive Goap/
+	autopep8 --in-place --aggressive --aggressive --aggressive --recursive goap/
 
 install-in-venv: venv install
-	python setup.py install
+	poetry run python setup.py install
 
 unittest: install-in-venv
 	@echo "Running unit tests"
-	pytest -v -s tests/
+	poetry run pytest -v -s tests/
 
-install-coveralls: venv install-in-venv
-	pip install coveralls
-
-test-coverage: install-coveralls
-	coverage run --source=Goap/ setup.py test
+test-coverage: venv
+	poetry run coverage run --source=goap/ setup.py test
 
 docker-build:
 	docker build -t goapy:$(shell poetry version|cut -d" " -f2) .
