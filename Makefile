@@ -1,24 +1,22 @@
 .PHONY: all
 
-REGISTRY_HOST=docker.io
-USERNAME=$(USER)
-NAME=$(shell basename $(PWD))
-
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-IMAGE=$(shell tr '[:upper:]' '[:lower:]' <<< $(NAME))
-
-VERSION=$(shell poetry version|cut -d" " -f2)
-
-SHELL=/bin/bash
-
 # the python version must be inline with:
 # * poetry, travis, docker
 PYTHON_VERSION=3.8.5
 PYTHON_MINOR_VERSION=3.8
+# docker
+REGISTRY_HOST=docker.io
+USERNAME=$(USER)
+NAME=$(shell basename $(PWD))
+IMAGE=$(shell tr '[:upper:]' '[:lower:]' <<< $(NAME))
+# 
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+VERSION=$(shell poetry version|cut -d" " -f2)
+SHELL=/bin/bash
 
-all: venv install-in-venv test
+all: test build
 
-test: unittest test-coverage
+test: format lint unittest test-coverage
 
 req:
 ifeq ($(shell which pyenv), "pyenv not found")
@@ -37,6 +35,38 @@ else
 endif
 endif
 
+venv: req
+	poetry install
+
+install:
+	poetry run python setup.py install
+
+format: venv
+	poetry run autopep8 --in-place --aggressive --aggressive --aggressive --recursive goap/
+
+lint: format
+	poetry run flake8 goap/
+
+install-in-venv: venv install
+	poetry run python setup.py install
+
+unittest: install-in-venv
+	@echo "Running unit tests"
+	poetry run pytest -v -s tests/
+
+test-coverage: venv
+	poetry run coverage run --source=goap/ setup.py test
+
+build:
+	poetry build
+
+docker-build:
+	docker build -t goapy:$(shell poetry version|cut -d" " -f2) .
+
+.PHONY: version
+version:
+	@poetry version|cut -d" " -f2
+
 patch:
 	poetry version patch
 	poetry version|cut -d" "  -f2 > .release
@@ -48,10 +78,6 @@ minor:
 major:
 	poetry version major
 	poetry version|cut -d" "  -f2 > .release
-
-.PHONY: version
-version:
-	@poetry version|cut -d" " -f2
 
 release-minor: minor tag
 
@@ -66,31 +92,6 @@ tag: check-status
 
 check-status:
 	test -n "$(git status -s .)" || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
-
-venv: req
-	poetry install
-
-install:
-	poetry run python setup.py install
-
-lint: format
-	poetry run flake8 goap/
-
-format: venv
-	autopep8 --in-place --aggressive --aggressive --aggressive --recursive goap/
-
-install-in-venv: venv install
-	poetry run python setup.py install
-
-unittest: install-in-venv
-	@echo "Running unit tests"
-	poetry run pytest -v -s tests/
-
-test-coverage: venv
-	poetry run coverage run --source=goap/ setup.py test
-
-docker-build:
-	docker build -t goapy:$(shell poetry version|cut -d" " -f2) .
 
 clean-venv:
 	rm -rf .venv/
