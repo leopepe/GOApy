@@ -177,12 +177,12 @@ class Actions:
 
         return result
 
-    def get_by_pre_conditions(
+    def get_by_conditions(
             self,
-            pre_conditions: dict) -> Optional[List[Action]]:
+            conditions: dict) -> Optional[List[Action]]:
         result = []
         for action in self.actions:
-            if action.conditions == pre_conditions:
+            if action.conditions == conditions:
                 result.append(action)
         return result
 

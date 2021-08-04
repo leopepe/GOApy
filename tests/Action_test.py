@@ -74,8 +74,8 @@ class ActionTest(unittest.TestCase):
             cost=0.1,
             func=ShellCommand("/bin/sh -c 'echo create_vpc'")
         )
-        actions = self.actions.get_by_pre_conditions(
-            pre_conditions={'directories': 'None'}
+        actions = self.actions.get_by_conditions(
+            conditions={'directories': 'None'}
         )
         assert len(actions) == 1
 
