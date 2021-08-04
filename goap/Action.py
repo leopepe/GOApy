@@ -230,7 +230,6 @@ class Actions:
         if (
             action1.conditions == action2.conditions
             and action1.effects == action2.effects
-
         ):
             result = True
 
