@@ -7,7 +7,9 @@ class Action:
         to convert the actions into graph node's edges
     func: Callable, a function or callable object
     name: Action name used as ID
-    conditions: 
+    conditions: the world state condition required for
+                this action to be executed
+    effect: what is the expected world state after the action execution
     """
 
     def __init__(
