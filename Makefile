@@ -79,7 +79,9 @@ major:
 	poetry version major
 	poetry version|cut -d" "  -f2 > .release
 
+release-patch: paatch tag
 release-minor: minor tag
+release-major: major tag
 
 tag: TAG=$(shell cat .release)
 tag: check-status
