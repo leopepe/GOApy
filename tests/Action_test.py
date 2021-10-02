@@ -1,9 +1,9 @@
 from typing import Optional
 import unittest
 
-from Goap.utils.os.ShellCommand import ShellCommand
-from Goap.Action import Actions, Action
-from Goap.Errors import ActionAlreadyInCollectionError
+from goap.utils.os.shell_command import ShellCommand
+from goap.Action import Actions, Action
+from goap.Errors import ActionAlreadyInCollectionError
 
 
 class ActionTest(unittest.TestCase):
@@ -16,7 +16,7 @@ class ActionTest(unittest.TestCase):
     def test_add_action(self):
         self.actions.add(
             name='create_dir',
-            pre_conditions={'dir': False},
+            conditions={'dir': False},
             effects={'dir': True},
             cost=0.1,
             func=ShellCommand('/bin/sh -c "ls -ltr /tmp/"')
@@ -28,14 +28,14 @@ class ActionTest(unittest.TestCase):
         actions = [
             Action(
                 name='create_dir',
-                pre_conditions={'dir': False},
+                conditions={'dir': False},
                 effects={'dir': True},
                 cost=0.1,
                 func=ShellCommand('/bin/sh -c "ls -ltr /tmp/"')
             ),
             Action(
                 name='create_vpc',
-                pre_conditions={'vpc_status': 'exist'},
+                conditions={'vpc_status': 'exist'},
                 effects={'vpc_status': 'exist'},
                 cost=0.1,
                 func=ShellCommand("/bin/sh -c 'echo create_vpc'")
@@ -47,7 +47,7 @@ class ActionTest(unittest.TestCase):
     def test_remove_existing_action(self):
         self.actions.add(
             name='create_gcp',
-            pre_conditions={'gcp_account_status': 'exist'},
+            conditions={'gcp_account_status': 'exist'},
             effects={'gcp_account_status': 'exist'},
             cost=0.1,
             func=ShellCommand("/bin/sh -c 'echo create_gcp_account'")
@@ -62,34 +62,34 @@ class ActionTest(unittest.TestCase):
     def test_get_by_precondition(self):
         self.actions.add(
             name='ls_call_home',
-            pre_conditions={'directories': 'None'},
+            conditions={'directories': 'None'},
             effects={'directories': 'some_dirs'},
             cost=0.1,
             func=ShellCommand('ls $HOME')
         )
         self.actions.add(
             name='create_vpc',
-            pre_conditions={'vpc_status': 'exist'},
+            conditions={'vpc_status': 'exist'},
             effects={'vpc_status': 'exist'},
             cost=0.1,
             func=ShellCommand("/bin/sh -c 'echo create_vpc'")
         )
-        actions = self.actions.get_by_pre_conditions(
-            pre_conditions={'directories': 'None'}
+        actions = self.actions.get_by_conditions(
+            conditions={'directories': 'None'}
         )
         assert len(actions) == 1
 
     def test_get_by_effects(self):
         self.actions.add(
             name='dummy',
-            pre_conditions={'dummy': 'None'},
+            conditions={'dummy': 'None'},
             effects={'dummy': 'some_dirs'},
             cost=0.1,
             func=ShellCommand('ls $HOME')
         )
         self.actions.add(
             name='dummy2',
-            pre_conditions={'vpc_status': 'exist'},
+            conditions={'vpc_status': 'exist'},
             effects={'vpc_status': 'exist'},
             cost=0.1,
             func=ShellCommand("/bin/sh -c 'echo create")
@@ -102,7 +102,7 @@ class ActionTest(unittest.TestCase):
     def test_unique_action_name(self):
         self.actions.add(
             name='create_gcp',
-            pre_conditions={'gcp_account_status': 'exist'},
+            conditions={'gcp_account_status': 'exist'},
             effects={'gcp_account_status': 'exist'},
             cost=0.1,
             func=ShellCommand("/bin/sh -c 'echo create_gcp_account'")
@@ -110,7 +110,7 @@ class ActionTest(unittest.TestCase):
         with self.assertRaises(ActionAlreadyInCollectionError):
             self.actions.add(
                 name='create_gcp',
-                pre_conditions={'gcp_account_status': 'exist'},
+                conditions={'gcp_account_status': 'exist'},
                 effects={'gcp_account_status': 'exist'},
                 cost=0.1,
                 func=ShellCommand("/bin/sh -c 'echo create_gcp_account'")
@@ -119,7 +119,7 @@ class ActionTest(unittest.TestCase):
     def test_fail_call_action(self):
         self.actions.add(
             name="failed",
-            pre_conditions={'state': 'none'},
+            conditions={'state': 'none'},
             effects={'state': 'done'},
             cost=0.1,
             func=ShellCommand(command='exit 1')
@@ -131,7 +131,7 @@ class ActionTest(unittest.TestCase):
     def test_call_action(self):
         self.actions.add(
             name="echo",
-            pre_conditions={'state': 'none'},
+            conditions={'state': 'none'},
             effects={'state': 'done'},
             cost=0.1,
             func=self.echo
@@ -144,7 +144,7 @@ class ActionTest(unittest.TestCase):
     def test_run_all(self):
         self.actions.add(
             name="test_run_all",
-            pre_conditions={'state': 'none'},
+            conditions={'state': 'none'},
             effects={'state': 'done'},
             cost=0.1,
             func=self.echo

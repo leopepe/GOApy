@@ -20,6 +20,10 @@ NOTES:
     The automatons need to be reactive: Change of states needs to trigger a plan
     The automatons need to communicate to each other and combine plans
 
+# DONE: v0.3.0
+* Removed rx depdenency
+* Make module and package name compatible with PEP-8 (rename to goap)
+
 # DONE: v0.2.1
 * Test coverage obove 80%
 * Refactor Actions and Sensors to receive func: Callable as parameter (no more ShellCommandAction and ObjectAction)

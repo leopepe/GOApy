@@ -1,6 +1,6 @@
 import toml
 from pathlib import Path
-import Goap
+import goap
 
 
 def test_versions_are_in_sync():
@@ -10,6 +10,6 @@ def test_versions_are_in_sync():
     pyproject = toml.loads(open(str(path)).read())
     pyproject_version = pyproject["tool"]["poetry"]["version"]
 
-    package_init_version = Goap.__version__
+    package_init_version = goap.__version__
 
     assert package_init_version == pyproject_version

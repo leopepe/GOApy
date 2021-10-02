@@ -1,4 +1,4 @@
-from Goap.Action import Actions
+from goap.Action import Actions
 import networkx as nx
 
 
@@ -141,7 +141,7 @@ class Graph(object):
 
     def path(self, src: dict, dst: dict):
         if not self.__is_dst(src, dst):
-            return nx.astar_path(self.directed, src, dst)
+            return nx.astar_path(self.directed, src, dst, weight='weight')
 
     def plot(self, file_path: str):
         try:
@@ -188,7 +188,7 @@ class Planner(object):
         self.states.add(Node(world_state))
         self.states.add(Node(goal))
         for action in actions:
-            pre = {**world_state, **action.pre_conditions}
+            pre = {**world_state, **action.conditions}
             eff = {**pre, **action.effects}
             self.states.add(Node(attributes=pre))
             self.states.add(Node(attributes=eff))
@@ -196,7 +196,7 @@ class Planner(object):
     def __generate_transitions(self, actions, states):
         for action in actions:
             for state in states:
-                if action.pre_conditions.items() <= state.attributes.items():
+                if action.conditions.items() <= state.attributes.items():
                     attr = {**state.attributes, **action.effects}
                     suc = self.states.get(attr)
                     self.transitions.add(
@@ -213,12 +213,12 @@ class Planner(object):
         self.__generate_states(self.actions, self.world_state, self.goal)
         self.__generate_transitions(self.actions, self.states)
         self.graph = Graph(self.states, self.transitions)
-        ws_node = self.states.get(state)
-        gs_node = self.states.get(goal)
+        world_state_node = self.states.get(state)
+        goal_node = self.states.get(goal)
         plan = []
         if state != goal:
             try:
-                path = self.graph.path(ws_node, gs_node)
+                path = self.graph.path(world_state_node, goal_node)
             except EnvironmentError as e:
                 print(f"No possible path: {e}")
 

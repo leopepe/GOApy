@@ -1,8 +1,8 @@
 from typing import Callable
 import unittest
 
-from Goap.Sensor import Sensors, Sensor
-from Goap.utils.os.ShellCommand import ShellCommand
+from goap.Sensor import Sensors, Sensor
+from goap.utils.os.shell_command import ShellCommand
 
 
 class SensorResponseTest(unittest.TestCase):

@@ -1,7 +1,7 @@
-from Goap.utils.os.ShellCommand import ShellCommand
-from Goap.Action import Actions
-from Goap.Sensor import Sensors
-from Goap.Automaton import AutomatonController
+from goap.utils.os.shell_command import ShellCommand
+from goap.Action import Actions
+from goap.Sensor import Sensors
+from goap.Automaton import AutomatonController
 
 
 TARGET_FILE_PATH = '/tmp/target_hosts.txt'
@@ -56,7 +56,7 @@ def setup_actions() -> Actions:
     actions = Actions()
     actions.add(
         name="scan_http_hosts",
-        pre_conditions={},
+        conditions={},
         effects={},
         func=scan_http_hosts,
         cost=0.2

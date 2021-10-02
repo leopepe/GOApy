@@ -1,7 +1,7 @@
-from Goap.utils.os.ShellCommand import ShellCommand
-from Goap.Action import Actions
-from Goap.Sensor import Sensors
-from Goap.Automaton import AutomatonController
+from goap.utils.os.shell_command import ShellCommand
+from goap.Action import Actions
+from goap.Sensor import Sensors
+from goap.Automaton import AutomatonController
 
 
 def setup_sensors():
@@ -33,7 +33,7 @@ def setup_actions():
     actions = Actions()
     actions.add(
         name='CreateTmpDir',
-        pre_conditions={
+        conditions={
             'tmp_dir_state': 'not_exist',
             'tmp_dir_content': 'token_not_found'},
         effects={
@@ -42,7 +42,7 @@ def setup_actions():
         func=mkdir)
     actions.add(
         name='CreateToken',
-        pre_conditions={
+        conditions={
             'tmp_dir_state': 'exist',
             'tmp_dir_content': 'token_not_found'},
         effects={

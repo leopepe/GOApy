@@ -3,10 +3,10 @@ import unittest
 from os import path
 from pprint import PrettyPrinter
 
-from Goap.Action import Action, Actions
-from Goap.Automaton import Automaton
-from Goap.Sensor import Sensor, Sensors
-from Goap.utils.os.ShellCommand import ShellCommand
+from goap.Action import Action, Actions
+from goap.Automaton import Automaton
+from goap.Sensor import Sensor, Sensors
+from goap.utils.os.shell_command import ShellCommand
 
 
 ENV_DIR = '/tmp/goap_tmp'
@@ -43,7 +43,7 @@ class AutomatonTest(unittest.TestCase):
     def setupActions(self):
         self.create_dir = Action(
             name='CreateDir',
-            pre_conditions={
+            conditions={
                 'tmp_dir_state': 'not_exist',
                 'tmp_dir_content': 'token_not_found'},
             effects={
@@ -53,7 +53,7 @@ class AutomatonTest(unittest.TestCase):
         )
         self.create_file_token = Action(
             name='CreateFileToken',
-            pre_conditions={
+            conditions={
                 'tmp_dir_state': 'exist',
                 'tmp_dir_content': 'token_not_found'},
             effects={

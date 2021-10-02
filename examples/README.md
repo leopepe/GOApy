@@ -10,9 +10,9 @@ Based on the state of the directory the automaton would  make the decision on wh
 ### Code
 
 ```python
-from Goap.Action import Actions
-from Goap.Sensor import Sensors
-from Goap.Automaton import AutomatonController
+from goap.Action import Actions
+from goap.Sensor import Sensors
+from goap.Automaton import AutomatonController
 
 
 def setup_sensors():
